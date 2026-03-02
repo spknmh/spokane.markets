@@ -11,15 +11,30 @@ function shouldBypass(pathname: string): boolean {
   return BYPASS_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
+function getApiBase(request: NextRequest): string {
+  // Use configured app URL when behind reverse proxy (Docker, Caddy). Fallback to request origin for local dev.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl) {
+    try {
+      new URL(appUrl);
+      return appUrl.replace(/\/$/, "");
+    } catch {
+      /* invalid, use fallback */
+    }
+  }
+  return request.nextUrl.origin;
+}
+
 export async function middleware(request: NextRequest) {
   if (shouldBypass(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
 
   try {
-    const url = new URL("/api/site-config/landing", request.nextUrl.origin);
-    const res = await fetch(url.toString(), {
-      headers: request.headers,
+    const base = getApiBase(request);
+    const url = `${base}/api/site-config/landing`;
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
       next: { revalidate: 10 },
     });
     if (!res.ok) return NextResponse.next();

@@ -101,6 +101,8 @@ This document catalogs all 60 routes and their accessibility via navigation.
 
 When enabled in Admin → Landing Page, visitors see a configurable landing page instead of the main site. Use for "Coming Soon" or "Down for Maintenance". Admins can always access `/admin` to toggle off or edit header/text. Routes `/admin`, `/api`, `/auth`, and `/landing` always bypass the landing page.
 
+**Required:** Set `NEXT_PUBLIC_APP_URL` in `.env.local` (e.g. `https://spokane.markets` or `http://localhost:3000`). The middleware uses this to fetch the landing config when behind a reverse proxy. Test in incognito or a different browser—visit `/` to see the landing page.
+
 
 ---
 
