@@ -10,6 +10,8 @@ FROM base AS builder
 WORKDIR /app
 COPY . .
 RUN mkdir -p public
+# prisma generate needs DATABASE_URL in config; placeholder suffices (no DB connection)
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 RUN npx prisma generate
 RUN npm run build
 
