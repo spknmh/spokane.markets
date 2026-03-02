@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { userProfilePatchSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
 
 export async function PATCH(request: Request) {
@@ -9,14 +10,21 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { name, image } = body;
+  const parsed = userProfilePatchSchema.safeParse(body);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    return NextResponse.json(
+      { error: first?.message ?? "Invalid input" },
+      { status: 400 },
+    );
+  }
 
   const data: { name?: string; image?: string | null } = {};
-  if (typeof name === "string" && name.trim()) {
-    data.name = name.trim();
+  if (parsed.data.name !== undefined) {
+    data.name = parsed.data.name;
   }
-  if (image !== undefined) {
-    data.image = typeof image === "string" ? image : null;
+  if (parsed.data.image !== undefined) {
+    data.image = parsed.data.image;
   }
 
   if (Object.keys(data).length === 0) {

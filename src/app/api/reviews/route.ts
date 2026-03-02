@@ -2,11 +2,21 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { reviewSchema } from "@/lib/validations";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { ok, retryAfter } = checkRateLimit(session.user.id, "reviews");
+  if (!ok) {
+    const headers = retryAfter ? { "Retry-After": String(retryAfter) } : undefined;
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers }
+    );
   }
 
   const body = await request.json();
@@ -24,6 +34,19 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Either eventId or marketId is required" },
       { status: 400 }
+    );
+  }
+
+  const existing = await db.review.findFirst({
+    where: {
+      userId: session.user.id!,
+      ...(eventId ? { eventId } : { marketId: marketId! }),
+    },
+  });
+  if (existing) {
+    return NextResponse.json(
+      { error: "You have already reviewed this event or market." },
+      { status: 409 }
     );
   }
 

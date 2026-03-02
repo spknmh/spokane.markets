@@ -119,6 +119,15 @@ export async function updateReviewStatus(id: string, status: "APPROVED" | "REJEC
   revalidatePath("/admin/reviews");
 }
 
+export async function updatePhotoStatus(id: string, status: "APPROVED" | "REJECTED") {
+  await requireAdminAction();
+  await db.photo.update({
+    where: { id },
+    data: { status },
+  });
+  revalidatePath("/admin/photos");
+}
+
 export async function updateClaimStatus(id: string, status: "APPROVED" | "REJECTED") {
   const session = await requireAdminAction();
   const claim = await db.claimRequest.update({

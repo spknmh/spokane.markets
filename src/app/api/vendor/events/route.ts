@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { sendVendorFavoriteAlerts } from "@/lib/vendor-alerts";
+import { vendorEventsSchema } from "@/lib/validations";
 
 export async function GET() {
   try {
@@ -64,14 +65,15 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { eventId } = body as { eventId?: string };
-
-    if (!eventId) {
+    const parsed = vendorEventsSchema.safeParse(body);
+    if (!parsed.success) {
+      const first = parsed.error.issues[0];
       return NextResponse.json(
-        { error: "eventId is required" },
+        { error: first?.message ?? "Invalid input" },
         { status: 400 },
       );
     }
+    const { eventId } = parsed.data;
 
     const event = await db.event.findUnique({ where: { id: eventId } });
     if (!event || event.status !== "PUBLISHED") {

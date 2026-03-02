@@ -198,6 +198,17 @@ export const savedFilterSchema = z.object({
 });
 export type SavedFilterInput = z.infer<typeof savedFilterSchema>;
 
+export const vendorEventsSchema = z.object({
+  eventId: z.string().cuid("Invalid event ID"),
+});
+export type VendorEventsInput = z.infer<typeof vendorEventsSchema>;
+
+export const userProfilePatchSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  image: z.string().url().optional().nullable(),
+});
+export type UserProfilePatchInput = z.infer<typeof userProfilePatchSchema>;
+
 export const organizerEventSchema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),

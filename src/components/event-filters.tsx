@@ -1,20 +1,27 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DATE_FILTERS, NEIGHBORHOODS, CATEGORIES, FEATURES } from "@/lib/constants";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 export function EventFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const activeDateRange = searchParams.get("dateRange") ?? "weekend";
+  const activeDateRange = searchParams.get("dateRange") ?? "all";
   const activeNeighborhood = searchParams.get("neighborhood") ?? "";
   const activeCategory = searchParams.get("category") ?? "";
   const activeFeature = searchParams.get("feature") ?? "";
+  const activeQuery = searchParams.get("q") ?? "";
+  const [queryInput, setQueryInput] = useState(activeQuery);
+
+  useEffect(() => {
+    setQueryInput(activeQuery);
+  }, [activeQuery]);
 
   const updateFilter = useCallback(
     (key: string, value: string) => {
@@ -31,6 +38,34 @@ export function EventFilters() {
 
   return (
     <div className="space-y-4">
+      {/* Search */}
+      <div className="space-y-1.5">
+        <Label htmlFor="filter-search" className="text-sm font-medium text-muted-foreground">
+          Search
+        </Label>
+        <Input
+          id="filter-search"
+          type="search"
+          placeholder="Search events..."
+          value={queryInput}
+          onChange={(e) => setQueryInput(e.target.value)}
+          onBlur={() => {
+            if (queryInput !== activeQuery) {
+              updateFilter("q", queryInput);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (queryInput !== activeQuery) {
+                updateFilter("q", queryInput);
+              }
+            }
+          }}
+          className="h-9"
+        />
+      </div>
+
       {/* Date Range */}
       <div className="space-y-1.5">
         <Label htmlFor="filter-date" className="text-sm font-medium text-muted-foreground">

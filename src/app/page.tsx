@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { EventCard } from "@/components/event-card";
 import { Input } from "@/components/ui/input";
 import { AuthGate } from "@/components/auth-gate";
-import { COMMUNITY_IMAGES } from "@/lib/community-images";
+import { getBannerImages } from "@/lib/banner-images";
 
 function getUpcomingWeekendRange(): { start: Date; end: Date } {
   const now = new Date();
@@ -32,6 +32,7 @@ function getUpcomingWeekendRange(): { start: Date; end: Date } {
 
 export default async function HomePage() {
   const session = await auth();
+  const banners = await getBannerImages();
   const { start, end } = getUpcomingWeekendRange();
 
   const weekendEvents = await db.event.findMany({
@@ -55,12 +56,13 @@ export default async function HomePage() {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src={COMMUNITY_IMAGES.hero}
+            src={banners.hero}
             alt="Local farmers market"
             fill
             className="object-cover"
             priority
             sizes="100vw"
+            unoptimized={banners.hero.startsWith("/uploads/")}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" />
         </div>

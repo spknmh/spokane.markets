@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { db } from "@/lib/db";
-import { COMMUNITY_IMAGES } from "@/lib/community-images";
+import { getBannerImages } from "@/lib/banner-images";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -9,7 +9,8 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Calendar } from "lucide-react";
+import { formatNeighborhoodLabel } from "@/lib/utils";
 import type { VerificationStatus } from "@prisma/client";
 
 function truncate(str: string | null | undefined, len: number): string {
@@ -28,6 +29,7 @@ function VerificationBadge({ status }: { status: VerificationStatus }) {
 }
 
 export default async function MarketsPage() {
+  const banners = await getBannerImages();
   const markets = await db.market.findMany({
     orderBy: { name: "asc" },
   });
@@ -36,11 +38,12 @@ export default async function MarketsPage() {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="relative mb-10 overflow-hidden rounded-xl">
         <Image
-          src={COMMUNITY_IMAGES.farmersMarket}
+          src={banners.farmersMarket}
           alt=""
           width={1200}
           height={300}
           className="h-40 w-full object-cover sm:h-48"
+          unoptimized={banners.farmersMarket.startsWith("/uploads/")}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
@@ -57,19 +60,26 @@ export default async function MarketsPage() {
           <Link key={market.id} href={`/markets/${market.slug}`}>
             <Card className="h-full border-2 transition-all hover:shadow-lg hover:border-primary/50">
               <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
-                <CardTitle className="font-sans line-clamp-2 text-lg font-bold text-foreground">{market.name}</CardTitle>
-                <div className="flex shrink-0 flex-wrap gap-1">
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="font-sans text-lg font-bold text-foreground">{market.name}</CardTitle>
                   {market.baseArea && (
-                    <Badge variant="outline">{market.baseArea}</Badge>
+                    <Badge variant="outline" className="mt-2">
+                      {formatNeighborhoodLabel(market.baseArea)}
+                    </Badge>
                   )}
-                  <VerificationBadge status={market.verificationStatus} />
                 </div>
+                {market.verificationStatus === "VERIFIED" && (
+                  <div className="shrink-0">
+                    <VerificationBadge status={market.verificationStatus} />
+                  </div>
+                )}
               </CardHeader>
               <CardContent className="space-y-2">
                 {market.typicalSchedule && (
-                  <p className="text-sm font-semibold text-foreground">
-                    {market.typicalSchedule}
-                  </p>
+                  <div className="flex items-start gap-2 text-sm text-foreground">
+                    <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                    <span>{market.typicalSchedule}</span>
+                  </div>
                 )}
                 {market.description && (
                   <p className="line-clamp-2 text-sm font-medium text-foreground">

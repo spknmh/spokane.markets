@@ -1,12 +1,22 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { claimRequestSchema } from "@/lib/validations";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: { message: "Unauthorized" } }, { status: 401 });
+  }
+
+  const { ok, retryAfter } = checkRateLimit(session.user.id, "claims");
+  if (!ok) {
+    const headers = retryAfter ? { "Retry-After": String(retryAfter) } : undefined;
+    return NextResponse.json(
+      { error: { message: "Too many requests. Please try again later." } },
+      { status: 429, headers }
+    );
   }
 
   const body = await request.json();

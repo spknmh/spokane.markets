@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Resend } from "resend";
+import { sendWithUnsubscribeHeaders } from "../src/server/email/send-with-headers";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -94,11 +95,12 @@ async function main() {
       </html>`;
 
     try {
-      await resend.emails.send({
+      await sendWithUnsubscribeHeaders(resend, {
         from: "Spokane Markets <digest@spokane.market>",
         to: subscriber.email,
         subject: "This Week in Spokane Markets",
         html,
+        unsubscribe: { type: "digest", email: subscriber.email },
       });
       sentCount++;
       console.log(`Sent to ${subscriber.email}`);

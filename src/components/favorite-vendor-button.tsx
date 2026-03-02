@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useOptimistic, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
+import { AuthRequiredModal } from "@/components/auth-required-modal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +16,7 @@ interface FavoriteVendorButtonProps {
   /** Stop click propagation (e.g. when inside a card Link) */
   stopPropagation?: boolean;
   className?: string;
+  callbackUrl?: string;
 }
 
 export function FavoriteVendorButton({
@@ -23,9 +26,11 @@ export function FavoriteVendorButton({
   iconOnly = false,
   stopPropagation = false,
   className,
+  callbackUrl = "/vendors",
 }: FavoriteVendorButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [optimistic, setOptimistic] = useOptimistic(
     { favorited: initialFavorited, emailAlerts: initialEmailAlerts },
     (current, action: "toggle" | { emailAlerts: boolean }) => {
@@ -44,7 +49,7 @@ export function FavoriteVendorButton({
         method: "POST",
       });
       if (res.status === 401) {
-        router.push("/auth/signin");
+        setAuthModalOpen(true);
         return;
       }
       router.refresh();
@@ -65,6 +70,7 @@ export function FavoriteVendorButton({
   }
 
   return (
+    <>
     <div className={cn("flex flex-wrap items-center gap-3", className)}>
       <Button
         variant="ghost"
@@ -100,5 +106,11 @@ export function FavoriteVendorButton({
         </label>
       )}
     </div>
+    <AuthRequiredModal
+      open={authModalOpen}
+      onOpenChange={setAuthModalOpen}
+      callbackUrl={callbackUrl}
+    />
+    </>
   );
 }

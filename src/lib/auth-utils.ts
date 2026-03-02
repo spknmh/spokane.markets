@@ -1,11 +1,13 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import type { Role } from "@prisma/client";
+import { isValidCallbackUrl } from "@/lib/utils";
 
 export async function requireAuth(callbackPath?: string) {
   const session = await auth();
   if (!session?.user) {
-    redirect(`/auth/signin?callbackUrl=${encodeURIComponent(callbackPath || "/")}`);
+    const safePath = isValidCallbackUrl(callbackPath) ? callbackPath : "/";
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent(safePath || "/")}`);
   }
   return session;
 }

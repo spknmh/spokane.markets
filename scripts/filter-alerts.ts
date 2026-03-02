@@ -7,6 +7,7 @@
 import { PrismaClient, type Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Resend } from "resend";
+import { sendWithUnsubscribeHeaders } from "../src/server/email/send-with-headers";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -157,7 +158,7 @@ async function main() {
     const totalEvents = filterResults.reduce((sum, r) => sum + r.events.length, 0);
 
     try {
-      await resend.emails.send({
+      await sendWithUnsubscribeHeaders(resend, {
         from: "Spokane Markets <alerts@spokane.market>",
         to: email,
         subject: `${totalEvents} new event${totalEvents === 1 ? "" : "s"} matching your filters`,
@@ -166,7 +167,9 @@ async function main() {
           <p>New events were published in the last 24 hours that match your saved filters:</p>
           ${eventListHtml}
           <p><a href="${APP_URL}/settings/filters">Manage your filters</a></p>
+          <p><a href="${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}&source=filters">Unsubscribe from filter alerts</a></p>
         `,
+        unsubscribe: { type: "filters", email },
       });
       totalEmails++;
       console.log(`Sent alert to ${email} (${filterResults.length} filters, ${totalEvents} events)`);

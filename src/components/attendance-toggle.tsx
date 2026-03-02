@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useOptimistic, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Star } from "lucide-react";
+import { AuthRequiredModal } from "@/components/auth-required-modal";
 import { cn } from "@/lib/utils";
 
 interface AttendanceToggleProps {
@@ -11,6 +13,7 @@ interface AttendanceToggleProps {
   initialGoingCount: number;
   initialInterestedCount: number;
   initialUserStatus: "GOING" | "INTERESTED" | null;
+  callbackUrl?: string;
 }
 
 interface AttendanceState {
@@ -25,9 +28,11 @@ export function AttendanceToggle({
   initialGoingCount,
   initialInterestedCount,
   initialUserStatus,
+  callbackUrl = "/",
 }: AttendanceToggleProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const [optimistic, setOptimistic] = useOptimistic<AttendanceState, "GOING" | "INTERESTED">(
     {
@@ -71,7 +76,7 @@ export function AttendanceToggle({
       });
 
       if (res.status === 401) {
-        router.push("/auth/signin");
+        setAuthModalOpen(true);
         return;
       }
 
@@ -83,6 +88,7 @@ export function AttendanceToggle({
   const isInterested = optimistic.userStatus === "INTERESTED";
 
   return (
+    <>
     <div className="mt-6 rounded-xl border border-border bg-muted/30 p-4">
       <p className="mb-3 text-sm font-medium text-foreground">
         Planning to attend? Let others know!
@@ -118,5 +124,11 @@ export function AttendanceToggle({
         </button>
       </div>
     </div>
+    <AuthRequiredModal
+      open={authModalOpen}
+      onOpenChange={setAuthModalOpen}
+      callbackUrl={callbackUrl}
+    />
+    </>
   );
 }

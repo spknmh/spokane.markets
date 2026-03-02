@@ -151,7 +151,30 @@ sudo ufw allow 22
 sudo ufw enable
 ```
 
-## 8. Troubleshooting
+## 8. Cron Jobs (Digest & Filter Alerts)
+
+The `cron` service runs:
+- **Weekly digest** (Mondays 9:00): `scripts/weekly-digest.ts` — emails subscribers with upcoming events
+- **Filter alerts** (daily 8:00): `scripts/filter-alerts.ts` — emails users with saved filters when new events match
+
+The cron service uses the same image as `init` and shares `.env.local`. Ensure `RESEND_API_KEY` is set for email delivery.
+
+**Alternative: host crontab** (if Docker cron is unreliable):
+
+```bash
+# Add to crontab -e
+0 9 * * 1 cd /path/to/spokane.markets && docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm web npm run digest
+0 8 * * * cd /path/to/spokane.markets && docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm web npm run filter-alerts
+```
+
+Note: The web image is standalone and may not include tsx. Use the init image instead:
+
+```bash
+0 9 * * 1 cd /path/to/spokane.markets && docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm init npm run digest
+0 8 * * * cd /path/to/spokane.markets && docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm init npm run filter-alerts
+```
+
+## 9. Troubleshooting
 
 | Issue | Check |
 |-------|-------|
@@ -162,3 +185,4 @@ sudo ufw enable
 | SSH deploy fails | `SERVER_SSH_KEY` includes full key; server allows key auth |
 | **TLS cert error** (`remote error: tls: internal error`) | Caddyfile uses `disable_tlsalpn_challenge` to force HTTP-01. Ensure ports 80 and 443 are open (`ufw status`), DNS points to server IP, and no proxy/load balancer terminates TLS before Caddy. If behind Cloudflare or similar, use DNS-01 challenge instead. |
 | **Build `npm ci` ECONNRESET** | Transient network failure. Retry the build. The Dockerfile sets `fetch-retries`, `fetch-retry-mintimeout`, and `fetch-retry-maxtimeout` to harden against this. If it persists: `docker build --network host -t ... .` or check proxy/firewall. |
+| **Cron not running** | Check `docker compose logs cron`. Ensure init image has crond (Alpine). If missing, use host crontab (see §8). |

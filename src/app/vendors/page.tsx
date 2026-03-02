@@ -2,7 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { COMMUNITY_IMAGES } from "@/lib/community-images";
+import { Pagination } from "@/components/pagination";
+import { getBannerImages } from "@/lib/banner-images";
 import { Badge } from "@/components/ui/badge";
 import { FavoriteVendorButton } from "@/components/favorite-vendor-button";
 import {
@@ -13,19 +14,35 @@ import {
 } from "@/components/ui/card";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 
+const DEFAULT_LIMIT = 24;
+
 function truncate(str: string | null | undefined, len: number): string {
   if (!str) return "";
   return str.length > len ? str.slice(0, len).trim() + "\u2026" : str;
 }
 
-export default async function VendorsPage() {
-  const [session, vendors] = await Promise.all([
+export default async function VendorsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; limit?: string }>;
+}) {
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
+
+  const [session, vendors, totalCount, banners] = await Promise.all([
     auth(),
     db.vendorProfile.findMany({
       orderBy: { businessName: "asc" },
       include: { _count: { select: { vendorEvents: true } } },
+      skip: (page - 1) * limit,
+      take: limit,
     }),
+    db.vendorProfile.count(),
+    getBannerImages(),
   ]);
+
+  const totalPages = Math.ceil(totalCount / limit);
 
   const favoriteIds = session?.user
     ? (
@@ -43,11 +60,12 @@ export default async function VendorsPage() {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="relative mb-10 overflow-hidden rounded-xl">
         <Image
-          src={COMMUNITY_IMAGES.localVendor}
+          src={banners.localVendor}
           alt=""
           width={1200}
           height={300}
           className="h-40 w-full object-cover sm:h-48"
+          unoptimized={banners.localVendor.startsWith("/uploads/")}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
@@ -65,6 +83,7 @@ export default async function VendorsPage() {
           No vendor profiles yet. Check back soon!
         </p>
       ) : (
+        <>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {vendors.map((vendor) => (
             <Link key={vendor.id} href={`/vendors/${vendor.slug}`}>
@@ -124,6 +143,13 @@ export default async function VendorsPage() {
             </Link>
           ))}
         </div>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalCount}
+          limit={limit}
+        />
+        </>
       )}
     </div>
   );

@@ -1,8 +1,20 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { NEIGHBORHOODS } from "@/lib/constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+/** Returns display label for a neighborhood/baseArea slug, or title-cased fallback. */
+export function formatNeighborhoodLabel(slug: string | null | undefined): string {
+  if (!slug) return "";
+  const found = NEIGHBORHOODS.find((n) => n.value === slug);
+  if (found) return found.label;
+  return slug
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
 }
 
 export function slugify(text: string): string {
@@ -52,6 +64,15 @@ export function formatDateRange(start: Date, end: Date): string {
 
 export function getDirectionsUrl(address: string): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+}
+
+/**
+ * Validates callbackUrl to prevent open redirect attacks.
+ * Only allows relative paths (e.g. /events, /vendor/dashboard).
+ */
+export function isValidCallbackUrl(url: string | null | undefined): boolean {
+  if (url == null || typeof url !== "string" || url === "") return false;
+  return url.startsWith("/") && !url.startsWith("//");
 }
 
 export function getCompletenessScore(event: Record<string, unknown>): { score: number; total: number } {

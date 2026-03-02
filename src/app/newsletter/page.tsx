@@ -1,17 +1,19 @@
 import Image from "next/image";
 import { NewsletterForm } from "@/components/newsletter-form";
-import { COMMUNITY_IMAGES } from "@/lib/community-images";
+import { getBannerImages } from "@/lib/banner-images";
 
-export default function NewsletterPage() {
+export default async function NewsletterPage() {
+  const banners = await getBannerImages();
   return (
     <div className="mx-auto max-w-xl px-4 py-12">
       <div className="mb-8 overflow-hidden rounded-xl">
         <Image
-          src={COMMUNITY_IMAGES.marketCrowd}
+          src={banners.marketCrowd}
           alt=""
           width={800}
           height={200}
           className="h-40 w-full object-cover"
+          unoptimized={banners.marketCrowd.startsWith("/uploads/")}
         />
       </div>
       <div className="mb-8 text-center">

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { COMMUNITY_IMAGES } from "@/lib/community-images";
+import { getBannerImages } from "@/lib/banner-images";
 
 export const metadata: Metadata = {
   title: "About & Contact — Spokane Markets",
@@ -12,16 +12,18 @@ export const metadata: Metadata = {
     "Learn about Spokane Markets and how to get in touch. We help connect vendors, organizers, and visitors with local markets and events.",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const banners = await getBannerImages();
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <div className="mb-8 overflow-hidden rounded-xl">
         <Image
-          src={COMMUNITY_IMAGES.produce}
+          src={banners.produce}
           alt=""
           width={800}
           height={300}
           className="h-48 w-full object-cover"
+          unoptimized={banners.produce.startsWith("/uploads/")}
         />
       </div>
       <h1 className="text-3xl font-bold tracking-tight">About Spokane Markets</h1>

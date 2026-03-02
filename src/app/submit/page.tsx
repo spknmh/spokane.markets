@@ -1,20 +1,21 @@
 import Image from "next/image";
 import { SubmissionForm } from "@/components/submission-form";
 import { requireAuth } from "@/lib/auth-utils";
-import { COMMUNITY_IMAGES } from "@/lib/community-images";
+import { getBannerImages } from "@/lib/banner-images";
 
 export default async function SubmitPage() {
-  const session = await requireAuth("/submit");
+  const [session, banners] = await Promise.all([requireAuth("/submit"), getBannerImages()]);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <div className="mb-8 overflow-hidden rounded-xl">
         <Image
-          src={COMMUNITY_IMAGES.craftStall}
+          src={banners.craftStall}
           alt=""
           width={800}
           height={200}
           className="h-40 w-full object-cover"
+          unoptimized={banners.craftStall.startsWith("/uploads/")}
         />
       </div>
       <div className="mb-8 text-center">

@@ -91,6 +91,15 @@ This document catalogs all 60 routes and their accessibility via navigation.
 | `/admin/reviews`           | Review moderation                        | Admin sidebar                   |
 | `/admin/claims`            | Market claim requests                    | Admin sidebar                   |
 | `/admin/subscribers`       | Subscriber list                          | Admin sidebar                   |
+| `/admin/banners`           | Configure page banner images             | Admin sidebar                   |
+| `/admin/landing`           | Toggle/config landing page (Coming Soon, Maintenance) | Admin sidebar |
+
+
+---
+
+## Landing Page (Configurable)
+
+When enabled in Admin → Landing Page, visitors see a configurable landing page instead of the main site. Use for "Coming Soon" or "Down for Maintenance". Admins can always access `/admin` to toggle off or edit header/text. Routes `/admin`, `/api`, `/auth`, and `/landing` always bypass the landing page.
 
 
 ---

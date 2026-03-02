@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { signInSchema, type SignInInput } from "@/lib/validations";
+import { isValidCallbackUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +27,8 @@ type SignInFormProps = {
 export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const rawCallbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const callbackUrl = isValidCallbackUrl(rawCallbackUrl) ? rawCallbackUrl : "/";
   const needsVerification = searchParams.get("verified") === "0";
   const [error, setError] = useState<string | null>(null);
 

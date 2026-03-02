@@ -18,6 +18,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
+    "digest": "tsx scripts/weekly-digest.ts",
+    "filter-alerts": "tsx scripts/filter-alerts.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

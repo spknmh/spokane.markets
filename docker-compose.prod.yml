@@ -7,6 +7,21 @@ services:
     env_file: .env.local
     restart: "no"
 
+  cron:
+    image: ghcr.io/redkeysh/spokane.markets:init
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo '0 9 * * 1 cd /app && npx tsx scripts/weekly-digest.ts' > /tmp/crontab
+        echo '0 8 * * * cd /app && npx tsx scripts/filter-alerts.ts' >> /tmp/crontab
+        crontab /tmp/crontab
+        exec crond -f -l 2
+    env_file: .env.local
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   web:
     image: ghcr.io/redkeysh/spokane.markets:latest
     depends_on:

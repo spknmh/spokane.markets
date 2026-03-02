@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import crypto from "node:crypto";
@@ -14,10 +15,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { ok, retryAfter } = checkRateLimit(session.user.id, "uploads");
+  if (!ok) {
+    const headers = retryAfter ? { "Retry-After": String(retryAfter) } : undefined;
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") ?? "avatar";
-  if (type !== "avatar" && type !== "vendor") {
+  if (type !== "avatar" && type !== "vendor" && type !== "banner") {
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
+  }
+  if (type === "banner" && session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const formData = await request.formData();

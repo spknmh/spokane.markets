@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { vendorSurveySchema } from "@/lib/validations";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 function toOptional(value: string | undefined): string | undefined {
   if (value === undefined || value === "") return undefined;
@@ -9,6 +10,16 @@ function toOptional(value: string | undefined): string | undefined {
 
 export async function POST(request: Request) {
   try {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? request.headers.get("x-real-ip") ?? "unknown";
+    const { ok, retryAfter } = checkRateLimit(ip, "vendorSurvey");
+    if (!ok) {
+      const headers = retryAfter ? { "Retry-After": String(retryAfter) } : undefined;
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers }
+      );
+    }
+
     const body = await request.json();
     const parsed = vendorSurveySchema.safeParse(body);
 

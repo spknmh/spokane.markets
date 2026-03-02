@@ -41,9 +41,6 @@ export function EventCard({ event }: EventCardProps) {
 
             <p className="line-clamp-2 text-sm font-medium text-foreground">
               {event.venue.name}
-              {event.venue.neighborhood && (
-                <> · {event.venue.neighborhood}</>
-              )}
             </p>
 
             {event._count && event._count.vendorEvents > 0 && (

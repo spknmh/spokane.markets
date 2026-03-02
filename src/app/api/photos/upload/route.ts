@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import crypto from "node:crypto";
@@ -11,6 +12,15 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { ok, retryAfter } = checkRateLimit(session.user.id, "uploads");
+  if (!ok) {
+    const headers = retryAfter ? { "Retry-After": String(retryAfter) } : undefined;
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers }
+    );
   }
 
   const formData = await request.formData();

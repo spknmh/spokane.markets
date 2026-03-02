@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import type { Session } from "next-auth";
 import { Button } from "@/components/ui/button";
+import { AuthRequiredModal } from "@/components/auth-required-modal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 
 interface SaveFilterDialogProps {
+  session: Session | null;
   currentFilters: {
     dateRange?: string;
     neighborhood?: string;
@@ -22,8 +25,9 @@ interface SaveFilterDialogProps {
   };
 }
 
-export function SaveFilterDialog({ currentFilters }: SaveFilterDialogProps) {
+export function SaveFilterDialog({ session, currentFilters }: SaveFilterDialogProps) {
   const [open, setOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [name, setName] = useState("");
   const [emailAlerts, setEmailAlerts] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -59,6 +63,12 @@ export function SaveFilterDialog({ currentFilters }: SaveFilterDialogProps) {
         }),
       });
 
+      if (res.status === 401) {
+        setOpen(false);
+        setAuthModalOpen(true);
+        return;
+      }
+
       if (!res.ok) {
         const body = await res.json();
         throw new Error(body.error?.message || "Failed to save filter");
@@ -78,16 +88,29 @@ export function SaveFilterDialog({ currentFilters }: SaveFilterDialogProps) {
     }
   };
 
+  const handleOpen = () => {
+    if (!session) {
+      setAuthModalOpen(true);
+      return;
+    }
+    setOpen(true);
+  };
+
   return (
     <>
       <Button
         variant="outline"
         size="sm"
-        onClick={() => setOpen(true)}
+        onClick={handleOpen}
         disabled={!hasActiveFilters}
       >
         Save This Filter
       </Button>
+      <AuthRequiredModal
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
+        callbackUrl="/events"
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

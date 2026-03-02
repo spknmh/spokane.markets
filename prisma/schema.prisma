@@ -203,6 +203,7 @@ model Event {
 
   @@index([startDate])
   @@index([status])
+  @@index([status, startDate])
   @@index([slug])
   @@map("events")
 }
@@ -267,6 +268,7 @@ model Review {
   updatedAt DateTime @updatedAt
 
   @@index([status])
+  @@index([createdAt])
   @@map("reviews")
 }
 
@@ -335,6 +337,7 @@ model ClaimRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([userId, marketId])
   @@map("claim_requests")
 }
 
@@ -371,6 +374,7 @@ model VendorClaimRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([userId, vendorProfileId])
   @@map("vendor_claim_requests")
 }
 
@@ -471,4 +475,14 @@ model FavoriteVendor {
 
   @@unique([userId, vendorProfileId])
   @@map("favorite_vendors")
+}
+
+// Site-wide config (banners, etc.) — admin-editable
+model SiteConfig {
+  key   String @id
+  value String @db.Text
+
+  updatedAt DateTime @updatedAt
+
+  @@map("site_config")
 }

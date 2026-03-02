@@ -4,6 +4,7 @@
  */
 import { db } from "@/lib/db";
 import { Resend } from "resend";
+import { sendWithUnsubscribeHeaders } from "@/server/email/send-with-headers";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -55,7 +56,7 @@ export function sendVendorFavoriteAlerts(
 
       for (const fav of favorites) {
         try {
-          await resend.emails.send({
+          await sendWithUnsubscribeHeaders(resend, {
             from: "Spokane Markets <alerts@spokane.market>",
             to: fav.user.email,
             subject: `${vendor.businessName} is at ${event.title}`,
@@ -69,7 +70,9 @@ export function sendVendorFavoriteAlerts(
                 <a href="${vendorUrl}">View vendor</a>
               </p>
               <p><a href="${APP_URL}/settings/favorites">Manage favorite vendors</a></p>
+              <p><a href="${APP_URL}/unsubscribe?email=${encodeURIComponent(fav.user.email)}&source=favorites">Unsubscribe from vendor alerts</a></p>
             `,
+            unsubscribe: { type: "favorites", email: fav.user.email },
           });
         } catch (err) {
           console.error(`Vendor alert failed for ${fav.user.email}:`, err);

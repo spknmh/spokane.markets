@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { isValidCallbackUrl } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -26,8 +27,9 @@ export function AuthRequiredModal({
   description = "Please sign in or create an account to continue.",
   callbackUrl = "/",
 }: AuthRequiredModalProps) {
-  const signInHref = `/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
-  const signUpHref = `/auth/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+  const safeCallbackUrl = isValidCallbackUrl(callbackUrl) ? callbackUrl : "/";
+  const signInHref = `/auth/signin?callbackUrl=${encodeURIComponent(safeCallbackUrl)}`;
+  const signUpHref = `/auth/signup?callbackUrl=${encodeURIComponent(safeCallbackUrl)}`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

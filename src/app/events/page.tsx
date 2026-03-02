@@ -3,11 +3,12 @@ import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import Image from "next/image";
 import { db } from "@/lib/db";
-import { COMMUNITY_IMAGES } from "@/lib/community-images";
+import { getBannerImages } from "@/lib/banner-images";
 import { getSession } from "@/lib/auth-utils";
 import { EventCard } from "@/components/event-card";
 import { EventFilters } from "@/components/event-filters";
 import { SaveFilterDialog } from "@/components/save-filter-dialog";
+import { Pagination } from "@/components/pagination";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
@@ -65,6 +66,8 @@ function getDateRange(filter: string): { gte: Date; lt: Date } {
   }
 }
 
+const DEFAULT_LIMIT = 24;
+
 interface EventsPageProps {
   searchParams: Promise<{
     dateRange?: string;
@@ -72,16 +75,21 @@ interface EventsPageProps {
     category?: string;
     feature?: string;
     q?: string;
+    page?: string;
+    limit?: string;
   }>;
 }
 
 export default async function EventsPage({ searchParams }: EventsPageProps) {
   const params = await searchParams;
-  const dateRange = params.dateRange ?? "weekend";
+  const banners = await getBannerImages();
+  const dateRange = params.dateRange ?? "all";
   const neighborhood = params.neighborhood ?? "";
   const category = params.category ?? "";
   const feature = params.feature ?? "";
   const query = params.q ?? "";
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
 
   const session = await getSession();
   const savedFilters = session?.user
@@ -117,26 +125,34 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
     ];
   }
 
-  const events = await db.event.findMany({
-    where,
-    include: {
-      venue: true,
-      tags: true,
-      features: true,
-      _count: { select: { vendorEvents: true } },
-    },
-    orderBy: { startDate: "asc" },
-  });
+  const [events, totalCount] = await Promise.all([
+    db.event.findMany({
+      where,
+      include: {
+        venue: true,
+        tags: true,
+        features: true,
+        _count: { select: { vendorEvents: true } },
+      },
+      orderBy: { startDate: "asc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    db.event.count({ where }),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / limit);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="relative mb-10 overflow-hidden rounded-xl">
         <Image
-          src={COMMUNITY_IMAGES.marketCrowd}
+          src={banners.marketCrowd}
           alt=""
           width={1200}
           height={300}
           className="h-40 w-full object-cover sm:h-48"
+          unoptimized={banners.marketCrowd.startsWith("/uploads/")}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
@@ -164,6 +180,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <SaveFilterDialog
+              session={session}
               currentFilters={{ dateRange, neighborhood, category, feature }}
             />
             {savedFilters.length > 0 && (
@@ -190,15 +207,23 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
 
           <div className="mt-8">
             <p className="mb-4 text-sm text-muted-foreground">
-              {events.length} {events.length === 1 ? "event" : "events"} found
+              {totalCount} {totalCount === 1 ? "event" : "events"} found
             </p>
 
             {events.length > 0 ? (
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-2">
-                {events.map((event) => (
-                  <EventCard key={event.id} event={event} />
-                ))}
-              </div>
+              <>
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-2">
+                  {events.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  totalItems={totalCount}
+                  limit={limit}
+                />
+              </>
             ) : (
               <div className="rounded-lg border border-dashed border-border py-16 text-center">
                 <p className="text-lg font-medium">No events found</p>

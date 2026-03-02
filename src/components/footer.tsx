@@ -39,6 +39,22 @@ export async function Footer() {
                 </Link>
               </li>
               <li>
+                <Link
+                  href="/terms"
+                  className="text-sm text-primary-foreground/90 transition-colors hover:text-primary-foreground"
+                >
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/privacy"
+                  className="text-sm text-primary-foreground/90 transition-colors hover:text-primary-foreground"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
                 <AuthGate session={session} callbackUrl="/submit">
                   <Link
                     href="/submit"
@@ -73,7 +89,10 @@ export async function Footer() {
           <div className="lg:col-span-2">
             <h3 className="mb-3 text-sm font-semibold text-primary-foreground">Newsletter</h3>
             <p className="mb-3 text-sm text-primary-foreground/90">
-              Get updates on new markets and events in your inbox.
+              Get updates on new markets and events in your inbox.{" "}
+              <Link href="/privacy" className="underline hover:text-primary-foreground">
+                Privacy Policy
+              </Link>
             </p>
             <form
               action="/api/newsletter"

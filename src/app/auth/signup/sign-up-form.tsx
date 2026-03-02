@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUpSchema, SIGNUP_ROLES, type SignUpInput } from "@/lib/validations";
+import { isValidCallbackUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +22,8 @@ import {
 export function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const rawCallbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const callbackUrl = isValidCallbackUrl(rawCallbackUrl) ? rawCallbackUrl : "/";
   const [error, setError] = useState<string | null>(null);
 
   const {
