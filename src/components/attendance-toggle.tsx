@@ -95,8 +95,8 @@ export function AttendanceToggle({
           className={cn(
             "inline-flex min-w-[140px] items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all disabled:opacity-50",
             isGoing
-              ? "bg-[#15803d] text-white shadow-md ring-2 ring-[#15803d]/40"
-              : "border-2 border-[#15803d]/50 bg-white text-[#15803d] hover:bg-[#15803d]/10"
+              ? "bg-going text-going-foreground shadow-md ring-2 ring-going/40"
+              : "border-2 border-going/50 bg-background text-going hover:bg-going/10"
           )}
         >
           <CheckCircle2 className="h-4 w-4" />
@@ -109,8 +109,8 @@ export function AttendanceToggle({
           className={cn(
             "inline-flex min-w-[140px] items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all disabled:opacity-50",
             isInterested
-              ? "bg-[#d97706] text-white shadow-md ring-2 ring-[#d97706]/40"
-              : "border-2 border-[#d97706]/50 bg-white text-[#d97706] hover:bg-[#d97706]/10"
+              ? "bg-interested text-interested-foreground shadow-md ring-2 ring-interested/40"
+              : "border-2 border-interested/50 bg-background text-interested hover:bg-interested/10"
           )}
         >
           <Star className="h-4 w-4" />

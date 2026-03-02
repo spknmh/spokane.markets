@@ -118,6 +118,21 @@ export const signUpSchema = z
 export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 
+export const adminCreateUserSchema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Valid email is required"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+    role: z.enum(["USER", "VENDOR", "ORGANIZER", "ADMIN"]),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+
+export type AdminCreateUserInput = z.infer<typeof adminCreateUserSchema>;
+
 // ─── Milestone 2 schemas ────────────────────────────────────────────
 
 export const attendanceSchema = z.object({

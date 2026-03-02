@@ -66,8 +66,8 @@ export default async function HomePage() {
             Discover Spokane Markets
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/90 drop-shadow-sm">
-            Your community hub for finding markets, craft fairs, and local events
-            across the Spokane area. Never miss a weekend market again.
+            Find markets, craft fairs, and local events across Spokane. Never
+            miss a weekend market again.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Button size="lg" asChild className="shadow-lg">
@@ -84,7 +84,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">This Weekend</h2>
+            <h2 className="text-2xl font-bold tracking-tight">This Weekend in Spokane</h2>
             <p className="mt-1 text-muted-foreground">
               Markets and events happening this Saturday &amp; Sunday
             </p>
@@ -98,7 +98,7 @@ export default async function HomePage() {
         </div>
 
         {weekendEvents.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
             {weekendEvents.map((event) => (
               <EventCard key={event.id} event={event} />
             ))}

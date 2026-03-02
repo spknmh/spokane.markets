@@ -21,9 +21,9 @@ export function EventCard({ event }: EventCardProps) {
 
   return (
     <Link href={`/events/${event.slug}`} className="group block">
-      <Card className="h-full transition-all hover:shadow-lg hover:border-primary/30">
-        <CardContent className="flex gap-4 p-4">
-          <div className="flex shrink-0 flex-col items-center justify-center rounded-lg bg-primary/10 px-3 py-2 text-center ring-1 ring-primary/10">
+      <Card className="h-full min-h-[140px] transition-all hover:shadow-lg hover:border-primary/30">
+        <CardContent className="flex gap-4 p-5">
+          <div className="flex shrink-0 flex-col items-center justify-center self-start rounded-lg bg-primary/10 px-3 py-2 text-center ring-1 ring-primary/10">
             <span className="text-xs font-medium text-primary">
               {new Intl.DateTimeFormat("en-US", { month: "short" }).format(new Date(event.startDate))}
             </span>
@@ -32,14 +32,14 @@ export function EventCard({ event }: EventCardProps) {
             </span>
           </div>
 
-          <div className="min-w-0 flex-1">
-            <h3 className="truncate text-base font-semibold group-hover:text-primary">
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <h3 className="line-clamp-3 text-base font-semibold leading-snug group-hover:text-primary">
               {event.title}
             </h3>
 
-            <p className="mt-0.5 text-sm text-muted-foreground">{timeRange}</p>
+            <p className="text-sm text-muted-foreground">{timeRange}</p>
 
-            <p className="mt-1 truncate text-sm text-muted-foreground">
+            <p className="line-clamp-2 text-sm text-muted-foreground">
               {event.venue.name}
               {event.venue.neighborhood && (
                 <> · {event.venue.neighborhood}</>
@@ -47,12 +47,12 @@ export function EventCard({ event }: EventCardProps) {
             </p>
 
             {event._count && event._count.vendorEvents > 0 && (
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {event._count.vendorEvents} vendor{event._count.vendorEvents !== 1 ? "s" : ""} participating
               </p>
             )}
 
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
               {event.tags.slice(0, 3).map((tag) => (
                 <Badge key={tag.id} variant="secondary" className="text-[11px]">
                   {tag.name}

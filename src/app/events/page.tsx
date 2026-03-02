@@ -149,55 +149,66 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         </div>
       </div>
 
-      <div className="mt-6">
-        <EventFilters />
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <SaveFilterDialog
-          currentFilters={{ dateRange, neighborhood, category, feature }}
-        />
-        {savedFilters.length > 0 && (
-          <>
-            <span className="text-sm text-muted-foreground">Saved:</span>
-            {savedFilters.map((filter) => {
-              const filterParams = new URLSearchParams();
-              if (filter.dateRange) filterParams.set("dateRange", filter.dateRange);
-              if (filter.neighborhoods[0]) filterParams.set("neighborhood", filter.neighborhoods[0]);
-              if (filter.categories[0]) filterParams.set("category", filter.categories[0]);
-              if (filter.features[0]) filterParams.set("feature", filter.features[0]);
-              return (
-                <Link key={filter.id} href={`/events?${filterParams.toString()}`}>
-                  <Badge variant="secondary" className="cursor-pointer transition-colors hover:bg-primary hover:text-primary-foreground">
-                    {filter.name}
-                    {filter.emailAlerts && <span className="ml-1" title="Email alerts on">*</span>}
-                  </Badge>
-                </Link>
-              );
-            })}
-          </>
-        )}
-      </div>
-
-      <div className="mt-8">
-        <p className="mb-4 text-sm text-muted-foreground">
-          {events.length} {events.length === 1 ? "event" : "events"} found
-        </p>
-
-        {events.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {events.map((event) => (
-              <EventCard key={event.id} event={event} />
-            ))}
+      <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start">
+        {/* Sidebar filters */}
+        <aside className="shrink-0 lg:w-64">
+          <div className="rounded-lg border border-border bg-muted/30 p-4 lg:sticky lg:top-24">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Filters
+            </h2>
+            <EventFilters />
           </div>
-        ) : (
-          <div className="rounded-lg border border-dashed border-border py-16 text-center">
-            <p className="text-lg font-medium">No events found</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Try adjusting your filters or check back later.
+        </aside>
+
+        {/* Main content */}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <SaveFilterDialog
+              currentFilters={{ dateRange, neighborhood, category, feature }}
+            />
+            {savedFilters.length > 0 && (
+              <>
+                <span className="text-sm text-muted-foreground">Saved:</span>
+                {savedFilters.map((filter) => {
+                  const filterParams = new URLSearchParams();
+                  if (filter.dateRange) filterParams.set("dateRange", filter.dateRange);
+                  if (filter.neighborhoods[0]) filterParams.set("neighborhood", filter.neighborhoods[0]);
+                  if (filter.categories[0]) filterParams.set("category", filter.categories[0]);
+                  if (filter.features[0]) filterParams.set("feature", filter.features[0]);
+                  return (
+                    <Link key={filter.id} href={`/events?${filterParams.toString()}`}>
+                      <Badge variant="secondary" className="cursor-pointer transition-colors hover:bg-primary hover:text-primary-foreground">
+                        {filter.name}
+                        {filter.emailAlerts && <span className="ml-1" title="Email alerts on">*</span>}
+                      </Badge>
+                    </Link>
+                  );
+                })}
+              </>
+            )}
+          </div>
+
+          <div className="mt-8">
+            <p className="mb-4 text-sm text-muted-foreground">
+              {events.length} {events.length === 1 ? "event" : "events"} found
             </p>
+
+            {events.length > 0 ? (
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-2">
+                {events.map((event) => (
+                  <EventCard key={event.id} event={event} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-border py-16 text-center">
+                <p className="text-lg font-medium">No events found</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Try adjusting your filters or check back later.
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
