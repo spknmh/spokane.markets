@@ -21,6 +21,8 @@ services:
         condition: service_healthy
     env_file: .env.local
     restart: "no"
+    volumes:
+      - ./uploads:/app/uploads
 
   web:
     build:

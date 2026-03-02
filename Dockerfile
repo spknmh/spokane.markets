@@ -41,7 +41,7 @@ CMD ["node", "server.js"]
 
 # ── init ─────────────────────────────────────────────────────────────
 # Runs migrate + seed on deploy. Uses full node_modules (no cherry-picking).
-# Depends on init completing before web starts.
+# Creates upload subdirs so web (nextjs user) can write. Depends on init completing before web starts.
 FROM builder AS init
 WORKDIR /app
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
+CMD ["sh", "-c", "mkdir -p /app/uploads/banner /app/uploads/avatar /app/uploads/vendor /app/uploads/photos && chmod -R 777 /app/uploads && npx prisma migrate deploy && npx prisma db seed"]

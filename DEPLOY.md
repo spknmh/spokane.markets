@@ -38,9 +38,11 @@ cd spokane.markets
 ### Create uploads directory
 
 ```bash
-mkdir -p uploads
-chmod 755 uploads
+mkdir -p uploads/banner uploads/avatar uploads/vendor uploads/photos
+chmod -R 777 uploads
 ```
+
+The init container also creates these subdirs on first run. If you see `EACCES` on upload, ensure the web process can write to `uploads/`.
 
 ### Create `.env.local`
 
