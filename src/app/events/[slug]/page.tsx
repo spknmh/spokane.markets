@@ -5,12 +5,15 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
 import { getSession } from "@/lib/auth-utils";
-import { formatDateRange, getDirectionsUrl } from "@/lib/utils";
+import { formatDateRangeInTimezone, getDirectionsUrl } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AttendanceToggle } from "@/components/attendance-toggle";
 import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
+import { ShareButton } from "@/components/share-button";
+import { AddToCalendar } from "@/components/add-to-calendar";
+import { ReportButton } from "@/components/report-button";
 
 interface EventDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -147,7 +150,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               <h2 className="text-lg font-semibold">Reviews</h2>
               <WriteReviewButton eventId={event.id} isLoggedIn={!!session?.user} />
             </div>
-            <ReviewList eventId={event.id} />
+            <ReviewList eventId={event.id} isLoggedIn={!!session?.user} />
           </div>
         </div>
 
@@ -157,7 +160,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             <div>
               <p className="text-sm font-medium text-muted-foreground">When</p>
               <p className="mt-0.5 text-lg font-semibold text-foreground">
-                {formatDateRange(event.startDate, event.endDate)}
+                {formatDateRangeInTimezone(event.startDate, event.endDate, event.timezone)}
               </p>
             </div>
 
@@ -176,6 +179,25 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 </a>
               </Button>
             </div>
+
+            <ShareButton
+              url={`${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/events/${event.slug}`}
+              title={event.title}
+              text={event.description ?? undefined}
+            />
+
+            <AddToCalendar
+              event={{
+                id: event.id,
+                title: event.title,
+                slug: event.slug,
+                description: event.description,
+                startDate: event.startDate,
+                endDate: event.endDate,
+              }}
+              venue={event.venue}
+              eventPageUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/events/${event.slug}`}
+            />
 
             {event.market && (
               <div>
@@ -234,6 +256,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               initialInterestedCount={interestedCount}
               initialUserStatus={userAttendance?.status ?? null}
               callbackUrl={`/events/${event.slug}`}
+            />
+
+            <ReportButton
+              targetType="EVENT"
+              targetId={event.id}
+              isLoggedIn={!!session?.user}
             />
 
             {(event.tags.length > 0 || event.features.length > 0) && (

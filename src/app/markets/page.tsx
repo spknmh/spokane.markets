@@ -12,6 +12,7 @@ import {
 import { CheckCircle2, Calendar } from "lucide-react";
 import { formatNeighborhoodLabel } from "@/lib/utils";
 import type { VerificationStatus } from "@prisma/client";
+import { MarketsSearch } from "@/components/markets-search";
 
 function truncate(str: string | null | undefined, len: number): string {
   if (!str) return "";
@@ -28,9 +29,24 @@ function VerificationBadge({ status }: { status: VerificationStatus }) {
   );
 }
 
-export default async function MarketsPage() {
+export default async function MarketsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const params = await searchParams;
+  const q = (params.q ?? "").trim();
+
   const banners = await getBannerImages();
   const markets = await db.market.findMany({
+    where: q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : undefined,
     orderBy: { name: "asc" },
   });
 
@@ -55,7 +71,21 @@ export default async function MarketsPage() {
           </p>
         </div>
       </div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+      <div className="mb-6">
+        <MarketsSearch defaultValue={q} />
+      </div>
+
+      {markets.length === 0 ? (
+        <p className="py-12 text-center text-muted-foreground">
+          {q ? `No markets found for "${q}". Try a different search.` : "No markets yet. Check back soon!"}
+        </p>
+      ) : (
+        <>
+          <p className="mb-4 text-sm text-muted-foreground">
+            {markets.length} market{markets.length !== 1 ? "s" : ""} found
+          </p>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {markets.map((market) => (
           <Link key={market.id} href={`/markets/${market.slug}`}>
             <Card className="h-full border-2 transition-all hover:shadow-lg hover:border-primary/50">
@@ -90,7 +120,9 @@ export default async function MarketsPage() {
             </Card>
           </Link>
         ))}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

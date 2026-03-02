@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Providers } from "@/components/providers";
+import { COMMUNITY_IMAGES } from "@/lib/community-images";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -17,7 +18,10 @@ const inter = Inter({
   display: "swap",
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: "Spokane Markets — Discover Local Markets, Fairs & Events",
   description:
     "The best way to find markets, craft fairs, and vendor events in the Spokane area. Filter by date, neighborhood, and category.",
@@ -25,6 +29,7 @@ export const metadata: Metadata = {
     title: "Spokane Markets",
     description: "Discover local markets, fairs & events in Spokane",
     type: "website",
+    images: [{ url: COMMUNITY_IMAGES.hero, width: 1200, height: 630, alt: "Spokane Markets" }],
   },
 };
 
@@ -32,9 +37,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} ${inter.variable} ${fraunces.variable}`}>
+        <a href="#main" className="skip-link">
+          Skip to main content
+        </a>
         <Providers>
           <Navbar />
-          <main className="min-h-screen">{children}</main>
+          <main id="main" className="min-h-screen">{children}</main>
           <Footer />
         </Providers>
       </body>

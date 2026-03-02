@@ -67,11 +67,29 @@ model User {
   savedFilters        SavedFilter[]
   favoriteVendors     FavoriteVendor[]
   organizerEvents     Event[]              @relation("OrganizerEvents")
+  reports             Report[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  userId     String
+  targetType String   // EVENT | MARKET | VENDOR | REVIEW
+  targetId   String
+  reason     String?  // spam | inappropriate | other
+  notes      String?  @db.Text
+  status     String   @default("PENDING") // PENDING | RESOLVED | DISMISSED
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([targetType, targetId])
+  @@map("reports")
 }
 
 model Account {
@@ -181,6 +199,7 @@ model Event {
   description       String?     @db.Text
   startDate         DateTime
   endDate           DateTime
+  timezone          String?     // e.g. America/Los_Angeles
   imageUrl          String?
   status            EventStatus @default(DRAFT)
   recurrenceGroupId String?

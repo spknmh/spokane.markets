@@ -7,6 +7,7 @@ import {
   type OrganizerEventInput,
 } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
+import { US_TIMEZONES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,6 +49,7 @@ export function OrganizerEventForm({
       description: "",
       startDate: "",
       endDate: "",
+      timezone: "",
       venueId: "",
       marketId: "",
       imageUrl: "",
@@ -170,6 +172,18 @@ export function OrganizerEventForm({
             </p>
           )}
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="timezone">Timezone (optional)</Label>
+        <Select id="timezone" {...register("timezone")}>
+          <option value="">Use browser/server time</option>
+          {US_TIMEZONES.map((tz) => (
+            <option key={tz.value} value={tz.value}>
+              {tz.label}
+            </option>
+          ))}
+        </Select>
       </div>
 
       <div className="space-y-2">

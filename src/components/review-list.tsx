@@ -1,10 +1,12 @@
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
+import { ReportButton } from "@/components/report-button";
 
 interface ReviewListProps {
   eventId?: string;
   marketId?: string;
+  isLoggedIn?: boolean;
 }
 
 const STRUCTURED_LABELS: Record<string, string> = {
@@ -33,7 +35,7 @@ function InlineStars({ value }: { value: number }) {
   );
 }
 
-export async function ReviewList({ eventId, marketId }: ReviewListProps) {
+export async function ReviewList({ eventId, marketId, isLoggedIn = false }: ReviewListProps) {
   const reviews = await db.review.findMany({
     where: {
       status: "APPROVED",
@@ -69,9 +71,16 @@ export async function ReviewList({ eventId, marketId }: ReviewListProps) {
           <div key={review.id} className="rounded-lg border p-4">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="font-medium">
-                  {review.user.name ?? "Anonymous"}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">
+                    {review.user.name ?? "Anonymous"}
+                  </p>
+                  <ReportButton
+                    targetType="REVIEW"
+                    targetId={review.id}
+                    isLoggedIn={isLoggedIn}
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {new Date(review.createdAt).toLocaleDateString("en-US", {
                     month: "short",

@@ -84,6 +84,7 @@ export const eventSchema = z.object({
   description: z.string().optional(),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
+  timezone: z.string().optional().nullable(),
   venueId: z.string().min(1, "Venue is required"),
   marketId: z.string().optional(),
   imageUrl: z.string().url().optional().or(z.literal("")),
@@ -152,7 +153,7 @@ export const reviewSchema = z.object({
   eventId: z.string().optional(),
   marketId: z.string().optional(),
   rating: z.number().int().min(1).max(5),
-  text: z.string().optional(),
+  text: z.string().max(2000, "Review must be 2000 characters or less").optional(),
   parkingRating: z.number().int().min(1).max(5).optional(),
   varietyRating: z.number().int().min(1).max(5).optional(),
   valueRating: z.number().int().min(1).max(5).optional(),
@@ -203,6 +204,14 @@ export const vendorEventsSchema = z.object({
 });
 export type VendorEventsInput = z.infer<typeof vendorEventsSchema>;
 
+export const reportSchema = z.object({
+  targetType: z.enum(["EVENT", "MARKET", "VENDOR", "REVIEW"]),
+  targetId: z.string().min(1, "Target ID is required"),
+  reason: z.enum(["spam", "inappropriate", "other"]).optional(),
+  notes: z.string().max(500).optional(),
+});
+export type ReportInput = z.infer<typeof reportSchema>;
+
 export const userProfilePatchSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   image: z.string().url().optional().nullable(),
@@ -215,6 +224,7 @@ export const organizerEventSchema = z.object({
   description: z.string().optional(),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
+  timezone: z.string().optional().nullable(),
   venueId: z.string().min(1, "Venue is required"),
   marketId: z.string().optional(),
   imageUrl: z.string().url().optional().or(z.literal("")),

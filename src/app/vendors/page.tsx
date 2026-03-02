@@ -13,6 +13,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
+import { VendorsSearch } from "@/components/vendors-search";
 
 const DEFAULT_LIMIT = 24;
 
@@ -24,21 +25,33 @@ function truncate(str: string | null | undefined, len: number): string {
 export default async function VendorsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; limit?: string }>;
+  searchParams: Promise<{ page?: string; limit?: string; q?: string }>;
 }) {
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
   const limit = Math.min(50, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
+  const q = (params.q ?? "").trim();
+
+  const where = q
+    ? {
+        OR: [
+          { businessName: { contains: q, mode: "insensitive" as const } },
+          { specialties: { contains: q, mode: "insensitive" as const } },
+          { description: { contains: q, mode: "insensitive" as const } },
+        ],
+      }
+    : undefined;
 
   const [session, vendors, totalCount, banners] = await Promise.all([
     auth(),
     db.vendorProfile.findMany({
+      where,
       orderBy: { businessName: "asc" },
       include: { _count: { select: { vendorEvents: true } } },
       skip: (page - 1) * limit,
       take: limit,
     }),
-    db.vendorProfile.count(),
+    db.vendorProfile.count({ where }),
     getBannerImages(),
   ]);
 
@@ -78,9 +91,13 @@ export default async function VendorsPage({
         </div>
       </div>
 
+      <div className="mb-6">
+        <VendorsSearch defaultValue={q} />
+      </div>
+
       {vendors.length === 0 ? (
         <p className="py-12 text-center text-muted-foreground">
-          No vendor profiles yet. Check back soon!
+          {q ? `No vendors found for "${q}". Try a different search.` : "No vendor profiles yet. Check back soon!"}
         </p>
       ) : (
         <>

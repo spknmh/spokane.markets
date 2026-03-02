@@ -19,6 +19,7 @@ const ACTION_CONFIG: Record<
   uploads: { windowMs: 60 * 60 * 1000, maxRequests: 20 },
   claims: { windowMs: 60 * 60 * 1000, maxRequests: 5 },
   vendorSurvey: { windowMs: 60 * 1000, maxRequests: 5 },
+  reports: { windowMs: 60 * 60 * 1000, maxRequests: 5 },
 };
 
 function getKey(identifier: string, action: string): string {

@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       description: data.description || null,
       startDate: new Date(data.startDate),
       endDate: new Date(data.endDate),
+      timezone: data.timezone || null,
       venueId: data.venueId,
       marketId: data.marketId || null,
       imageUrl: data.imageUrl || null,

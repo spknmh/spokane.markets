@@ -16,6 +16,7 @@ import { Calendar, CheckCircle2, ExternalLink, Facebook, Instagram } from "lucid
 import { formatDateRange, formatNeighborhoodLabel } from "@/lib/utils";
 import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
+import { ReportButton } from "@/components/report-button";
 import type { Metadata } from "next";
 import type { VerificationStatus } from "@prisma/client";
 
@@ -123,13 +124,18 @@ export default async function MarketDetailPage({ params }: PageProps) {
               <h2 className="text-lg font-semibold">Reviews</h2>
               <WriteReviewButton marketId={market.id} isLoggedIn={!!session?.user} />
             </div>
-            <ReviewList marketId={market.id} />
+            <ReviewList marketId={market.id} isLoggedIn={!!session?.user} />
           </div>
         </div>
 
         {/* Sidebar */}
         <aside className="w-full shrink-0 lg:w-80 lg:sticky lg:top-24">
           <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-5">
+            <ReportButton
+              targetType="MARKET"
+              targetId={market.id}
+              isLoggedIn={!!session?.user}
+            />
             {market.typicalSchedule && (
               <div className="flex items-start gap-2">
                 <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />

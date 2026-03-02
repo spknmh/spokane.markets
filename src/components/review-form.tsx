@@ -168,8 +168,12 @@ export function ReviewForm({ eventId, marketId, onSuccess }: ReviewFormProps) {
           id="review-text"
           placeholder="Tell others about your experience..."
           rows={4}
+          maxLength={2000}
           {...register("text")}
         />
+        <p className="text-right text-xs text-muted-foreground">
+          {watch("text")?.length ?? 0} / 2000
+        </p>
       </div>
 
       {/* Structured Prompts */}

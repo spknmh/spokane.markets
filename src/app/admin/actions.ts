@@ -199,3 +199,15 @@ export async function updateVendorClaimStatus(id: string, status: "APPROVED" | "
   }
   revalidatePath("/admin/claims");
 }
+
+export async function updateReportStatus(
+  id: string,
+  status: "RESOLVED" | "DISMISSED"
+) {
+  await requireAdminAction();
+  await db.report.update({
+    where: { id },
+    data: { status },
+  });
+  revalidatePath("/admin/reports");
+}

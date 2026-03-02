@@ -62,6 +62,38 @@ export function formatDateRange(start: Date, end: Date): string {
   return `${startStr} · ${startTime} – ${endTime}`;
 }
 
+/**
+ * Format date range in a specific timezone when provided.
+ * Falls back to formatDateRange (local/server time) when timezone is null.
+ */
+export function formatDateRangeInTimezone(
+  start: Date,
+  end: Date,
+  timezone: string | null | undefined
+): string {
+  if (!timezone) {
+    return formatDateRange(start, end);
+  }
+  const tzOpts = { timeZone: timezone };
+  const dateStr = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    ...tzOpts,
+  }).format(new Date(start));
+  const startTime = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    ...tzOpts,
+  }).format(new Date(start));
+  const endTime = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    ...tzOpts,
+  }).format(new Date(end));
+  return `${dateStr} · ${startTime} – ${endTime}`;
+}
+
 export function getDirectionsUrl(address: string): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
 }

@@ -49,6 +49,7 @@ export default async function OrganizerEditEventPage({
     description: event.description ?? "",
     startDate: event.startDate.toISOString().slice(0, 16),
     endDate: event.endDate.toISOString().slice(0, 16),
+    timezone: event.timezone ?? "",
     venueId: event.venueId,
     marketId: event.marketId ?? "",
     imageUrl: event.imageUrl ?? "",

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { EventCard } from "@/components/event-card";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
+import { ReportButton } from "@/components/report-button";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -162,6 +163,11 @@ export default async function VendorProfilePage({ params }: PageProps) {
         {/* Sidebar */}
         <aside className="w-full shrink-0 lg:w-80 lg:sticky lg:top-24">
           <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-5">
+            <ReportButton
+              targetType="VENDOR"
+              targetId={vendor.id}
+              isLoggedIn={!!session?.user}
+            />
             <VendorSocialLinks
               websiteUrl={vendor.websiteUrl}
               facebookUrl={vendor.facebookUrl}

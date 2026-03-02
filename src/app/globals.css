@@ -78,4 +78,24 @@
   .font-heading {
     font-family: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
   }
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    z-index: 9999;
+  }
+  .skip-link:focus {
+    left: 1rem;
+    top: 1rem;
+    width: auto;
+    height: auto;
+    padding: 0.5rem 1rem;
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+    border-radius: var(--radius-sm);
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
 }

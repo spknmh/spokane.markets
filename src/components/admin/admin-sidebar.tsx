@@ -19,6 +19,7 @@ import {
   BarChart2,
   ImageIcon,
   LayoutTemplate,
+  Flag,
 } from "lucide-react";
 
 const navItems = [
@@ -34,6 +35,7 @@ const navItems = [
   { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
   { label: "Photos", href: "/admin/photos", icon: ImageIcon },
   { label: "Claims", href: "/admin/claims", icon: Shield },
+  { label: "Reports", href: "/admin/reports", icon: Flag },
   { label: "Subscribers", href: "/admin/subscribers", icon: Mail },
 ];
 
