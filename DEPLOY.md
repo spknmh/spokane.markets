@@ -120,6 +120,8 @@ docker compose exec web npx prisma migrate deploy
 docker compose exec web npx prisma db seed
 ```
 
+If you get `prisma: not found`, rebuild the image (the Prisma CLI is copied into the production image).
+
 ### Verify
 
 - https://your-domain → app loads
