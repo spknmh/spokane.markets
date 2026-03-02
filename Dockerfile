@@ -9,6 +9,7 @@ RUN npm ci
 FROM base AS builder
 WORKDIR /app
 COPY . .
+RUN mkdir -p public
 RUN npx prisma generate
 RUN npm run build
 
