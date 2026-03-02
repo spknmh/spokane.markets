@@ -1,4 +1,4 @@
-localhost {
+spokane.markets {
 	reverse_proxy web:3000
 
 	handle_path /uploads/* {

@@ -15,8 +15,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
   providers: [
-    Google,
-    Facebook,
+    ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
+      ? [Google]
+      : []),
+    ...(process.env.AUTH_FACEBOOK_ID && process.env.AUTH_FACEBOOK_SECRET
+      ? [Facebook]
+      : []),
     Credentials({
       credentials: {
         email: { label: "Email", type: "email" },

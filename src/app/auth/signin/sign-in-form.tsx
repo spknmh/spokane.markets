@@ -19,7 +19,11 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
-export function SignInForm() {
+type SignInFormProps = {
+  oauthProviders?: ("google" | "facebook")[];
+};
+
+export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
@@ -109,34 +113,48 @@ export function SignInForm() {
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Signing in\u2026" : "Sign in"}
             </Button>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => signIn("google", { callbackUrl })}
-                disabled={isSubmitting}
-              >
-                Google
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => signIn("facebook", { callbackUrl })}
-                disabled={isSubmitting}
-              >
-                Facebook
-              </Button>
-            </div>
+            {oauthProviders.length > 0 && (
+              <>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
+                <div
+                  className={
+                    oauthProviders.length === 1
+                      ? "grid grid-cols-1 gap-3"
+                      : "grid grid-cols-2 gap-3"
+                  }
+                >
+                  {oauthProviders.includes("google") && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => signIn("google", { callbackUrl })}
+                      disabled={isSubmitting}
+                    >
+                      Google
+                    </Button>
+                  )}
+                  {oauthProviders.includes("facebook") && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => signIn("facebook", { callbackUrl })}
+                      disabled={isSubmitting}
+                    >
+                      Facebook
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
