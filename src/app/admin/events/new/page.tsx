@@ -1,0 +1,21 @@
+import { requireAdmin } from "@/lib/auth-utils";
+import { db } from "@/lib/db";
+import { EventForm } from "@/components/admin/event-form";
+
+export default async function NewEventPage() {
+  await requireAdmin();
+
+  const [venues, markets, tags, features] = await Promise.all([
+    db.venue.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    db.market.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    db.tag.findMany({ orderBy: { name: "asc" } }),
+    db.feature.findMany({ orderBy: { name: "asc" } }),
+  ]);
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold tracking-tight">Create Event</h1>
+      <EventForm venues={venues} markets={markets} tags={tags} features={features} />
+    </div>
+  );
+}

@@ -1,0 +1,434 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────
+
+enum Role {
+  USER
+  VENDOR
+  ORGANIZER
+  ADMIN
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+}
+
+enum EventStatus {
+  DRAFT
+  PENDING
+  PUBLISHED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  GOING
+  INTERESTED
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─── Auth Models (Auth.js / Prisma Adapter) ──────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  role           Role      @default(USER)
+  name           String?
+  email          String    @unique
+  emailVerified  DateTime?
+  image          String?
+  hashedPassword String?
+
+  accounts      Account[]
+  sessions      Session[]
+  attendances   Attendance[]
+  reviews       Review[]
+  photos        Photo[]
+  ownedMarkets  Market[]       @relation("MarketOwner")
+  claimRequests ClaimRequest[] @relation("ClaimRequester")
+  reviewedClaims ClaimRequest[] @relation("ClaimReviewer")
+  reviewedSubmissions Submission[] @relation("SubmissionReviewer")
+  vendorProfile   VendorProfile?
+  savedFilters   SavedFilter[]
+  favoriteVendors FavoriteVendor[]
+  organizerEvents Event[]      @relation("OrganizerEvents")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── Core Domain Models ──────────────────────────────────────────────
+
+model Venue {
+  id           String  @id @default(cuid())
+  name         String
+  address      String
+  city         String
+  state        String
+  zip          String
+  lat          Float
+  lng          Float
+  neighborhood String?
+  parkingNotes String?
+
+  events Event[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([neighborhood])
+  @@map("venues")
+}
+
+model Market {
+  id                 String             @id @default(cuid())
+  name               String
+  slug               String             @unique
+  description        String?            @db.Text
+  imageUrl           String?
+  websiteUrl         String?
+  facebookUrl        String?
+  instagramUrl       String?
+  baseArea           String?
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  ownerId            String?
+  typicalSchedule    String?
+  contactEmail       String?
+  contactPhone       String?
+
+  owner         User?          @relation("MarketOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  events        Event[]
+  reviews       Review[]
+  photos        Photo[]
+  claimRequests ClaimRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@map("markets")
+}
+
+model Event {
+  id                String      @id @default(cuid())
+  marketId          String?
+  venueId           String
+  title             String
+  slug              String      @unique
+  description       String?     @db.Text
+  startDate         DateTime
+  endDate           DateTime
+  imageUrl          String?
+  status            EventStatus @default(DRAFT)
+  recurrenceGroupId String?
+  websiteUrl        String?
+  facebookUrl       String?
+
+  submittedById String?
+  market        Market?      @relation(fields: [marketId], references: [id], onDelete: SetNull)
+  venue         Venue        @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  submittedBy   User?        @relation("OrganizerEvents", fields: [submittedById], references: [id], onDelete: SetNull)
+  tags          Tag[]        @relation("EventTags")
+  features      Feature[]    @relation("EventFeatures")
+  attendances   Attendance[]
+  reviews       Review[]
+  photos        Photo[]
+  vendorEvents  VendorEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startDate])
+  @@index([status])
+  @@index([slug])
+  @@map("events")
+}
+
+model Tag {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  slug   String  @unique
+  events Event[] @relation("EventTags")
+
+  @@map("tags")
+}
+
+model Feature {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  slug   String  @unique
+  icon   String?
+  events Event[] @relation("EventFeatures")
+
+  @@map("features")
+}
+
+// ─── User Engagement Models ──────────────────────────────────────────
+
+model Attendance {
+  id      String           @id @default(cuid())
+  userId  String
+  eventId String
+  status  AttendanceStatus
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+  @@map("attendances")
+}
+
+model Review {
+  id                   String           @id @default(cuid())
+  userId               String
+  eventId              String?
+  marketId             String?
+  rating               Int
+  text                 String?          @db.Text
+  parkingRating        Int?
+  varietyRating        Int?
+  valueRating          Int?
+  crowdingRating       Int?
+  weatherPlanRating    Int?
+  accessibilityRating  Int?
+  status               ModerationStatus @default(PENDING)
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event  Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  market Market? @relation(fields: [marketId], references: [id], onDelete: SetNull)
+  photos Photo[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("reviews")
+}
+
+model Photo {
+  id           String           @id @default(cuid())
+  reviewId     String?
+  eventId      String?
+  marketId     String?
+  url          String
+  alt          String?
+  status       ModerationStatus @default(PENDING)
+  uploadedById String
+
+  review     Review? @relation(fields: [reviewId], references: [id], onDelete: SetNull)
+  event      Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  market     Market? @relation(fields: [marketId], references: [id], onDelete: SetNull)
+  uploadedBy User    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([status])
+  @@map("photos")
+}
+
+// ─── Community & Admin Models ────────────────────────────────────────
+
+model Submission {
+  id               String           @id @default(cuid())
+  submitterName    String
+  submitterEmail   String
+  eventTitle       String
+  eventDescription String?          @db.Text
+  eventDate        String
+  eventTime        String
+  venueName        String
+  venueAddress     String
+  facebookUrl      String?
+  websiteUrl       String?
+  notes            String?          @db.Text
+  status           ModerationStatus @default(PENDING)
+  reviewerId       String?
+  reviewNotes      String?          @db.Text
+
+  reviewer User? @relation("SubmissionReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("submissions")
+}
+
+model ClaimRequest {
+  id           String           @id @default(cuid())
+  marketId     String
+  userId       String
+  proof        String           @db.Text
+  status       ModerationStatus @default(PENDING)
+  reviewerId   String?
+  reviewNotes  String?          @db.Text
+
+  market   Market @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  user     User   @relation("ClaimRequester", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User?  @relation("ClaimReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("claim_requests")
+}
+
+model Subscriber {
+  id    String   @id @default(cuid())
+  email String   @unique
+  areas String[]
+
+  createdAt DateTime @default(now())
+
+  @@map("subscribers")
+}
+
+model VendorSurvey {
+  id                String  @id @default(cuid())
+  vendorType        String
+  leadTimeNeeded    String?
+  biggestPainPoints String? @db.Text
+  missingInfo       String? @db.Text
+  willingnessToPay  String?
+  contactEmail      String?
+  contactName       String?
+
+  createdAt DateTime @default(now())
+
+  @@map("vendor_surveys")
+}
+
+// ─── Milestone 3: Vendor & Organizer Models ─────────────────────────
+
+model VendorProfile {
+  id           String  @id @default(cuid())
+  userId       String  @unique
+  businessName String
+  slug         String  @unique
+  description  String? @db.Text
+  imageUrl     String?
+  websiteUrl   String?
+  facebookUrl  String?
+  instagramUrl String?
+  specialties  String?
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vendorEvents    VendorEvent[]
+  favoriteVendors FavoriteVendor[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@map("vendor_profiles")
+}
+
+model VendorEvent {
+  id              String @id @default(cuid())
+  vendorProfileId String
+  eventId         String
+
+  vendorProfile VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+  event         Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([vendorProfileId, eventId])
+  @@map("vendor_events")
+}
+
+model SavedFilter {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  dateRange     String?
+  neighborhoods String[]
+  categories    String[]
+  features      String[]
+  emailAlerts   Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("saved_filters")
+}
+
+model FavoriteVendor {
+  id              String   @id @default(cuid())
+  userId          String
+  vendorProfileId String
+  emailAlerts     Boolean  @default(true)
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vendorProfile VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, vendorProfileId])
+  @@map("favorite_vendors")
+}

@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* Spokane & PNW brand palette — no blue
+ * Primary: Spokane official green (evergreen, Inland NW)
+ * Accent: Spokane yellow / wheat (harvest, sunshine)
+ * Going: vibrant green | Interested: amber
+ */
+@theme {
+  --color-background: #fdfcf9;
+  --color-foreground: #1a1a1a;
+  --color-muted: #f5f1eb;
+  --color-muted-foreground: #57534e;
+  --color-border: #e5e2dc;
+  --color-primary: #006838;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #d97706;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #b91c1c;
+  --color-destructive-foreground: #ffffff;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+  --color-ring: #006838;
+  --color-going: #15803d;
+  --color-going-foreground: #ffffff;
+  --color-interested: #d97706;
+  --color-interested-foreground: #ffffff;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.75rem;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}

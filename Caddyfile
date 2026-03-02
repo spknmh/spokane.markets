@@ -1,0 +1,8 @@
+localhost {
+	reverse_proxy web:3000
+
+	handle_path /uploads/* {
+		root * /srv/uploads
+		file_server
+	}
+}

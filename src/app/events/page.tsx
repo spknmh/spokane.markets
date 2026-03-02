@@ -1,0 +1,204 @@
+import type { Metadata } from "next";
+import type { Prisma } from "@prisma/client";
+import Link from "next/link";
+import Image from "next/image";
+import { db } from "@/lib/db";
+import { COMMUNITY_IMAGES } from "@/lib/community-images";
+import { getSession } from "@/lib/auth-utils";
+import { EventCard } from "@/components/event-card";
+import { EventFilters } from "@/components/event-filters";
+import { SaveFilterDialog } from "@/components/save-filter-dialog";
+import { Badge } from "@/components/ui/badge";
+
+export const metadata: Metadata = {
+  title: "Events — Spokane Markets",
+  description:
+    "Browse upcoming markets, craft fairs, and community events in the Spokane area. Filter by date, neighborhood, and category.",
+};
+
+function getDateRange(filter: string): { gte: Date; lt: Date } {
+  const now = new Date();
+
+  switch (filter) {
+    case "today": {
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 1);
+      return { gte: start, lt: end };
+    }
+    case "weekend": {
+      const day = now.getDay();
+      const start = new Date(now);
+      if (day === 0) {
+        start.setHours(0, 0, 0, 0);
+      } else if (day === 6) {
+        start.setHours(0, 0, 0, 0);
+      } else {
+        start.setDate(now.getDate() + (6 - day));
+        start.setHours(0, 0, 0, 0);
+      }
+      const end = new Date(start);
+      end.setDate(start.getDate() + (start.getDay() === 6 ? 2 : 1));
+      end.setHours(23, 59, 59, 999);
+      return { gte: start, lt: end };
+    }
+    case "week": {
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 7);
+      return { gte: start, lt: end };
+    }
+    case "month": {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      return { gte: start, lt: end };
+    }
+    case "all":
+    default: {
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date("2100-01-01");
+      return { gte: start, lt: end };
+    }
+  }
+}
+
+interface EventsPageProps {
+  searchParams: Promise<{
+    dateRange?: string;
+    neighborhood?: string;
+    category?: string;
+    feature?: string;
+    q?: string;
+  }>;
+}
+
+export default async function EventsPage({ searchParams }: EventsPageProps) {
+  const params = await searchParams;
+  const dateRange = params.dateRange ?? "weekend";
+  const neighborhood = params.neighborhood ?? "";
+  const category = params.category ?? "";
+  const feature = params.feature ?? "";
+  const query = params.q ?? "";
+
+  const session = await getSession();
+  const savedFilters = session?.user
+    ? await db.savedFilter.findMany({
+        where: { userId: session.user.id },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
+
+  const { gte, lt } = getDateRange(dateRange);
+
+  const where: Prisma.EventWhereInput = {
+    status: "PUBLISHED",
+    startDate: { gte, lt },
+  };
+
+  if (neighborhood) {
+    where.venue = { neighborhood };
+  }
+
+  if (category) {
+    where.tags = { some: { slug: category } };
+  }
+
+  if (feature) {
+    where.features = { some: { slug: feature } };
+  }
+
+  if (query) {
+    where.OR = [
+      { title: { contains: query, mode: "insensitive" } },
+      { description: { contains: query, mode: "insensitive" } },
+    ];
+  }
+
+  const events = await db.event.findMany({
+    where,
+    include: {
+      venue: true,
+      tags: true,
+      features: true,
+      _count: { select: { vendorEvents: true } },
+    },
+    orderBy: { startDate: "asc" },
+  });
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className="relative mb-10 overflow-hidden rounded-xl">
+        <Image
+          src={COMMUNITY_IMAGES.marketCrowd}
+          alt=""
+          width={1200}
+          height={300}
+          className="h-40 w-full object-cover sm:h-48"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+        <div className="absolute bottom-4 left-4 right-4">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Events
+          </h1>
+          <p className="mt-0.5 text-sm text-muted-foreground sm:text-base">
+            Find markets, fairs, and community events across Spokane.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <EventFilters />
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <SaveFilterDialog
+          currentFilters={{ dateRange, neighborhood, category, feature }}
+        />
+        {savedFilters.length > 0 && (
+          <>
+            <span className="text-sm text-muted-foreground">Saved:</span>
+            {savedFilters.map((filter) => {
+              const filterParams = new URLSearchParams();
+              if (filter.dateRange) filterParams.set("dateRange", filter.dateRange);
+              if (filter.neighborhoods[0]) filterParams.set("neighborhood", filter.neighborhoods[0]);
+              if (filter.categories[0]) filterParams.set("category", filter.categories[0]);
+              if (filter.features[0]) filterParams.set("feature", filter.features[0]);
+              return (
+                <Link key={filter.id} href={`/events?${filterParams.toString()}`}>
+                  <Badge variant="secondary" className="cursor-pointer transition-colors hover:bg-primary hover:text-primary-foreground">
+                    {filter.name}
+                    {filter.emailAlerts && <span className="ml-1" title="Email alerts on">*</span>}
+                  </Badge>
+                </Link>
+              );
+            })}
+          </>
+        )}
+      </div>
+
+      <div className="mt-8">
+        <p className="mb-4 text-sm text-muted-foreground">
+          {events.length} {events.length === 1 ? "event" : "events"} found
+        </p>
+
+        {events.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {events.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-border py-16 text-center">
+            <p className="text-lg font-medium">No events found</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Try adjusting your filters or check back later.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

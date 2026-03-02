@@ -1,0 +1,187 @@
+import { z } from "zod";
+
+export const submissionSchema = z.object({
+  submitterName: z.string().min(1, "Name is required"),
+  submitterEmail: z.string().email("Valid email is required"),
+  eventTitle: z.string().min(1, "Event title is required"),
+  eventDescription: z.string().optional(),
+  eventDate: z.string().min(1, "Event date is required"),
+  eventTime: z.string().min(1, "Event time is required"),
+  venueName: z.string().min(1, "Venue name is required"),
+  venueAddress: z.string().min(1, "Venue address is required"),
+  facebookUrl: z.string().url().optional().or(z.literal("")),
+  websiteUrl: z.string().url().optional().or(z.literal("")),
+  notes: z.string().optional(),
+  /** Honeypot */
+  company: z.string().max(0).optional(),
+});
+
+export type SubmissionInput = z.infer<typeof submissionSchema>;
+
+export const subscriberSchema = z.object({
+  email: z.string().email("Valid email is required"),
+  areas: z.array(z.string()).optional(),
+  /** Honeypot */
+  company: z.string().max(0).optional(),
+});
+
+export type SubscriberInput = z.infer<typeof subscriberSchema>;
+
+export const vendorSurveySchema = z.object({
+  vendorType: z.string().min(1, "Vendor type is required"),
+  leadTimeNeeded: z.string().optional(),
+  biggestPainPoints: z.string().optional(),
+  missingInfo: z.string().optional(),
+  willingnessToPay: z.string().optional(),
+  contactEmail: z.string().email().optional().or(z.literal("")),
+  contactName: z.string().optional(),
+});
+
+export type VendorSurveyInput = z.infer<typeof vendorSurveySchema>;
+
+export const venueSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  address: z.string().min(1, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  zip: z.string().min(5, "ZIP code is required"),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  neighborhood: z.string().optional(),
+  parkingNotes: z.string().optional(),
+});
+
+export type VenueInput = z.infer<typeof venueSchema>;
+
+export const marketSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  slug: z.string().min(1, "Slug is required"),
+  description: z.string().optional(),
+  imageUrl: z.string().url().optional().or(z.literal("")),
+  websiteUrl: z.string().url().optional().or(z.literal("")),
+  facebookUrl: z.string().url().optional().or(z.literal("")),
+  instagramUrl: z.string().url().optional().or(z.literal("")),
+  baseArea: z.string().optional(),
+  typicalSchedule: z.string().optional(),
+  contactEmail: z.string().email().optional().or(z.literal("")),
+  contactPhone: z.string().optional(),
+  verificationStatus: z.enum(["UNVERIFIED", "PENDING", "VERIFIED"]).optional(),
+  ownerId: z.string().optional().or(z.literal("")),
+});
+
+export type MarketInput = z.infer<typeof marketSchema>;
+
+export const eventSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required"),
+  description: z.string().optional(),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().min(1, "End date is required"),
+  venueId: z.string().min(1, "Venue is required"),
+  marketId: z.string().optional(),
+  imageUrl: z.string().url().optional().or(z.literal("")),
+  status: z.enum(["DRAFT", "PENDING", "PUBLISHED", "CANCELLED"]),
+  websiteUrl: z.string().url().optional().or(z.literal("")),
+  facebookUrl: z.string().url().optional().or(z.literal("")),
+  tagIds: z.array(z.string()).optional(),
+  featureIds: z.array(z.string()).optional(),
+});
+
+export type EventInput = z.infer<typeof eventSchema>;
+
+export const signInSchema = z.object({
+  email: z.string().email("Valid email is required"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export const SIGNUP_ROLES = [
+  { value: "USER", label: "Consumer", description: "I want to find events and support local vendors" },
+  { value: "VENDOR", label: "Vendor", description: "I sell at markets and want to list where I'll be" },
+  { value: "ORGANIZER", label: "Organizer / Market Owner", description: "I run or own a market and want to manage events" },
+] as const;
+
+export const signUpSchema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Valid email is required"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+    role: z.enum(["USER", "VENDOR", "ORGANIZER"]),
+    /** Honeypot — must be empty (bots fill it) */
+    website: z.string().max(0).optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+
+export type SignInInput = z.infer<typeof signInSchema>;
+export type SignUpInput = z.infer<typeof signUpSchema>;
+
+// ─── Milestone 2 schemas ────────────────────────────────────────────
+
+export const attendanceSchema = z.object({
+  eventId: z.string().min(1),
+  status: z.enum(["GOING", "INTERESTED"]),
+});
+export type AttendanceInput = z.infer<typeof attendanceSchema>;
+
+export const reviewSchema = z.object({
+  eventId: z.string().optional(),
+  marketId: z.string().optional(),
+  rating: z.number().int().min(1).max(5),
+  text: z.string().optional(),
+  parkingRating: z.number().int().min(1).max(5).optional(),
+  varietyRating: z.number().int().min(1).max(5).optional(),
+  valueRating: z.number().int().min(1).max(5).optional(),
+  crowdingRating: z.number().int().min(1).max(5).optional(),
+  weatherPlanRating: z.number().int().min(1).max(5).optional(),
+  accessibilityRating: z.number().int().min(1).max(5).optional(),
+});
+export type ReviewInput = z.infer<typeof reviewSchema>;
+
+export const claimRequestSchema = z.object({
+  marketId: z.string().min(1, "Market is required"),
+  proof: z.string().min(10, "Please provide proof of your connection to this market (minimum 10 characters)"),
+});
+export type ClaimRequestInput = z.infer<typeof claimRequestSchema>;
+
+// ─── Milestone 3 schemas ────────────────────────────────────────────
+
+export const vendorProfileSchema = z.object({
+  businessName: z.string().min(1, "Business name is required"),
+  slug: z.string().optional(),
+  description: z.string().optional(),
+  imageUrl: z.string().url().optional().or(z.literal("")),
+  websiteUrl: z.string().url().optional().or(z.literal("")),
+  facebookUrl: z.string().url().optional().or(z.literal("")),
+  instagramUrl: z.string().url().optional().or(z.literal("")),
+  specialties: z.string().optional(),
+});
+export type VendorProfileInput = z.infer<typeof vendorProfileSchema>;
+
+export const savedFilterSchema = z.object({
+  name: z.string().min(1, "Filter name is required"),
+  dateRange: z.string().optional(),
+  neighborhoods: z.array(z.string()).optional(),
+  categories: z.array(z.string()).optional(),
+  features: z.array(z.string()).optional(),
+  emailAlerts: z.boolean().optional(),
+});
+export type SavedFilterInput = z.infer<typeof savedFilterSchema>;
+
+export const organizerEventSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required"),
+  description: z.string().optional(),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().min(1, "End date is required"),
+  venueId: z.string().min(1, "Venue is required"),
+  marketId: z.string().optional(),
+  imageUrl: z.string().url().optional().or(z.literal("")),
+  websiteUrl: z.string().url().optional().or(z.literal("")),
+  facebookUrl: z.string().url().optional().or(z.literal("")),
+  tagIds: z.array(z.string()).optional(),
+  featureIds: z.array(z.string()).optional(),
+});
+export type OrganizerEventInput = z.infer<typeof organizerEventSchema>;

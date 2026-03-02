@@ -1,0 +1,116 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { ChevronDown, LayoutDashboard, Store, Shield, Filter, Heart, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { Session } from "next-auth";
+
+interface UserMenuProps {
+  session: Session;
+}
+
+export function UserMenu({ session }: UserMenuProps) {
+  const [open, setOpen] = React.useState(false);
+  const pathname = usePathname();
+  const menuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  React.useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const role = session.user?.role;
+  const isAdmin = role === "ADMIN";
+  const isVendor = role === "VENDOR";
+  const isOrganizer = role === "ORGANIZER";
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen(!open)}
+        className="gap-1.5"
+      >
+        <span className="max-w-[120px] truncate">
+          {session.user?.name ?? session.user?.email}
+        </span>
+        {role && (
+          <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-medium">
+            {role}
+          </span>
+        )}
+        <ChevronDown
+          className={cn("h-4 w-4 transition-transform", open && "rotate-180")}
+        />
+      </Button>
+
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-md border border-border bg-background py-1 shadow-lg">
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
+            >
+              <Shield className="h-4 w-4" />
+              Admin
+            </Link>
+          )}
+          {isOrganizer && (
+            <Link
+              href="/organizer/dashboard"
+              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Organizer Dashboard
+            </Link>
+          )}
+          {isVendor && (
+            <Link
+              href="/vendor/dashboard"
+              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
+            >
+              <Store className="h-4 w-4" />
+              Vendor Dashboard
+            </Link>
+          )}
+          <Link
+            href="/settings/filters"
+            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
+          >
+            <Filter className="h-4 w-4" />
+            Saved Filters
+          </Link>
+          <Link
+            href="/settings/favorites"
+            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
+          >
+            <Heart className="h-4 w-4" />
+            Favorite Vendors
+          </Link>
+          <button
+            type="button"
+            onClick={() => signOut()}
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

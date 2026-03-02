@@ -1,0 +1,21 @@
+# Development override — no hot reload
+# Run: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+      - app_node_modules:/app/node_modules
+      - ./uploads:/app/uploads
+    command: sh -c "if [ ! -f node_modules/.package-lock.json ]; then echo 'Installing dependencies...' && npm ci && npx prisma generate; fi && exec npm run dev"
+    environment:
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
+    ports:
+      - "3000:3000"
+
+volumes:
+  app_node_modules:

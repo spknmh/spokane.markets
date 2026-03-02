@@ -1,0 +1,21 @@
+# DB only — use for local dev with hot reload
+# 1. docker compose -f docker-compose.db.yml up -d
+# 2. npm run dev
+# Hot reload works because Next.js runs on your machine, not in Docker.
+
+services:
+  db:
+    image: postgres:16-alpine
+    env_file: .env.local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
