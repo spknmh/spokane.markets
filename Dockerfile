@@ -20,6 +20,8 @@ RUN npx prisma generate
 RUN npm run build
 
 # ── runner ────────────────────────────────────────────────────────────
+# Minimal app image: Next.js standalone only. No prisma/node_modules.
+# Migrate and seed run in the init container.
 FROM node:25-alpine AS runner
 WORKDIR /app
 
@@ -30,34 +32,16 @@ RUN addgroup --system nodejs && adduser --system --ingroup nodejs nextjs
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/tsx ./node_modules/tsx
-COPY --from=builder /app/node_modules/esbuild ./node_modules/esbuild
-COPY --from=builder /app/node_modules/get-tsconfig ./node_modules/get-tsconfig
-COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
-COPY --from=builder /app/node_modules/pg ./node_modules/pg
-COPY --from=builder /app/node_modules/pg-connection-string ./node_modules/pg-connection-string
-COPY --from=builder /app/node_modules/pg-pool ./node_modules/pg-pool
-COPY --from=builder /app/node_modules/pg-protocol ./node_modules/pg-protocol
-COPY --from=builder /app/node_modules/pg-types ./node_modules/pg-types
-COPY --from=builder /app/node_modules/pgpass ./node_modules/pgpass
-COPY --from=builder /app/node_modules/postgres-array ./node_modules/postgres-array
-COPY --from=builder /app/node_modules/pg-int8 ./node_modules/pg-int8
-COPY --from=builder /app/node_modules/postgres-bytea ./node_modules/postgres-bytea
-COPY --from=builder /app/node_modules/postgres-date ./node_modules/postgres-date
-COPY --from=builder /app/node_modules/postgres-interval ./node_modules/postgres-interval
-COPY --from=builder /app/node_modules/split2 ./node_modules/split2
-# Use launcher script so __dirname is prisma/build (wasm lookup); COPY dereferences symlinks
-RUN mkdir -p node_modules/.bin && \
-    printf '#!/bin/sh\nexec node "$(dirname "$0")/../prisma/build/index.js" "$@"\n' > node_modules/.bin/prisma && \
-    chmod +x node_modules/.bin/prisma
-COPY --from=builder /app/node_modules/.bin/tsx ./node_modules/.bin/tsx
 
 USER nextjs
 
 EXPOSE 3000
 
 CMD ["node", "server.js"]
+
+# ── init ─────────────────────────────────────────────────────────────
+# Runs migrate + seed on deploy. Uses full node_modules (no cherry-picking).
+# Depends on init completing before web starts.
+FROM builder AS init
+WORKDIR /app
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]

@@ -6,6 +6,7 @@ on:
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
+  IMAGE_INIT: ghcr.io/${{ github.repository }}:init-${{ github.sha }}
 
 jobs:
   build-and-deploy:
@@ -25,11 +26,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push web image
         uses: docker/build-push-action@v6
         with:
           context: .
+          target: runner
           push: true
           tags: |
             ${{ env.IMAGE }}
             ghcr.io/${{ github.repository }}:latest
+
+      - name: Build and push init image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: init
+          push: true
+          tags: |
+            ${{ env.IMAGE_INIT }}
+            ghcr.io/${{ github.repository }}:init

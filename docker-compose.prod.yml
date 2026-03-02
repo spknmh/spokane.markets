@@ -1,6 +1,17 @@
 services:
+  init:
+    image: ghcr.io/redkeysh/spokane.markets:init
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env.local
+    restart: "no"
+
   web:
     image: ghcr.io/redkeysh/spokane.markets:latest
+    depends_on:
+      init:
+        condition: service_completed_successfully
     restart: unless-stopped
     # In production, `docker compose up -d` (without --build) pulls the image.
     # The base `build` key is ignored when pulling a pre-built image.

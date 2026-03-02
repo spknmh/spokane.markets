@@ -5,9 +5,10 @@ Deploy Spokane Markets using Docker, Caddy, and GitHub Actions.
 ## Overview
 
 - **Stack**: Next.js (standalone), PostgreSQL, Caddy
-- **CI/CD**: Push to `main` → build image → push to GHCR → SSH deploy
-- **Image**: `ghcr.io/redkeysh/spokane.markets:latest`
+- **CI/CD**: Push to `main` → build images → push to GHCR → SSH deploy
+- **Images**: `ghcr.io/redkeysh/spokane.markets:latest` (web), `ghcr.io/redkeysh/spokane.markets:init` (migrate + seed)
 - **Runtime**: Node.js 25 (inside container); host Node version is irrelevant
+- **Deploy flow**: `init` runs `prisma migrate deploy` and `prisma db seed` on startup, then exits; `web` starts after `init` completes
 
 ## Prerequisites
 
@@ -87,7 +88,7 @@ Ensure the server allows SSH key auth for `SERVER_USER`.
 
 ### Option A: Via GitHub Actions (recommended)
 
-1. Push to `main`. The workflow will build, push, and deploy.
+1. Push to `main`. The workflow builds both images (web + init), pushes to GHCR, and deploys.
 2. If the server has no image yet, the first run may fail on `docker pull`. Run once manually:
 
 ```bash
@@ -95,32 +96,34 @@ ssh user@server
 cd ~/spokane.markets
 docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-docker compose exec web npx prisma migrate deploy
 ```
+
+Migrations and seed run automatically in the `init` container before `web` starts.
 
 ### Option B: Manual deploy
 
 ```bash
-# On your machine: build and push
-docker build -t ghcr.io/redkeysh/spokane.markets:latest .
+# On your machine: build and push both images
+docker build -t ghcr.io/redkeysh/spokane.markets:latest --target runner .
+docker build -t ghcr.io/redkeysh/spokane.markets:init --target init .
 docker push ghcr.io/redkeysh/spokane.markets:latest
+docker push ghcr.io/redkeysh/spokane.markets:init
 
 # On server
 cd ~/spokane.markets
 docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-docker compose exec web npx prisma migrate deploy
 ```
 
 ## 5. Post-Deploy
 
-### Seed database (optional)
+### Seed database
+
+Seed runs automatically in the `init` container on every deploy. To re-run seed manually:
 
 ```bash
-docker compose exec web npx prisma db seed
+docker compose run --rm init npx prisma db seed
 ```
-
-If you get `prisma: not found`, rebuild the image (the Prisma CLI is copied into the production image).
 
 ### Verify
 
@@ -130,7 +133,11 @@ If you get `prisma: not found`, rebuild the image (the Prisma CLI is copied into
 
 ## 6. Image Reference
 
-`docker-compose.prod.yml` uses `ghcr.io/redkeysh/spokane.markets:latest`. If your repo is under a different org/user, update the `image` key to match `ghcr.io/OWNER/REPO:latest` (same as `github.repository`).
+`docker-compose.prod.yml` uses:
+- `ghcr.io/redkeysh/spokane.markets:latest` (web)
+- `ghcr.io/redkeysh/spokane.markets:init` (init)
+
+If your repo is under a different org/user, update the `image` keys to match `ghcr.io/OWNER/REPO` (same as `github.repository`).
 
 ## 7. Firewall
 
@@ -149,7 +156,7 @@ sudo ufw enable
 | Issue | Check |
 |-------|-------|
 | 502 Bad Gateway | `docker compose ps` — is `web` running? `docker compose logs web` |
-| Migrations fail | `DATABASE_URL` correct? DB healthy? `docker compose exec db pg_isready -U postgres` |
+| Migrations fail | `DATABASE_URL` correct? DB healthy? `docker compose logs init` for migrate output; `docker compose exec db pg_isready -U postgres` |
 | Uploads 404 | `uploads/` exists? Caddy volume `./uploads:/srv/uploads:ro` |
 | Auth redirect wrong | `AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match your domain |
 | SSH deploy fails | `SERVER_SSH_KEY` includes full key; server allows key auth |
