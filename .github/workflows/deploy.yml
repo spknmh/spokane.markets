@@ -41,7 +41,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd ~/spokane-markets
+            cd ~/spokane.markets
             docker pull ${{ env.IMAGE }}
             docker tag ${{ env.IMAGE }} ghcr.io/${{ github.repository }}:latest
             docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d

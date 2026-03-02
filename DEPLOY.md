@@ -6,7 +6,7 @@ Deploy Spokane Markets using Docker, Caddy, and GitHub Actions.
 
 - **Stack**: Next.js (standalone), PostgreSQL, Caddy
 - **CI/CD**: Push to `main` → build image → push to GHCR → SSH deploy
-- **Image**: `ghcr.io/redkeysh/spokane-market:latest`
+- **Image**: `ghcr.io/redkeysh/spokane.markets:latest`
 
 ## Prerequisites
 
@@ -29,8 +29,8 @@ sudo usermod -aG docker $USER
 
 ```bash
 cd ~
-git clone https://github.com/redkeysh/spokane-market.git spokane-markets
-cd spokane-markets
+git clone https://github.com/redkeysh/spokane.markets.git
+cd spokane.markets
 ```
 
 ### Create uploads directory
@@ -97,7 +97,7 @@ Ensure the server allows SSH key auth for `SERVER_USER`.
 
 ```bash
 ssh user@server
-cd ~/spokane-markets
+cd ~/spokane.markets
 docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 docker compose exec web npx prisma migrate deploy
@@ -107,11 +107,11 @@ docker compose exec web npx prisma migrate deploy
 
 ```bash
 # On your machine: build and push
-docker build -t ghcr.io/redkeysh/spokane-market:latest .
-docker push ghcr.io/redkeysh/spokane-market:latest
+docker build -t ghcr.io/redkeysh/spokane.markets:latest .
+docker push ghcr.io/redkeysh/spokane.markets:latest
 
 # On server
-cd ~/spokane-markets
+cd ~/spokane.markets
 docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 docker compose exec web npx prisma migrate deploy
@@ -133,7 +133,7 @@ docker compose exec web npx prisma db seed
 
 ## 6. Image Reference
 
-`docker-compose.prod.yml` uses `ghcr.io/redkeysh/spokane-market:latest`. If your repo is under a different org/user, update the `image` key to match `ghcr.io/OWNER/REPO:latest` (same as `github.repository`).
+`docker-compose.prod.yml` uses `ghcr.io/redkeysh/spokane.markets:latest`. If your repo is under a different org/user, update the `image` key to match `ghcr.io/OWNER/REPO:latest` (same as `github.repository`).
 
 ## 7. Firewall
 
