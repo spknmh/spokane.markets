@@ -57,7 +57,11 @@ export default async function AdminVenuesPage() {
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/admin/venues/${venue.id}/edit`}>Edit</Link>
                     </Button>
-                    <DeleteButton action={deleteVenue.bind(null, venue.id)} />
+                    <DeleteButton
+                      action={deleteVenue.bind(null, venue.id)}
+                      title="Delete venue"
+                      description={`Are you sure you want to delete "${venue.name}"? This will remove the venue. Events using it must be updated first.`}
+                    />
                   </td>
                 </tr>
               ))

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -53,11 +54,11 @@ export function SubscriberDeleteButton({ id, email }: SubscriberDeleteButtonProp
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Remove subscriber</DialogTitle>
+            <DialogDescription>
+              Remove <strong>{email}</strong> from the newsletter list? They will
+              no longer receive the weekly digest.
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-muted-foreground">
-            Remove <strong>{email}</strong> from the newsletter list? They will
-            no longer receive the weekly digest.
-          </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel

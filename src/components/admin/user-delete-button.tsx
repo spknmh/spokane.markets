@@ -29,10 +29,12 @@ export function UserDeleteButton({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const displayName = userName || userEmail;
 
   async function handleDelete() {
+    setError(null);
     setDeleting(true);
     try {
       const res = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
@@ -41,7 +43,7 @@ export function UserDeleteButton({
         router.refresh();
       } else {
         const body = await res.json();
-        alert(body.error || "Failed to delete user");
+        setError(body.error || "Failed to delete user");
       }
     } finally {
       setDeleting(false);
@@ -72,6 +74,9 @@ export function UserDeleteButton({
               account and all associated data. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          {error && (
+            <p className="px-6 text-sm text-destructive">{error}</p>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={deleting}>
               Cancel

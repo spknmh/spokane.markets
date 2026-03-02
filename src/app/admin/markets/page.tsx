@@ -80,7 +80,11 @@ export default async function AdminMarketsPage() {
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/admin/markets/${market.id}/edit`}>Edit</Link>
                     </Button>
-                    <DeleteButton action={deleteMarket.bind(null, market.id)} />
+                    <DeleteButton
+                        action={deleteMarket.bind(null, market.id)}
+                        title="Delete market"
+                        description={`Are you sure you want to delete "${market.name}"? This will remove the market and all associated data.`}
+                      />
                   </td>
                 </tr>
               ))

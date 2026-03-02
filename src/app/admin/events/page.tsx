@@ -100,7 +100,11 @@ export default async function AdminEventsPage({
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/admin/events/${event.id}/edit`}>Edit</Link>
                     </Button>
-                    <DeleteButton action={deleteEvent.bind(null, event.id)} />
+                    <DeleteButton
+                      action={deleteEvent.bind(null, event.id)}
+                      title="Delete event"
+                      description={`Are you sure you want to delete "${event.title}"? This will remove the event and cannot be undone.`}
+                    />
                   </td>
                 </tr>
               ))
