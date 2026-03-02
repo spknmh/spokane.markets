@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { hash } from "bcryptjs";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -16,7 +17,22 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await request.json();
-  const { role } = body;
+  const { role, password } = body;
+
+  if (password !== undefined) {
+    if (typeof password !== "string" || password.length < 8) {
+      return NextResponse.json(
+        { error: { message: "Password must be at least 8 characters" } },
+        { status: 400 }
+      );
+    }
+    const hashedPassword = await hash(password, 10);
+    const user = await db.user.update({
+      where: { id },
+      data: { hashedPassword },
+    });
+    return NextResponse.json(user);
+  }
 
   const validRoles = ["USER", "VENDOR", "ORGANIZER", "ADMIN"];
   if (!role || !validRoles.includes(role)) {

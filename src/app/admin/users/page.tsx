@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { UserRoleSelect } from "@/components/admin/user-role-select";
 import { UserDeleteButton } from "@/components/admin/user-delete-button";
+import { UserResetPasswordButton } from "@/components/admin/user-reset-password-button";
 import Link from "next/link";
 
 export default async function AdminUsersPage() {
@@ -42,7 +43,7 @@ export default async function AdminUsersPage() {
               <th className="text-left p-3 font-medium">Role</th>
               <th className="text-left p-3 font-medium">Markets</th>
               <th className="text-left p-3 font-medium">Joined</th>
-              <th className="w-10 p-3" aria-label="Actions" />
+              <th className="w-20 p-3" aria-label="Actions" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -78,7 +79,12 @@ export default async function AdminUsersPage() {
                   <td className="p-3 text-muted-foreground">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 flex items-center gap-1">
+                    <UserResetPasswordButton
+                      userId={user.id}
+                      userName={user.name}
+                      userEmail={user.email}
+                    />
                     <UserDeleteButton
                       userId={user.id}
                       userName={user.name}

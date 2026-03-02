@@ -62,6 +62,7 @@ Required production values:
 | `AUTH_SECRET` | `openssl rand -base64 32` |
 | `AUTH_URL` | `https://spokane.markets` (your domain) |
 | `NEXT_PUBLIC_APP_URL` | `https://spokane.markets` |
+| `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | `openssl rand -base64 32` — **required** for Server Actions in Docker |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Optional. From Google Cloud Console |
 | `AUTH_FACEBOOK_ID` / `AUTH_FACEBOOK_SECRET` | Optional. From Meta Developer |
 | `RESEND_API_KEY` | From Resend dashboard |
@@ -188,3 +189,4 @@ Note: The web image is standalone and may not include tsx. Use the init image in
 | **TLS cert error** (`remote error: tls: internal error`) | Caddyfile uses `disable_tlsalpn_challenge` to force HTTP-01. Ensure ports 80 and 443 are open (`ufw status`), DNS points to server IP, and no proxy/load balancer terminates TLS before Caddy. If behind Cloudflare or similar, use DNS-01 challenge instead. |
 | **Build `npm ci` ECONNRESET** | Transient network failure. Retry the build. The Dockerfile sets `fetch-retries`, `fetch-retry-mintimeout`, and `fetch-retry-maxtimeout` to harden against this. If it persists: `docker build --network host -t ... .` or check proxy/firewall. |
 | **Cron not running** | Check `docker compose logs cron`. Ensure init image has crond (Alpine). If missing, use host crontab (see §8). |
+| **Failed to find Server Action** | Add `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` to `.env.local` (generate with `openssl rand -base64 32`). Rebuild the image. Clear browser cache. |
