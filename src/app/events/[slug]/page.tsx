@@ -101,22 +101,22 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
       </div>
 
       {/* Title & Date */}
-      <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
-      <p className="mt-2 text-lg text-muted-foreground">
+      <h1 className="font-sans text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">{event.title}</h1>
+      <p className="mt-3 text-xl font-bold text-foreground">
         {formatDateRange(event.startDate, event.endDate)}
       </p>
 
       {/* Venue */}
-      <div className="mt-6 rounded-lg border border-border p-4">
-        <h2 className="font-semibold">{event.venue.name}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{fullAddress}</p>
+      <div className="mt-6 rounded-lg border-2 border-border bg-card p-5">
+        <h2 className="text-xl font-bold text-foreground">{event.venue.name}</h2>
+        <p className="mt-2 text-base font-semibold text-foreground">{fullAddress}</p>
         {event.venue.neighborhood && (
           <Badge variant="secondary" className="mt-2">
             {event.venue.neighborhood}
           </Badge>
         )}
         {event.venue.parkingNotes && (
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm font-medium text-foreground">
             🅿️ {event.venue.parkingNotes}
           </p>
         )}
@@ -131,8 +131,8 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
       {/* Market association */}
       {event.market && (
-        <div className="mt-4 rounded-lg border border-border p-4">
-          <p className="text-sm text-muted-foreground">Part of</p>
+        <div className="mt-4 rounded-lg border-2 border-border bg-card p-4">
+          <p className="text-sm font-semibold text-foreground">Part of</p>
           <Link
             href={`/markets/${event.market.slug}`}
             className="text-lg font-semibold text-primary hover:underline"
@@ -193,8 +193,8 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
       {/* Description */}
       {event.description && (
         <div className="mt-8">
-          <h2 className="text-lg font-semibold">About this event</h2>
-          <p className="mt-2 whitespace-pre-line text-muted-foreground">
+          <h2 className="text-xl font-bold text-foreground">About this event</h2>
+          <p className="mt-3 text-base font-medium leading-relaxed text-foreground whitespace-pre-line">
             {event.description}
           </p>
         </div>

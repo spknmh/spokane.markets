@@ -12,7 +12,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { EventCard } from "@/components/event-card";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Heart } from "lucide-react";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 
 export default async function VendorDashboardPage() {
@@ -21,6 +21,7 @@ export default async function VendorDashboardPage() {
   const profile = await db.vendorProfile.findUnique({
     where: { userId: session.user.id },
     include: {
+      _count: { select: { favoriteVendors: true } },
       vendorEvents: {
         include: {
           event: {
@@ -59,6 +60,8 @@ export default async function VendorDashboardPage() {
       ve.event.startDate >= new Date() && ve.event.status === "PUBLISHED",
   );
 
+  const favoritedCount = profile._count.favoriteVendors;
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between">
@@ -77,7 +80,13 @@ export default async function VendorDashboardPage() {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-xl">{profile.businessName}</CardTitle>
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-xl">{profile.businessName}</CardTitle>
+                <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                  <Heart className="h-4 w-4" />
+                  {favoritedCount} {favoritedCount === 1 ? "favorite" : "favorites"}
+                </span>
+              </div>
               {profile.specialties && (
                 <CardDescription className="mt-1">
                   {profile.specialties}

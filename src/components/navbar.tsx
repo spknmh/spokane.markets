@@ -1,7 +1,13 @@
 import { auth } from "@/auth";
+import { db } from "@/lib/db";
 import { NavbarClient } from "@/components/navbar-client";
 
 export async function Navbar() {
   const session = await auth();
-  return <NavbarClient session={session} />;
+  const unreadCount = session?.user?.id
+    ? await db.notification.count({
+        where: { userId: session.user.id, readAt: null },
+      })
+    : 0;
+  return <NavbarClient session={session} unreadCount={unreadCount} />;
 }

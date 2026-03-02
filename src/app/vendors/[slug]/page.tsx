@@ -1,9 +1,12 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { FavoriteVendorButton } from "@/components/favorite-vendor-button";
+import { AuthGate } from "@/components/auth-gate";
 import {
   Card,
   CardHeader,
@@ -132,6 +135,21 @@ export default async function VendorProfilePage({ params }: PageProps) {
             instagramUrl={vendor.instagramUrl}
             className="mt-4"
           />
+
+          {vendor.userId == null && (
+            <div className="mt-4">
+              <AuthGate
+                session={session}
+                callbackUrl={`/vendors/${vendor.slug}/claim`}
+              >
+                <Button asChild>
+                  <Link href={`/vendors/${vendor.slug}/claim`}>
+                    Claim This Vendor
+                  </Link>
+                </Button>
+              </AuthGate>
+            </div>
+          )}
         </div>
       </div>
 

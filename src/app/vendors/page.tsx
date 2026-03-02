@@ -9,7 +9,6 @@ import {
   Card,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardContent,
 } from "@/components/ui/card";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
@@ -69,10 +68,10 @@ export default async function VendorsPage() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {vendors.map((vendor) => (
             <Link key={vendor.id} href={`/vendors/${vendor.slug}`}>
-              <Card className="h-full transition-all hover:shadow-lg hover:border-primary/30">
+              <Card className="h-full border-2 transition-all hover:shadow-lg hover:border-primary/50">
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="line-clamp-2">
+                    <CardTitle className="font-sans line-clamp-2 text-lg font-bold text-foreground">
                       {vendor.businessName}
                     </CardTitle>
                     <div className="flex shrink-0 items-center gap-2">
@@ -93,9 +92,9 @@ export default async function VendorsPage() {
                     </div>
                   </div>
                   {vendor.specialties && (
-                    <CardDescription className="line-clamp-1">
+                    <p className="line-clamp-1 text-sm font-semibold text-foreground">
                       {vendor.specialties}
-                    </CardDescription>
+                    </p>
                   )}
                 </CardHeader>
                 {(vendor.description ||

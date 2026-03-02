@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { submissionSchema } from "@/lib/validations";
+import { submissionSchemaAuthed } from "@/lib/validations";
 
 const RATE_LIMIT_COUNT = 5;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
@@ -12,8 +13,18 @@ function toOptional(value: string | undefined): string | undefined {
 
 export async function POST(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const email = session.user.email;
+    if (!email) {
+      return NextResponse.json({ error: "Account email required" }, { status: 400 });
+    }
+
     const body = await request.json();
-    const parsed = submissionSchema.safeParse(body);
+    const parsed = submissionSchemaAuthed.safeParse(body);
 
     if (!parsed.success) {
       const firstIssue = parsed.error.issues[0];
@@ -25,12 +36,12 @@ export async function POST(request: Request) {
     if (data.company && data.company.length > 0) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
-    const email = data.submitterEmail.toLowerCase();
+    const submitterEmail = email.toLowerCase();
 
     const oneHourAgo = new Date(Date.now() - RATE_LIMIT_WINDOW_MS);
     const recentCount = await db.submission.count({
       where: {
-        submitterEmail: email,
+        submitterEmail,
         createdAt: { gte: oneHourAgo },
       },
     });
@@ -45,10 +56,12 @@ export async function POST(request: Request) {
       );
     }
 
+    const submitterName = session.user.name ?? "Unknown";
+
     await db.submission.create({
       data: {
-        submitterName: data.submitterName,
-        submitterEmail: email,
+        submitterName,
+        submitterEmail,
         eventTitle: data.eventTitle,
         eventDescription: toOptional(data.eventDescription),
         eventDate: data.eventDate,

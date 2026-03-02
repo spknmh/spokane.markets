@@ -7,7 +7,6 @@ import {
   Card,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardContent,
 } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
@@ -56,9 +55,9 @@ export default async function MarketsPage() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {markets.map((market) => (
           <Link key={market.id} href={`/markets/${market.slug}`}>
-            <Card className="h-full transition-all hover:shadow-lg hover:border-primary/30">
+            <Card className="h-full border-2 transition-all hover:shadow-lg hover:border-primary/50">
               <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
-                <CardTitle className="line-clamp-2">{market.name}</CardTitle>
+                <CardTitle className="font-sans line-clamp-2 text-lg font-bold text-foreground">{market.name}</CardTitle>
                 <div className="flex shrink-0 flex-wrap gap-1">
                   {market.baseArea && (
                     <Badge variant="outline">{market.baseArea}</Badge>
@@ -68,14 +67,14 @@ export default async function MarketsPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {market.typicalSchedule && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     {market.typicalSchedule}
                   </p>
                 )}
                 {market.description && (
-                  <CardDescription className="line-clamp-2">
+                  <p className="line-clamp-2 text-sm font-medium text-foreground">
                     {truncate(market.description, 120)}
-                  </CardDescription>
+                  </p>
                 )}
               </CardContent>
             </Card>

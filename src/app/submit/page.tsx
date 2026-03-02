@@ -1,8 +1,11 @@
 import Image from "next/image";
 import { SubmissionForm } from "@/components/submission-form";
+import { requireAuth } from "@/lib/auth-utils";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
 
-export default function SubmitPage() {
+export default async function SubmitPage() {
+  const session = await requireAuth("/submit");
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <div className="mb-8 overflow-hidden rounded-xl">
@@ -22,7 +25,7 @@ export default function SubmitPage() {
           Submissions are typically reviewed within a few business days.
         </p>
       </div>
-      <SubmissionForm />
+      <SubmissionForm session={session} />
     </div>
   );
 }

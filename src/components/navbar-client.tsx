@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, X, Store, Home } from "lucide-react";
+import { Menu, X, Store, Home, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthGate } from "@/components/auth-gate";
 import type { Session } from "next-auth";
 
 function getNavLinks(session: Session | null) {
@@ -14,10 +15,8 @@ function getNavLinks(session: Session | null) {
     { href: "/events", label: "Events" },
     { href: "/markets", label: "Markets" },
     { href: "/vendors", label: "Vendors" },
+    { href: "/submit", label: "Submit Event" },
   ];
-  if (session?.user) {
-    base.push({ href: "/submit", label: "Submit Event" });
-  }
   if (session?.user?.role === "VENDOR") {
     base.push({ href: "/vendor-survey", label: "Vendor Survey" });
   }
@@ -26,9 +25,10 @@ function getNavLinks(session: Session | null) {
 
 interface NavbarClientProps {
   session: Session | null;
+  unreadCount?: number;
 }
 
-export function NavbarClient({ session }: NavbarClientProps) {
+export function NavbarClient({ session, unreadCount = 0 }: NavbarClientProps) {
   const navLinks = React.useMemo(
     () => getNavLinks(session),
     [session?.user?.role, session?.user]
@@ -49,9 +49,8 @@ export function NavbarClient({ session }: NavbarClientProps) {
         <div className="hidden md:flex md:items-center md:gap-8">
           {navLinks.map((link) => {
             const Icon = "icon" in link ? link.icon : null;
-            return (
+            const linkEl = (
               <Link
-                key={link.href}
                 href={link.href}
                 className="flex items-center gap-1.5 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
               >
@@ -59,12 +58,37 @@ export function NavbarClient({ session }: NavbarClientProps) {
                 {link.label}
               </Link>
             );
+            return link.href === "/submit" ? (
+              <AuthGate key={link.href} session={session} callbackUrl="/submit">
+                {linkEl}
+              </AuthGate>
+            ) : (
+              <React.Fragment key={link.href}>{linkEl}</React.Fragment>
+            );
           })}
         </div>
 
         {/* Desktop auth */}
         <div className="hidden md:flex md:items-center md:gap-2">
           <ThemeToggle />
+          {session && (
+            <Link
+              href="/notifications"
+              className="relative rounded p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label={
+                unreadCount > 0
+                  ? `${unreadCount} unread notifications`
+                  : "Notifications"
+              }
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
           {session ? (
             <UserMenu session={session} />
           ) : (
@@ -80,7 +104,7 @@ export function NavbarClient({ session }: NavbarClientProps) {
         </div>
 
         {/* Mobile hamburger */}
-        <MobileNav session={session} navLinks={navLinks} />
+        <MobileNav session={session} navLinks={navLinks} unreadCount={unreadCount} />
       </nav>
     </header>
   );
@@ -89,9 +113,11 @@ export function NavbarClient({ session }: NavbarClientProps) {
 function MobileNav({
   session,
   navLinks,
+  unreadCount = 0,
 }: {
   session: Session | null;
   navLinks: Array<{ href: string; label: string; icon?: React.ComponentType<{ className?: string }> }>;
+  unreadCount?: number;
 }) {
   const [open, setOpen] = React.useState(false);
 
@@ -115,9 +141,8 @@ function MobileNav({
           <div className="fixed right-0 top-16 z-50 flex h-[calc(100vh-4rem)] w-64 flex-col gap-4 border-l border-border bg-nav p-4 shadow-lg">
             {navLinks.map((link) => {
               const Icon = "icon" in link ? link.icon : null;
-              return (
+              const linkEl = (
                 <Link
-                  key={link.href}
                   href={link.href}
                   className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
                   onClick={() => setOpen(false)}
@@ -126,8 +151,30 @@ function MobileNav({
                   {link.label}
                 </Link>
               );
+              return link.href === "/submit" ? (
+                <AuthGate key={link.href} session={session} callbackUrl="/submit">
+                  {linkEl}
+                </AuthGate>
+              ) : (
+                <React.Fragment key={link.href}>{linkEl}</React.Fragment>
+              );
             })}
             <div className="mt-auto flex flex-col gap-2 border-t border-border pt-4">
+              {session && (
+                <Link
+                  href="/notifications"
+                  className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
+                  onClick={() => setOpen(false)}
+                >
+                  <Bell className="h-4 w-4" />
+                  Notifications
+                  {unreadCount > 0 && (
+                    <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </Link>
+              )}
               <ThemeToggle />
               {session ? (
                 <>

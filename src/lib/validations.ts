@@ -16,7 +16,14 @@ export const submissionSchema = z.object({
   company: z.string().max(0).optional(),
 });
 
+/** Schema for authenticated submissions (submitter from session) */
+export const submissionSchemaAuthed = submissionSchema.omit({
+  submitterName: true,
+  submitterEmail: true,
+});
+
 export type SubmissionInput = z.infer<typeof submissionSchema>;
+export type SubmissionInputAuthed = z.infer<typeof submissionSchemaAuthed>;
 
 export const subscriberSchema = z.object({
   email: z.string().email("Valid email is required"),
@@ -160,6 +167,12 @@ export const claimRequestSchema = z.object({
   proof: z.string().min(10, "Please provide proof of your connection to this market (minimum 10 characters)"),
 });
 export type ClaimRequestInput = z.infer<typeof claimRequestSchema>;
+
+export const vendorClaimRequestSchema = z.object({
+  vendorProfileId: z.string().min(1),
+  proof: z.string().min(10, "Proof required"),
+});
+export type VendorClaimRequestInput = z.infer<typeof vendorClaimRequestSchema>;
 
 // ─── Milestone 3 schemas ────────────────────────────────────────────
 

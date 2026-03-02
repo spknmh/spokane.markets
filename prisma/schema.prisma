@@ -51,19 +51,22 @@ model User {
   image          String?
   hashedPassword String?
 
-  accounts      Account[]
-  sessions      Session[]
-  attendances   Attendance[]
-  reviews       Review[]
-  photos        Photo[]
-  ownedMarkets  Market[]       @relation("MarketOwner")
-  claimRequests ClaimRequest[] @relation("ClaimRequester")
-  reviewedClaims ClaimRequest[] @relation("ClaimReviewer")
-  reviewedSubmissions Submission[] @relation("SubmissionReviewer")
-  vendorProfile   VendorProfile?
-  savedFilters   SavedFilter[]
-  favoriteVendors FavoriteVendor[]
-  organizerEvents Event[]      @relation("OrganizerEvents")
+  accounts            Account[]
+  sessions            Session[]
+  attendances         Attendance[]
+  reviews             Review[]
+  photos              Photo[]
+  ownedMarkets        Market[]             @relation("MarketOwner")
+  claimRequests       ClaimRequest[]       @relation("ClaimRequester")
+  reviewedClaims      ClaimRequest[]       @relation("ClaimReviewer")
+  reviewedSubmissions Submission[]         @relation("SubmissionReviewer")
+  vendorProfile       VendorProfile?
+  notifications       Notification[]
+  vendorClaimRequests VendorClaimRequest[] @relation("VendorClaimRequester")
+  vendorClaimReviews  VendorClaimRequest[] @relation("VendorClaimReviewer")
+  savedFilters        SavedFilter[]
+  favoriteVendors     FavoriteVendor[]
+  organizerEvents     Event[]              @relation("OrganizerEvents")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -185,11 +188,11 @@ model Event {
   facebookUrl       String?
 
   submittedById String?
-  market        Market?      @relation(fields: [marketId], references: [id], onDelete: SetNull)
-  venue         Venue        @relation(fields: [venueId], references: [id], onDelete: Restrict)
-  submittedBy   User?        @relation("OrganizerEvents", fields: [submittedById], references: [id], onDelete: SetNull)
-  tags          Tag[]        @relation("EventTags")
-  features      Feature[]    @relation("EventFeatures")
+  market        Market?       @relation(fields: [marketId], references: [id], onDelete: SetNull)
+  venue         Venue         @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  submittedBy   User?         @relation("OrganizerEvents", fields: [submittedById], references: [id], onDelete: SetNull)
+  tags          Tag[]         @relation("EventTags")
+  features      Feature[]     @relation("EventFeatures")
   attendances   Attendance[]
   reviews       Review[]
   photos        Photo[]
@@ -241,19 +244,19 @@ model Attendance {
 }
 
 model Review {
-  id                   String           @id @default(cuid())
-  userId               String
-  eventId              String?
-  marketId             String?
-  rating               Int
-  text                 String?          @db.Text
-  parkingRating        Int?
-  varietyRating        Int?
-  valueRating          Int?
-  crowdingRating       Int?
-  weatherPlanRating    Int?
-  accessibilityRating  Int?
-  status               ModerationStatus @default(PENDING)
+  id                  String           @id @default(cuid())
+  userId              String
+  eventId             String?
+  marketId            String?
+  rating              Int
+  text                String?          @db.Text
+  parkingRating       Int?
+  varietyRating       Int?
+  valueRating         Int?
+  crowdingRating      Int?
+  weatherPlanRating   Int?
+  accessibilityRating Int?
+  status              ModerationStatus @default(PENDING)
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   event  Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
@@ -317,13 +320,13 @@ model Submission {
 }
 
 model ClaimRequest {
-  id           String           @id @default(cuid())
-  marketId     String
-  userId       String
-  proof        String           @db.Text
-  status       ModerationStatus @default(PENDING)
-  reviewerId   String?
-  reviewNotes  String?          @db.Text
+  id          String           @id @default(cuid())
+  marketId    String
+  userId      String
+  proof       String           @db.Text
+  status      ModerationStatus @default(PENDING)
+  reviewerId  String?
+  reviewNotes String?          @db.Text
 
   market   Market @relation(fields: [marketId], references: [id], onDelete: Cascade)
   user     User   @relation("ClaimRequester", fields: [userId], references: [id], onDelete: Cascade)
@@ -333,6 +336,42 @@ model ClaimRequest {
   updatedAt DateTime @updatedAt
 
   @@map("claim_requests")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String?   @db.Text
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model VendorClaimRequest {
+  id              String           @id @default(cuid())
+  vendorProfileId String
+  userId          String
+  proof           String           @db.Text
+  status          ModerationStatus @default(PENDING)
+  reviewerId      String?
+  reviewNotes     String?          @db.Text
+
+  vendorProfile VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+  user          User          @relation("VendorClaimRequester", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer      User?         @relation("VendorClaimReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("vendor_claim_requests")
 }
 
 model Subscriber {
@@ -364,7 +403,7 @@ model VendorSurvey {
 
 model VendorProfile {
   id           String  @id @default(cuid())
-  userId       String  @unique
+  userId       String? @unique
   businessName String
   slug         String  @unique
   description  String? @db.Text
@@ -374,9 +413,10 @@ model VendorProfile {
   instagramUrl String?
   specialties  String?
 
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   vendorEvents    VendorEvent[]
   favoriteVendors FavoriteVendor[]
+  claimRequests   VendorClaimRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -418,10 +458,10 @@ model SavedFilter {
 }
 
 model FavoriteVendor {
-  id              String   @id @default(cuid())
+  id              String  @id @default(cuid())
   userId          String
   vendorProfileId String
-  emailAlerts     Boolean  @default(true)
+  emailAlerts     Boolean @default(true)
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   vendorProfile VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)

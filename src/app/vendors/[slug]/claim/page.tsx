@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { ClaimForm } from "@/components/claim-form";
+import { VendorClaimForm } from "@/components/vendor-claim-form";
 import {
   Card,
   CardHeader,
@@ -15,32 +15,33 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default async function ClaimMarketPage({ params }: PageProps) {
+export default async function ClaimVendorPage({ params }: PageProps) {
   const { slug } = await params;
-  const session = await requireAuth(`/markets/${slug}/claim`);
 
-  const market = await db.market.findUnique({
+  const session = await requireAuth(`/vendors/${slug}/claim`);
+
+  const vendor = await db.vendorProfile.findUnique({
     where: { slug },
-    select: { id: true, name: true, slug: true, verificationStatus: true },
+    select: { id: true, businessName: true, slug: true, userId: true },
   });
 
-  if (!market) return notFound();
+  if (!vendor) return notFound();
 
-  if (market.verificationStatus === "VERIFIED") {
+  if (vendor.userId != null) {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
         <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-primary" />
         <h1 className="text-2xl font-bold tracking-tight">Already Claimed</h1>
         <p className="mt-2 text-muted-foreground">
-          This market has already been claimed and verified.
+          This vendor has already been claimed.
         </p>
       </div>
     );
   }
 
-  const existingClaim = await db.claimRequest.findFirst({
+  const existingClaim = await db.vendorClaimRequest.findFirst({
     where: {
-      marketId: market.id,
+      vendorProfileId: vendor.id,
       userId: session.user.id,
       status: "PENDING",
     },
@@ -62,14 +63,17 @@ export default async function ClaimMarketPage({ params }: PageProps) {
     <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
       <Card>
         <CardHeader>
-          <CardTitle>Claim {market.name}</CardTitle>
+          <CardTitle>Claim {vendor.businessName}</CardTitle>
           <CardDescription>
-            Prove your ownership or management of this market to gain verified
-            status and manage its listings.
+            Prove your ownership or management of this vendor to gain access to
+            manage its profile and event listings.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ClaimForm marketId={market.id} marketName={market.name} />
+          <VendorClaimForm
+            vendorProfileId={vendor.id}
+            vendorName={vendor.businessName}
+          />
         </CardContent>
       </Card>
     </div>

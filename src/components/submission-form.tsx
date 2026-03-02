@@ -3,9 +3,12 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { Session } from "next-auth";
 import {
   submissionSchema,
+  submissionSchemaAuthed,
   type SubmissionInput,
+  type SubmissionInputAuthed,
 } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,19 +22,24 @@ import {
   CardContent,
 } from "@/components/ui/card";
 
-export function SubmissionForm() {
+interface SubmissionFormProps {
+  session: Session | null;
+}
+
+export function SubmissionForm({ session }: SubmissionFormProps) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isAuthed = !!session?.user;
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<SubmissionInput>({
-    resolver: zodResolver(submissionSchema),
+  } = useForm<SubmissionInput | SubmissionInputAuthed>({
+    resolver: zodResolver(isAuthed ? submissionSchemaAuthed : submissionSchema),
     defaultValues: {
-      submitterName: "",
-      submitterEmail: "",
+      ...(isAuthed ? {} : { submitterName: "", submitterEmail: "" }),
       eventTitle: "",
       eventDescription: "",
       eventDate: "",
@@ -45,13 +53,14 @@ export function SubmissionForm() {
     },
   });
 
-  async function onSubmit(data: SubmissionInput) {
+  async function onSubmit(data: SubmissionInput | SubmissionInputAuthed) {
     setSuccess(false);
     setError(null);
+    const payload = isAuthed ? data : (data as SubmissionInput);
     const res = await fetch("/api/submissions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
 
     const json = await res.json();
@@ -106,38 +115,40 @@ export function SubmissionForm() {
               {error}
             </div>
           )}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="submitterName">Your name</Label>
-              <Input
-                id="submitterName"
-                type="text"
-                placeholder="Jane Doe"
-                autoComplete="name"
-                {...register("submitterName")}
-              />
-              {errors.submitterName && (
-                <p className="text-sm text-destructive">
-                  {errors.submitterName.message}
-                </p>
-              )}
+          {!isAuthed && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="submitterName">Your name</Label>
+                <Input
+                  id="submitterName"
+                  type="text"
+                  placeholder="Jane Doe"
+                  autoComplete="name"
+                  {...register("submitterName" as keyof SubmissionInput)}
+                />
+                {"submitterName" in errors && errors.submitterName && (
+                  <p className="text-sm text-destructive">
+                    {errors.submitterName.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="submitterEmail">Your email</Label>
+                <Input
+                  id="submitterEmail"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  {...register("submitterEmail" as keyof SubmissionInput)}
+                />
+                {"submitterEmail" in errors && errors.submitterEmail && (
+                  <p className="text-sm text-destructive">
+                    {errors.submitterEmail.message}
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="submitterEmail">Your email</Label>
-              <Input
-                id="submitterEmail"
-                type="email"
-                placeholder="you@example.com"
-                autoComplete="email"
-                {...register("submitterEmail")}
-              />
-              {errors.submitterEmail && (
-                <p className="text-sm text-destructive">
-                  {errors.submitterEmail.message}
-                </p>
-              )}
-            </div>
-          </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="eventTitle">Event title</Label>
@@ -272,7 +283,7 @@ export function SubmissionForm() {
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" variant="accent" className="w-full font-semibold" disabled={isSubmitting}>
             {isSubmitting ? "Submitting…" : "Submit event"}
           </Button>
         </CardContent>

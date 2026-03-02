@@ -2,10 +2,10 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import type { Role } from "@prisma/client";
 
-export async function requireAuth() {
+export async function requireAuth(callbackPath?: string) {
   const session = await auth();
   if (!session?.user) {
-    redirect("/auth/signin");
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent(callbackPath || "/")}`);
   }
   return session;
 }

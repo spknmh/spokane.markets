@@ -16,10 +16,12 @@ import {
   Users,
   Menu,
   X,
+  BarChart2,
 } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "Analytics", href: "/admin/analytics", icon: BarChart2 },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Events", href: "/admin/events", icon: Calendar },
   { label: "Markets", href: "/admin/markets", icon: Store },

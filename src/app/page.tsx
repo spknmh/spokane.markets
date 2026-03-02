@@ -1,9 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { EventCard } from "@/components/event-card";
 import { Input } from "@/components/ui/input";
+import { AuthGate } from "@/components/auth-gate";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
 
 function getUpcomingWeekendRange(): { start: Date; end: Date } {
@@ -29,6 +31,7 @@ function getUpcomingWeekendRange(): { start: Date; end: Date } {
 }
 
 export default async function HomePage() {
+  const session = await auth();
   const { start, end } = getUpcomingWeekendRange();
 
   const weekendEvents = await db.event.findMany({
@@ -73,9 +76,11 @@ export default async function HomePage() {
             <Button size="lg" asChild className="shadow-lg">
               <Link href="/events">Browse Events</Link>
             </Button>
-            <Button size="lg" variant="secondary" asChild className="bg-white/90 text-foreground hover:bg-white shadow-lg">
-              <Link href="/submit">Submit an Event</Link>
-            </Button>
+            <AuthGate session={session} callbackUrl="/submit">
+              <Button size="lg" variant="secondary" asChild className="bg-white/90 text-foreground hover:bg-white shadow-lg">
+                <Link href="/submit">Submit an Event</Link>
+              </Button>
+            </AuthGate>
           </div>
         </div>
       </section>

@@ -13,6 +13,22 @@ export function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+export function formatRelativeTime(date: Date): string {
+  const rtf = new Intl.RelativeTimeFormat("en-US", { numeric: "auto" });
+  const now = new Date();
+  const diffMs = new Date(date).getTime() - now.getTime();
+  const diffSec = Math.round(diffMs / 1000);
+  const diffMin = Math.round(diffSec / 60);
+  const diffHr = Math.round(diffMin / 60);
+  const diffDay = Math.round(diffHr / 24);
+
+  if (Math.abs(diffSec) < 60) return rtf.format(diffSec, "second");
+  if (Math.abs(diffMin) < 60) return rtf.format(diffMin, "minute");
+  if (Math.abs(diffHr) < 24) return rtf.format(diffHr, "hour");
+  if (Math.abs(diffDay) < 30) return rtf.format(diffDay, "day");
+  return formatDate(date);
+}
+
 export function formatDate(date: Date): string {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",

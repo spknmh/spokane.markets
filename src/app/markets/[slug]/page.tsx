@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth-utils";
+import { AuthGate } from "@/components/auth-gate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -148,11 +149,15 @@ export default async function MarketDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      <div className="mb-8">
-        <Button asChild>
-          <Link href={`/markets/${market.slug}/claim`}>Claim This Market</Link>
-        </Button>
-      </div>
+      {market.verificationStatus !== "VERIFIED" && (
+        <div className="mb-8">
+          <AuthGate session={session} callbackUrl={`/markets/${market.slug}/claim`}>
+            <Button asChild>
+              <Link href={`/markets/${market.slug}/claim`}>Claim This Market</Link>
+            </Button>
+          </AuthGate>
+        </div>
+      )}
 
       {market.events.length > 0 && (
         <section>

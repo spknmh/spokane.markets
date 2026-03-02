@@ -60,10 +60,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return token;
     },
-    session({ session, token }) {
-      if (session.user) {
+    async session({ session, token }) {
+      if (session.user && token.id) {
         session.user.id = token.id as string;
         session.user.role = token.role as Role;
+        const user = await db.user.findUnique({
+          where: { id: token.id as string },
+          select: { name: true, email: true, image: true },
+        });
+        if (user) {
+          session.user.name = user.name ?? session.user.name;
+          session.user.email = user.email;
+          session.user.image = user.image ?? session.user.image;
+        }
       }
       return session;
     },

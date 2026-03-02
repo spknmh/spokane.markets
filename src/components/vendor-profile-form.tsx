@@ -21,6 +21,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+import { VendorImageUpload } from "@/components/vendor-image-upload";
 
 interface VendorProfileFormProps {
   initialData?: VendorProfileInput & { id?: string };
@@ -147,7 +148,15 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
+            <Label>Profile Image</Label>
+            <VendorImageUpload
+              value={watch("imageUrl") ?? ""}
+              onChange={(url) => setValue("imageUrl", url)}
+              disabled={isSubmitting}
+            />
+            <p className="text-xs text-muted-foreground">
+              Or paste a URL:
+            </p>
             <Input
               id="imageUrl"
               type="url"
