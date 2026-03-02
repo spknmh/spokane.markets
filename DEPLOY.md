@@ -154,3 +154,4 @@ sudo ufw enable
 | Auth redirect wrong | `AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match your domain |
 | SSH deploy fails | `SERVER_SSH_KEY` includes full key; server allows key auth |
 | **TLS cert error** (`remote error: tls: internal error`) | Caddyfile uses `disable_tlsalpn_challenge` to force HTTP-01. Ensure ports 80 and 443 are open (`ufw status`), DNS points to server IP, and no proxy/load balancer terminates TLS before Caddy. If behind Cloudflare or similar, use DNS-01 challenge instead. |
+| **Build `npm ci` ECONNRESET** | Transient network failure. Retry the build. The Dockerfile sets `fetch-retries`, `fetch-retry-mintimeout`, and `fetch-retry-maxtimeout` to harden against this. If it persists: `docker build --network host -t ... .` or check proxy/firewall. |

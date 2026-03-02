@@ -3,6 +3,10 @@ FROM node:25-alpine AS base
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
+# Harden npm against transient network failures (ECONNRESET, timeouts)
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000
 RUN npm ci
 
 # ── builder ───────────────────────────────────────────────────────────
