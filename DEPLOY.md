@@ -65,17 +65,11 @@ Required production values:
 
 ## 2. Caddyfile (Domain)
 
-Edit `Caddyfile` so the first line matches your domain. Caddy will obtain TLS certificates automatically:
+Edit `Caddyfile`:
+1. Replace `you@yourdomain.com` with your email (for Let's Encrypt notifications).
+2. Ensure the site block domain matches your domain (e.g. `spokane.markets`).
 
-```
-spokane.markets {
-	reverse_proxy web:3000
-	handle_path /uploads/* {
-		root * /srv/uploads
-		file_server
-	}
-}
-```
+Caddy obtains TLS certificates automatically. HTTP/2 and HTTP/3 are enabled by default (requires ports 80, 443/tcp, 443/udp).
 
 ## 3. GitHub Secrets
 
@@ -138,11 +132,12 @@ docker compose exec web npx prisma db seed
 
 ## 7. Firewall
 
-Open ports 80 and 443:
+Open ports 80 (HTTP), 443/tcp (HTTPS, HTTP/2), and 443/udp (HTTP/3):
 
 ```bash
-sudo ufw allow 80
-sudo ufw allow 443
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 443/udp
 sudo ufw allow 22
 sudo ufw enable
 ```
@@ -156,3 +151,4 @@ sudo ufw enable
 | Uploads 404 | `uploads/` exists? Caddy volume `./uploads:/srv/uploads:ro` |
 | Auth redirect wrong | `AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match your domain |
 | SSH deploy fails | `SERVER_SSH_KEY` includes full key; server allows key auth |
+| **TLS cert error** (`remote error: tls: internal error`) | Caddyfile uses `disable_tlsalpn_challenge` to force HTTP-01. Ensure ports 80 and 443 are open (`ufw status`), DNS points to server IP, and no proxy/load balancer terminates TLS before Caddy. If behind Cloudflare or similar, use DNS-01 challenge instead. |

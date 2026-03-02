@@ -1,8 +1,25 @@
+{
+	email webmaster@spokane.markets
+	servers :443 {
+		protocols h1 h2 h3
+	}
+}
+
 spokane.markets {
-	reverse_proxy web:3000
+	tls {
+		issuer acme {
+			disable_tlsalpn_challenge
+		}
+	}
+
+	encode zstd gzip
 
 	handle_path /uploads/* {
 		root * /srv/uploads
 		file_server
+	}
+
+	handle {
+		reverse_proxy web:3000
 	}
 }
