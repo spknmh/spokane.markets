@@ -50,7 +50,10 @@ COPY --from=builder /app/node_modules/postgres-bytea ./node_modules/postgres-byt
 COPY --from=builder /app/node_modules/postgres-date ./node_modules/postgres-date
 COPY --from=builder /app/node_modules/postgres-interval ./node_modules/postgres-interval
 COPY --from=builder /app/node_modules/split2 ./node_modules/split2
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+# Use launcher script so __dirname is prisma/build (wasm lookup); COPY dereferences symlinks
+RUN mkdir -p node_modules/.bin && \
+    printf '#!/bin/sh\nexec node "$(dirname "$0")/../prisma/build/index.js" "$@"\n' > node_modules/.bin/prisma && \
+    chmod +x node_modules/.bin/prisma
 COPY --from=builder /app/node_modules/.bin/tsx ./node_modules/.bin/tsx
 
 USER nextjs
