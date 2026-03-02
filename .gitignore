@@ -45,7 +45,7 @@ next-env.d.ts
 
 # prisma
 prisma/migrations/**/migration_lock.toml
-src/generated/prisma
+prisma/generated
 
 # uploads
 /uploads

@@ -7,6 +7,7 @@ Deploy Spokane Markets using Docker, Caddy, and GitHub Actions.
 - **Stack**: Next.js (standalone), PostgreSQL, Caddy
 - **CI/CD**: Push to `main` → build image → push to GHCR → SSH deploy
 - **Image**: `ghcr.io/redkeysh/spokane.markets:latest`
+- **Runtime**: Node.js 25 (inside container); host Node version is irrelevant
 
 ## Prerequisites
 
