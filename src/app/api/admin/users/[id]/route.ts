@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { hash } from "bcryptjs";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 import { NextResponse } from "next/server";
 
 export async function PATCH(
@@ -47,6 +48,10 @@ export async function PATCH(
     data: { role },
   });
 
+  await logAudit(session.user.id, "UPDATE_USER_ROLE", "USER", id, {
+    newRole: role,
+  });
+
   return NextResponse.json(user);
 }
 
@@ -74,6 +79,8 @@ export async function DELETE(
   await db.user.delete({
     where: { id },
   });
+
+  await logAudit(session.user.id, "DELETE_USER", "USER", id);
 
   return NextResponse.json({ success: true });
 }

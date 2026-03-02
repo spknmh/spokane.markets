@@ -3,19 +3,66 @@ import { db } from "@/lib/db";
 import { UserRoleSelect } from "@/components/admin/user-role-select";
 import { UserDeleteButton } from "@/components/admin/user-delete-button";
 import { UserResetPasswordButton } from "@/components/admin/user-reset-password-button";
+import { Pagination } from "@/components/pagination";
+import { UserFilters } from "@/components/admin/user-filters";
 import Link from "next/link";
+import type { Role } from "@prisma/client";
 
-export default async function AdminUsersPage() {
+const DEFAULT_LIMIT = 25;
+
+const ROLES: { label: string; value: Role | "" }[] = [
+  { label: "All roles", value: "" },
+  { label: "User", value: "USER" },
+  { label: "Vendor", value: "VENDOR" },
+  { label: "Organizer", value: "ORGANIZER" },
+  { label: "Admin", value: "ADMIN" },
+];
+
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; limit?: string; q?: string; role?: string }>;
+}) {
   const session = await requireAdmin();
 
-  const users = await db.user.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      _count: {
-        select: { ownedMarkets: true, claimRequests: true },
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page ?? "1", 10));
+  const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
+  const q = (params.q ?? "").trim();
+  const roleParam = params.role ?? "";
+  const roleFilter = ["USER", "VENDOR", "ORGANIZER", "ADMIN"].includes(roleParam)
+    ? (roleParam as Role)
+    : undefined;
+
+  const whereConditions = [];
+  if (q) {
+    whereConditions.push({
+      OR: [
+        { name: { contains: q, mode: "insensitive" as const } },
+        { email: { contains: q, mode: "insensitive" as const } },
+      ],
+    });
+  }
+  if (roleFilter) {
+    whereConditions.push({ role: roleFilter });
+  }
+  const where = whereConditions.length > 0 ? { AND: whereConditions } : undefined;
+
+  const [total, users] = await Promise.all([
+    db.user.count({ where }),
+    db.user.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        _count: {
+          select: { ownedMarkets: true, claimRequests: true },
+        },
       },
-    },
-  });
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+  ]);
+  const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="space-y-6">
@@ -33,6 +80,8 @@ export default async function AdminUsersPage() {
           Create user
         </Link>
       </div>
+
+      <UserFilters q={q} role={roleParam || ""} roles={ROLES} />
 
       <div className="border border-border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
@@ -98,6 +147,7 @@ export default async function AdminUsersPage() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
     </div>
   );
 }

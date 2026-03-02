@@ -2,16 +2,33 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { DeleteButton } from "@/components/admin/action-buttons";
+import { Pagination } from "@/components/pagination";
 import { deleteVenue } from "../actions";
 import Link from "next/link";
 
-export default async function AdminVenuesPage() {
+const DEFAULT_LIMIT = 25;
+
+export default async function AdminVenuesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; limit?: string }>;
+}) {
   await requireAdmin();
 
-  const venues = await db.venue.findMany({
-    orderBy: { name: "asc" },
-    include: { _count: { select: { events: true } } },
-  });
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page ?? "1", 10));
+  const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
+
+  const [total, venues] = await Promise.all([
+    db.venue.count(),
+    db.venue.findMany({
+      orderBy: { name: "asc" },
+      include: { _count: { select: { events: true } } },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+  ]);
+  const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="space-y-6">
@@ -69,6 +86,7 @@ export default async function AdminVenuesPage() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
     </div>
   );
 }

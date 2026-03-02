@@ -2,9 +2,12 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
+import { Pagination } from "@/components/pagination";
 import { updateReportStatus } from "../actions";
 import { formatDate, cn } from "@/lib/utils";
 import Link from "next/link";
+
+const DEFAULT_LIMIT = 25;
 
 const STATUS_TABS = [
   { label: "Pending", value: "PENDING" },
@@ -54,20 +57,29 @@ async function getTargetInfo(
 export default async function AdminReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; limit?: string }>;
 }) {
   await requireAdmin();
 
   const params = await searchParams;
   const statusFilter = (params.status ?? "PENDING") as "PENDING" | "RESOLVED" | "DISMISSED";
+  const page = Math.max(1, parseInt(params.page ?? "1", 10));
+  const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
 
-  const reports = await db.report.findMany({
-    where: { status: statusFilter },
-    orderBy: { createdAt: "desc" },
-    include: {
-      user: { select: { name: true, email: true } },
-    },
-  });
+  const where = { status: statusFilter };
+  const [total, reports] = await Promise.all([
+    db.report.count({ where }),
+    db.report.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { name: true, email: true } },
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+  ]);
+  const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="space-y-6">
@@ -77,7 +89,7 @@ export default async function AdminReportsPage({
         {STATUS_TABS.map((s) => (
           <Link
             key={s.value}
-            href={`/admin/reports?status=${s.value}`}
+            href={`/admin/reports?status=${s.value}&page=1`}
             className={cn(
               "px-3 py-1.5 text-sm rounded-md transition-colors",
               statusFilter === s.value
@@ -164,6 +176,7 @@ export default async function AdminReportsPage({
           })
         )}
       </div>
+      <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
     </div>
   );
 }

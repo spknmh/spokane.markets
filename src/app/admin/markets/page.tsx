@@ -3,9 +3,12 @@ import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DeleteButton, StatusButton } from "@/components/admin/action-buttons";
+import { Pagination } from "@/components/pagination";
 import { deleteMarket, verifyMarket } from "../actions";
 import Link from "next/link";
 import type { VerificationStatus } from "@prisma/client";
+
+const DEFAULT_LIMIT = 25;
 
 const verificationVariant: Record<VerificationStatus, "secondary" | "default" | "outline"> = {
   UNVERIFIED: "secondary",
@@ -13,16 +16,30 @@ const verificationVariant: Record<VerificationStatus, "secondary" | "default" | 
   VERIFIED: "default",
 };
 
-export default async function AdminMarketsPage() {
+export default async function AdminMarketsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; limit?: string }>;
+}) {
   await requireAdmin();
 
-  const markets = await db.market.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      _count: { select: { events: true } },
-      owner: { select: { name: true, email: true } },
-    },
-  });
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page ?? "1", 10));
+  const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
+
+  const [total, markets] = await Promise.all([
+    db.market.count(),
+    db.market.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        _count: { select: { events: true } },
+        owner: { select: { name: true, email: true } },
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+  ]);
+  const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="space-y-6">
@@ -92,6 +109,7 @@ export default async function AdminMarketsPage() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
     </div>
   );
 }

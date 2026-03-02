@@ -77,7 +77,8 @@ This document catalogs all 60 routes and their accessibility via navigation.
 
 | Route                      | Purpose                                  | Access                          |
 | -------------------------- | ---------------------------------------- | ------------------------------- |
-| `/admin`                   | Admin dashboard — stats, recent activity | **No nav link** — must know URL |
+| `/admin`                   | Overview — stats, queues, recent activity | **No nav link** — must know URL |
+| `/admin/content`           | Banners + Landing page config            | Admin sidebar                   |
 | `/admin/events`            | Event management                         | Admin sidebar                   |
 | `/admin/events/new`        | Create event                             | Admin events page               |
 | `/admin/events/[id]/edit`  | Edit event                               | Admin events page               |
@@ -87,12 +88,18 @@ This document catalogs all 60 routes and their accessibility via navigation.
 | `/admin/venues`            | Venue management                         | Admin sidebar                   |
 | `/admin/venues/new`        | Create venue                             | Admin venues page               |
 | `/admin/venues/[id]/edit`  | Edit venue                               | Admin venues page               |
-| `/admin/submissions`       | Submission queue                         | Admin sidebar                   |
+| `/admin/vendors`           | Vendor profile list                      | Admin sidebar                   |
+| `/admin/users`             | User management                          | Admin sidebar                   |
+| `/admin/users/new`         | Create user                              | Admin users page                |
+| `/admin/submissions`       | Submission queue                        | Admin sidebar                   |
 | `/admin/reviews`           | Review moderation                        | Admin sidebar                   |
-| `/admin/claims`            | Market claim requests                    | Admin sidebar                   |
+| `/admin/photos`            | Photo moderation                         | Admin sidebar                   |
+| `/admin/claims`            | Market + vendor claim requests           | Admin sidebar                   |
+| `/admin/reports`           | Content reports                          | Admin sidebar                   |
 | `/admin/subscribers`       | Subscriber list                          | Admin sidebar                   |
-| `/admin/banners`           | Configure page banner images             | Admin sidebar                   |
-| `/admin/landing`           | Toggle/config landing page (Coming Soon, Maintenance) | Admin sidebar |
+| `/admin/audit-log`         | Audit log of admin actions               | Admin sidebar                   |
+
+**Redirects:** `/admin/analytics` → `/admin`, `/admin/banners` → `/admin/content`, `/admin/landing` → `/admin/content`
 
 
 ---

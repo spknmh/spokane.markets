@@ -68,11 +68,28 @@ model User {
   favoriteVendors     FavoriteVendor[]
   organizerEvents     Event[]              @relation("OrganizerEvents")
   reports             Report[]
+  auditLogs           AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String   // e.g. DELETE_EVENT, APPROVE_REVIEW, UPDATE_USER_ROLE
+  targetType String?  // EVENT, MARKET, USER, REVIEW, etc.
+  targetId   String?
+  metadata   Json?    // extra context
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([action])
+  @@map("audit_logs")
 }
 
 model Report {

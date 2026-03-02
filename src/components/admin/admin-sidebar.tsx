@@ -16,27 +16,28 @@ import {
   Users,
   Menu,
   X,
-  BarChart2,
   ImageIcon,
   LayoutTemplate,
   Flag,
+  ShoppingBag,
+  FileText,
 } from "lucide-react";
 
 const navItems = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Analytics", href: "/admin/analytics", icon: BarChart2 },
-  { label: "Banners", href: "/admin/banners", icon: ImageIcon },
-  { label: "Landing Page", href: "/admin/landing", icon: LayoutTemplate },
+  { label: "Overview", href: "/admin", icon: LayoutDashboard },
+  { label: "Content", href: "/admin/content", icon: LayoutTemplate },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Events", href: "/admin/events", icon: Calendar },
   { label: "Markets", href: "/admin/markets", icon: Store },
   { label: "Venues", href: "/admin/venues", icon: MapPin },
+  { label: "Vendors", href: "/admin/vendors", icon: ShoppingBag },
   { label: "Submissions", href: "/admin/submissions", icon: Inbox },
   { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
   { label: "Photos", href: "/admin/photos", icon: ImageIcon },
   { label: "Claims", href: "/admin/claims", icon: Shield },
   { label: "Reports", href: "/admin/reports", icon: Flag },
   { label: "Subscribers", href: "/admin/subscribers", icon: Mail },
+  { label: "Audit Log", href: "/admin/audit-log", icon: FileText },
 ];
 
 export function AdminSidebar() {

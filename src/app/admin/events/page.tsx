@@ -4,9 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDateRange, cn } from "@/lib/utils";
 import { DeleteButton } from "@/components/admin/action-buttons";
+import { Pagination } from "@/components/pagination";
 import { deleteEvent } from "../actions";
 import Link from "next/link";
 import type { EventStatus } from "@prisma/client";
+
+const DEFAULT_LIMIT = 25;
 
 const STATUS_TABS = [
   { label: "All", value: "" },
@@ -26,18 +29,27 @@ const statusVariant: Record<EventStatus, "secondary" | "default" | "destructive"
 export default async function AdminEventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; limit?: string }>;
 }) {
   await requireAdmin();
 
   const params = await searchParams;
   const statusFilter = params.status as EventStatus | undefined;
+  const page = Math.max(1, parseInt(params.page ?? "1", 10));
+  const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
 
-  const events = await db.event.findMany({
-    where: statusFilter ? { status: statusFilter } : undefined,
-    include: { venue: { select: { name: true } } },
-    orderBy: { startDate: "desc" },
-  });
+  const where = statusFilter ? { status: statusFilter } : undefined;
+  const [total, events] = await Promise.all([
+    db.event.count({ where }),
+    db.event.findMany({
+      where,
+      include: { venue: { select: { name: true } } },
+      orderBy: { startDate: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+  ]);
+  const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="space-y-6">
@@ -52,7 +64,7 @@ export default async function AdminEventsPage({
         {STATUS_TABS.map((tab) => (
           <Link
             key={tab.value}
-            href={tab.value ? `/admin/events?status=${tab.value}` : "/admin/events"}
+            href={tab.value ? `/admin/events?status=${tab.value}&page=1` : "/admin/events?page=1"}
             className={cn(
               "px-3 py-1.5 text-sm rounded-md transition-colors",
               (statusFilter ?? "") === tab.value
@@ -112,6 +124,7 @@ export default async function AdminEventsPage({
           </tbody>
         </table>
       </div>
+      <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
     </div>
   );
 }

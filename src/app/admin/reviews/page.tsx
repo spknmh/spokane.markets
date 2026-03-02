@@ -2,10 +2,13 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
+import { Pagination } from "@/components/pagination";
 import { updateReviewStatus } from "../actions";
 import { formatDate, cn } from "@/lib/utils";
 import Link from "next/link";
 import type { ModerationStatus } from "@prisma/client";
+
+const DEFAULT_LIMIT = 25;
 
 const STATUS_TABS = [
   { label: "Pending", value: "PENDING" },
@@ -22,22 +25,31 @@ const statusVariant: Record<ModerationStatus, "outline" | "default" | "destructi
 export default async function AdminReviewsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; limit?: string }>;
 }) {
   await requireAdmin();
 
   const params = await searchParams;
   const statusFilter = (params.status as ModerationStatus) || "PENDING";
+  const page = Math.max(1, parseInt(params.page ?? "1", 10));
+  const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
 
-  const reviews = await db.review.findMany({
-    where: { status: statusFilter },
-    orderBy: { createdAt: "desc" },
-    include: {
-      user: { select: { name: true, email: true } },
-      event: { select: { title: true } },
-      market: { select: { name: true } },
-    },
-  });
+  const where = { status: statusFilter };
+  const [total, reviews] = await Promise.all([
+    db.review.count({ where }),
+    db.review.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { name: true, email: true } },
+        event: { select: { title: true } },
+        market: { select: { name: true } },
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+  ]);
+  const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="space-y-6">
@@ -47,7 +59,7 @@ export default async function AdminReviewsPage({
         {STATUS_TABS.map((tab) => (
           <Link
             key={tab.value}
-            href={`/admin/reviews?status=${tab.value}`}
+            href={`/admin/reviews?status=${tab.value}&page=1`}
             className={cn(
               "px-3 py-1.5 text-sm rounded-md transition-colors",
               statusFilter === tab.value
@@ -117,6 +129,7 @@ export default async function AdminReviewsPage({
           ))
         )}
       </div>
+      <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
     </div>
   );
 }

@@ -2,10 +2,13 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
+import { Pagination } from "@/components/pagination";
 import { updateClaimStatus, updateVendorClaimStatus } from "../actions";
 import { formatDate, cn } from "@/lib/utils";
 import Link from "next/link";
 import type { ModerationStatus } from "@prisma/client";
+
+const DEFAULT_LIMIT = 25;
 
 const CLAIM_TABS = [
   { label: "Market Claims", value: "market" },
@@ -27,33 +30,49 @@ const statusVariant: Record<ModerationStatus, "outline" | "default" | "destructi
 export default async function AdminClaimsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; status?: string }>;
+  searchParams: Promise<{ tab?: string; status?: string; page?: string; limit?: string }>;
 }) {
   await requireAdmin();
 
   const params = await searchParams;
   const tab = (params.tab === "vendor" ? "vendor" : "market") as "market" | "vendor";
   const statusFilter = (params.status as ModerationStatus) || "PENDING";
+  const page = Math.max(1, parseInt(params.page ?? "1", 10));
+  const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
 
-  const marketClaims = await db.claimRequest.findMany({
-    where: { status: statusFilter },
-    orderBy: { createdAt: "desc" },
-    include: {
-      market: { select: { name: true } },
-      user: { select: { name: true, email: true } },
-    },
-  });
+  const where = { status: statusFilter };
 
-  const vendorClaims = await db.vendorClaimRequest.findMany({
-    where: { status: statusFilter },
-    orderBy: { createdAt: "desc" },
-    include: {
-      vendorProfile: { select: { businessName: true, slug: true } },
-      user: { select: { name: true, email: true } },
-    },
-  });
+  const [marketTotal, marketClaims, vendorTotal, vendorClaims] = await Promise.all([
+    db.claimRequest.count({ where }),
+    tab === "market"
+      ? db.claimRequest.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          include: {
+            market: { select: { name: true } },
+            user: { select: { name: true, email: true } },
+          },
+          skip: (page - 1) * limit,
+          take: limit,
+        })
+      : [],
+    db.vendorClaimRequest.count({ where }),
+    tab === "vendor"
+      ? db.vendorClaimRequest.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          include: {
+            vendorProfile: { select: { businessName: true, slug: true } },
+            user: { select: { name: true, email: true } },
+          },
+          skip: (page - 1) * limit,
+          take: limit,
+        })
+      : [],
+  ]);
 
-  const claims = tab === "market" ? marketClaims : vendorClaims;
+  const total = tab === "market" ? marketTotal : vendorTotal;
+  const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="space-y-6">
@@ -64,7 +83,7 @@ export default async function AdminClaimsPage({
           {CLAIM_TABS.map((t) => (
             <Link
               key={t.value}
-              href={`/admin/claims?tab=${t.value}&status=${statusFilter}`}
+              href={`/admin/claims?tab=${t.value}&status=${statusFilter}&page=1`}
               className={cn(
                 "px-3 py-1.5 text-sm rounded-md transition-colors",
                 tab === t.value
@@ -146,6 +165,9 @@ export default async function AdminClaimsPage({
                 </div>
               ))
             )}
+            {tab === "market" && (
+              <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
+            )}
           </>
         )}
 
@@ -209,6 +231,7 @@ export default async function AdminClaimsPage({
                 </div>
               ))
             )}
+            <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
           </>
         )}
       </div>

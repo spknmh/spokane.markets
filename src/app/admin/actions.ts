@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { createNotification } from "@/lib/notifications";
+import { logAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 
 async function requireAdminAction() {
@@ -14,20 +15,23 @@ async function requireAdminAction() {
 }
 
 export async function deleteEvent(id: string) {
-  await requireAdminAction();
+  const session = await requireAdminAction();
   await db.event.delete({ where: { id } });
+  await logAudit(session.user.id, "DELETE_EVENT", "EVENT", id);
   revalidatePath("/admin/events");
 }
 
 export async function deleteVenue(id: string) {
-  await requireAdminAction();
+  const session = await requireAdminAction();
   await db.venue.delete({ where: { id } });
+  await logAudit(session.user.id, "DELETE_VENUE", "VENUE", id);
   revalidatePath("/admin/venues");
 }
 
 export async function deleteMarket(id: string) {
-  await requireAdminAction();
+  const session = await requireAdminAction();
   await db.market.delete({ where: { id } });
+  await logAudit(session.user.id, "DELETE_MARKET", "MARKET", id);
   revalidatePath("/admin/markets");
 }
 
@@ -78,7 +82,10 @@ export async function setMarketVerificationStatus(
   revalidatePath("/admin/markets");
 }
 
-export async function updateSubmissionStatus(id: string, status: "APPROVED" | "REJECTED") {
+export async function updateSubmissionStatus(
+  id: string,
+  status: "APPROVED" | "REJECTED"
+) {
   const session = await requireAdminAction();
   const submission = await db.submission.findUnique({
     where: { id },
@@ -107,24 +114,29 @@ export async function updateSubmissionStatus(id: string, status: "APPROVED" | "R
       link
     );
   }
+  await logAudit(session.user.id, "UPDATE_SUBMISSION_STATUS", "SUBMISSION", id, {
+    status,
+  });
   revalidatePath("/admin/submissions");
 }
 
 export async function updateReviewStatus(id: string, status: "APPROVED" | "REJECTED") {
-  await requireAdminAction();
+  const session = await requireAdminAction();
   await db.review.update({
     where: { id },
     data: { status },
   });
+  await logAudit(session.user.id, "UPDATE_REVIEW_STATUS", "REVIEW", id, { status });
   revalidatePath("/admin/reviews");
 }
 
 export async function updatePhotoStatus(id: string, status: "APPROVED" | "REJECTED") {
-  await requireAdminAction();
+  const session = await requireAdminAction();
   await db.photo.update({
     where: { id },
     data: { status },
   });
+  await logAudit(session.user.id, "UPDATE_PHOTO_STATUS", "PHOTO", id, { status });
   revalidatePath("/admin/photos");
 }
 
@@ -160,7 +172,10 @@ export async function updateClaimStatus(id: string, status: "APPROVED" | "REJECT
       `/markets/${claim.market.slug}`
     );
   }
-
+  await logAudit(session.user.id, "UPDATE_CLAIM_STATUS", "CLAIM", id, {
+    status,
+    type: "MARKET",
+  });
   revalidatePath("/admin/claims");
 }
 
@@ -197,6 +212,9 @@ export async function updateVendorClaimStatus(id: string, status: "APPROVED" | "
       link
     );
   }
+  await logAudit(session.user.id, "UPDATE_VENDOR_CLAIM_STATUS", "VENDOR_CLAIM", id, {
+    status,
+  });
   revalidatePath("/admin/claims");
 }
 
@@ -204,10 +222,11 @@ export async function updateReportStatus(
   id: string,
   status: "RESOLVED" | "DISMISSED"
 ) {
-  await requireAdminAction();
+  const session = await requireAdminAction();
   await db.report.update({
     where: { id },
     data: { status },
   });
+  await logAudit(session.user.id, "UPDATE_REPORT_STATUS", "REPORT", id, { status });
   revalidatePath("/admin/reports");
 }
