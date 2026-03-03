@@ -5,6 +5,7 @@ import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBannerImages } from "@/lib/banner-images";
+import { isBannerUnoptimized } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "About & Contact — Spokane Markets",
@@ -23,7 +24,7 @@ export default async function AboutPage() {
           width={800}
           height={300}
           className="h-48 w-full object-cover"
-          unoptimized={banners.produce.startsWith("/uploads/")}
+          unoptimized={isBannerUnoptimized(banners.produce)}
         />
       </div>
       <h1 className="text-3xl font-bold tracking-tight">About Spokane Markets</h1>

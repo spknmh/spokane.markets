@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, Link2, RotateCcw } from "lucide-react";
-import type { BannerKey } from "@/lib/banner-images";
+import { isBannerUnoptimized } from "@/lib/utils";
 
 interface BannerEditorProps {
   bannerKey: string;
@@ -105,7 +105,7 @@ export function BannerEditor({ bannerKey, label, currentUrl, isCustom }: BannerE
     router.refresh();
   }
 
-  const isLocal = currentUrl.startsWith("/uploads/");
+  const useUnoptimized = isBannerUnoptimized(currentUrl);
 
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-3">
@@ -116,7 +116,7 @@ export function BannerEditor({ bannerKey, label, currentUrl, isCustom }: BannerE
           alt={label}
           fill
           className="object-cover"
-          unoptimized={isLocal}
+          unoptimized={useUnoptimized}
           sizes="(max-width: 640px) 100vw, 50vw"
         />
       </div>

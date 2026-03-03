@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
+import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
 import { EventCard } from "@/components/event-card";
 import { EventFilters } from "@/components/event-filters";
@@ -144,24 +145,26 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   const totalPages = Math.ceil(totalCount / limit);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="relative mb-10 overflow-hidden rounded-xl">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="relative -mx-4 mb-10 overflow-hidden rounded-xl sm:-mx-6 lg:-mx-8">
         <Image
           src={banners.marketCrowd}
           alt=""
           width={1200}
-          height={300}
-          className="h-40 w-full object-cover sm:h-48"
-          unoptimized={banners.marketCrowd.startsWith("/uploads/")}
+          height={400}
+          className="h-52 w-full object-cover sm:h-64"
+          unoptimized={isBannerUnoptimized(banners.marketCrowd)}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Events
-          </h1>
-          <p className="mt-0.5 text-sm text-muted-foreground sm:text-base">
-            Find markets, fairs, and community events across Spokane.
-          </p>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+        <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6">
+          <div className="inline-block max-w-2xl rounded-lg bg-black/50 px-4 py-3 backdrop-blur-sm sm:px-5 sm:py-4">
+            <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-sm sm:text-4xl">
+              Events
+            </h1>
+            <p className="mt-1 text-base text-white/95 sm:text-lg">
+              Find markets, fairs, and community events across Spokane.
+            </p>
+          </div>
         </div>
       </div>
 

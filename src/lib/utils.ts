@@ -6,6 +6,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** True if a banner URL should use unoptimized Image (local uploads or external URLs). */
+export function isBannerUnoptimized(url: string): boolean {
+  return url.startsWith("/uploads/") || url.startsWith("http://") || url.startsWith("https://");
+}
+
 /** Returns display label for a neighborhood/baseArea slug, or title-cased fallback. */
 export function formatNeighborhoodLabel(slug: string | null | undefined): string {
   if (!slug) return "";

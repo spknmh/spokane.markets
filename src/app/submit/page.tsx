@@ -2,6 +2,7 @@ import Image from "next/image";
 import { SubmissionForm } from "@/components/submission-form";
 import { requireAuth } from "@/lib/auth-utils";
 import { getBannerImages } from "@/lib/banner-images";
+import { isBannerUnoptimized } from "@/lib/utils";
 
 export default async function SubmitPage() {
   const [session, banners] = await Promise.all([requireAuth("/submit"), getBannerImages()]);
@@ -15,7 +16,7 @@ export default async function SubmitPage() {
           width={800}
           height={200}
           className="h-40 w-full object-cover"
-          unoptimized={banners.craftStall.startsWith("/uploads/")}
+          unoptimized={isBannerUnoptimized(banners.craftStall)}
         />
       </div>
       <div className="mb-8 text-center">

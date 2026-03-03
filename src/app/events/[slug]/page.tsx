@@ -4,6 +4,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
+import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
 import { formatDateRangeInTimezone, getDirectionsUrl } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -108,7 +109,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 width={800}
                 height={320}
                 className="h-64 w-full object-cover sm:h-80"
-                unoptimized={banners.events.startsWith("/uploads/")}
+                unoptimized={isBannerUnoptimized(banners.events)}
               />
             )}
           </div>

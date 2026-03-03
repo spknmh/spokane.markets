@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { getBannerImages } from "@/lib/banner-images";
+import { isBannerUnoptimized } from "@/lib/utils";
 
 export default async function AuthLayout({
   children,
@@ -16,7 +17,7 @@ export default async function AuthLayout({
           fill
           className="object-cover opacity-20"
           priority
-          unoptimized={banners.community.startsWith("/uploads/")}
+          unoptimized={isBannerUnoptimized(banners.community)}
         />
         <div className="absolute inset-0 bg-background/80" />
       </div>

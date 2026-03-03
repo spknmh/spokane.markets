@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { VendorSurveyForm } from "@/components/vendor-survey-form";
 import { getBannerImages } from "@/lib/banner-images";
+import { isBannerUnoptimized } from "@/lib/utils";
 
 export default async function VendorSurveyPage() {
   const banners = await getBannerImages();
@@ -13,7 +14,7 @@ export default async function VendorSurveyPage() {
           width={800}
           height={200}
           className="h-40 w-full object-cover"
-          unoptimized={banners.localVendor.startsWith("/uploads/")}
+          unoptimized={isBannerUnoptimized(banners.localVendor)}
         />
       </div>
       <div className="mb-8 text-center">

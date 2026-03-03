@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { getBannerImages } from "@/lib/banner-images";
+import { isBannerUnoptimized } from "@/lib/utils";
 
 export default async function NewsletterPage() {
   const banners = await getBannerImages();
@@ -13,7 +14,7 @@ export default async function NewsletterPage() {
           width={800}
           height={200}
           className="h-40 w-full object-cover"
-          unoptimized={banners.marketCrowd.startsWith("/uploads/")}
+          unoptimized={isBannerUnoptimized(banners.marketCrowd)}
         />
       </div>
       <div className="mb-8 text-center">

@@ -7,6 +7,7 @@ import { EventCard } from "@/components/event-card";
 import { Input } from "@/components/ui/input";
 import { AuthGate } from "@/components/auth-gate";
 import { getBannerImages } from "@/lib/banner-images";
+import { isBannerUnoptimized } from "@/lib/utils";
 
 function getUpcomingWeekendRange(): { start: Date; end: Date } {
   const now = new Date();
@@ -62,7 +63,7 @@ export default async function HomePage() {
             className="object-cover"
             priority
             sizes="100vw"
-            unoptimized={banners.hero.startsWith("/uploads/")}
+            unoptimized={isBannerUnoptimized(banners.hero)}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" />
         </div>
