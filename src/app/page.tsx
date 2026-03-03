@@ -80,7 +80,7 @@ export default async function HomePage() {
               <Link href="/events">Browse Events</Link>
             </Button>
             <AuthGate session={session} callbackUrl="/submit">
-              <Button size="lg" variant="secondary" asChild className="bg-white/90 text-foreground hover:bg-white shadow-lg">
+              <Button size="lg" variant="secondary" asChild className="bg-background/90 text-foreground hover:bg-background shadow-lg border border-border/50">
                 <Link href="/submit">Submit an Event</Link>
               </Button>
             </AuthGate>

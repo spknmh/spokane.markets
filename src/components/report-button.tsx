@@ -104,14 +104,14 @@ export function ReportButton({
         <Flag className="h-4 w-4" aria-hidden />
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>Report content</DialogTitle>
             <DialogDescription>
               Help us keep the community safe. Your report will be reviewed by our team.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 px-6 py-4">
             <div className="space-y-2">
               <Label htmlFor="report-reason">Reason *</Label>
               <Select

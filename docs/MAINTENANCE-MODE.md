@@ -47,6 +47,12 @@ A global site-state gate that can be switched on/off without redeploy, with RBAC
   - `MAINTENANCE_ADMIN_ONLY` → only `ADMIN`
   - `MAINTENANCE_PRIVILEGED` → `ADMIN`, `VENDOR`, `ORGANIZER`
 
+## Content Format (Hybrid)
+
+- **Message body**: Markdown supported (links, lists, bold, blockquotes). Use `> **Note:**` for info callouts.
+- **CTA links**: Optional array of `{ label, url }` shown as buttons below the message.
+- **Notes**: Rendered from Markdown blockquotes: `> **Note:** Vendors can still log in.`
+
 ## Migration from Landing Toggle
 
 - The previous `landing_enabled` / `landing_header` / `landing_text` in `SiteConfig` is superseded by `SiteState`.

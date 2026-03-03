@@ -540,6 +540,7 @@ model SiteState {
   mode            MaintenanceMode  @default(OFF)
   messageTitle    String           @default("We'll be right back")
   messageBody     String?          @db.Text
+  links           Json?            // [{ label: string, url: string }]
   eta             DateTime?
   updatedByUserId String?
   updatedAt       DateTime         @updatedAt

@@ -7,13 +7,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
+import { Plus, Trash2 } from "lucide-react";
 import type { MaintenanceMode } from "@prisma/client";
+
+interface MaintenanceLink {
+  label: string;
+  url: string;
+}
 
 interface MaintenanceFormProps {
   initialState: {
     mode: MaintenanceMode;
     messageTitle: string;
     messageBody: string | null;
+    links: MaintenanceLink[];
     eta: Date | null;
   };
 }
@@ -32,6 +39,9 @@ export function MaintenanceForm({ initialState }: MaintenanceFormProps) {
   );
   const [messageBody, setMessageBody] = React.useState(
     initialState.messageBody ?? ""
+  );
+  const [links, setLinks] = React.useState<MaintenanceLink[]>(
+    initialState.links?.length ? [...initialState.links] : []
   );
   const [eta, setEta] = React.useState(
     initialState.eta
@@ -53,6 +63,7 @@ export function MaintenanceForm({ initialState }: MaintenanceFormProps) {
           mode,
           messageTitle,
           messageBody: messageBody.trim() || null,
+          links: links.filter((l) => l.label.trim() && l.url.trim()),
           eta: eta || null,
         }),
       });
@@ -112,11 +123,62 @@ export function MaintenanceForm({ initialState }: MaintenanceFormProps) {
           id="maintenance-body"
           value={messageBody}
           onChange={(e) => setMessageBody(e.target.value)}
-          placeholder="We're working on something great. Check back soon!"
-          rows={4}
+          placeholder="We're working on something great. Check back soon! Use Markdown: links [text](url), lists, blockquotes (>) for notes."
+          rows={5}
           className="resize-y"
         />
-        <p className="text-xs text-muted-foreground">Supports multiple lines.</p>
+        <p className="text-xs text-muted-foreground">
+          Markdown supported: links, lists, bold. Use <code className="rounded bg-muted px-1">&gt; **Note:**</code> for info callouts.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label>CTA links (optional)</Label>
+        <p className="text-xs text-muted-foreground">
+          Prominent buttons/links shown below the message.
+        </p>
+        <div className="space-y-2">
+          {links.map((link, i) => (
+            <div key={i} className="flex gap-2">
+              <Input
+                placeholder="Label"
+                value={link.label}
+                onChange={(e) => {
+                  const next = [...links];
+                  next[i] = { ...next[i], label: e.target.value };
+                  setLinks(next);
+                }}
+              />
+              <Input
+                placeholder="URL"
+                value={link.url}
+                onChange={(e) => {
+                  const next = [...links];
+                  next[i] = { ...next[i], url: e.target.value };
+                  setLinks(next);
+                }}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setLinks(links.filter((_, j) => j !== i))}
+                aria-label="Remove link"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setLinks([...links, { label: "", url: "" }])}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add link
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-2">

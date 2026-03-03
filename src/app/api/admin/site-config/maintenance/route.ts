@@ -19,14 +19,22 @@ export async function GET() {
       mode: "OFF",
       messageTitle: "We'll be right back",
       messageBody: null,
+      links: [],
       eta: null,
     });
   }
+
+  const links = Array.isArray(row.links)
+    ? (row.links as { label?: string; url?: string }[])
+        .filter((x) => x?.label && x?.url)
+        .map((x) => ({ label: x.label!, url: x.url! }))
+    : [];
 
   return NextResponse.json({
     mode: row.mode,
     messageTitle: row.messageTitle,
     messageBody: row.messageBody,
+    links,
     eta: row.eta?.toISOString() ?? null,
   });
 }
@@ -53,6 +61,19 @@ export async function PATCH(request: Request) {
       : "We'll be right back";
   const messageBody =
     typeof body.messageBody === "string" ? body.messageBody.trim() || null : null;
+  let links: { label: string; url: string }[] = [];
+  if (Array.isArray(body.links)) {
+    links = body.links
+      .filter(
+        (x: unknown): x is { label?: string; url?: string } =>
+          x != null && typeof x === "object"
+      )
+      .map((x: { label?: string; url?: string }) => ({
+        label: typeof x.label === "string" ? x.label.trim() : "",
+        url: typeof x.url === "string" ? x.url.trim() : "",
+      }))
+      .filter((x: { label: string; url: string }) => x.label && x.url);
+  }
   let eta: Date | null = null;
   if (body.eta != null && body.eta !== "") {
     const parsed = new Date(body.eta);
@@ -66,6 +87,7 @@ export async function PATCH(request: Request) {
       mode,
       messageTitle,
       messageBody,
+      links: links,
       eta,
       updatedByUserId: session.user.id,
     },
@@ -73,6 +95,7 @@ export async function PATCH(request: Request) {
       mode,
       messageTitle,
       messageBody,
+      links,
       eta,
       updatedByUserId: session.user.id,
     },

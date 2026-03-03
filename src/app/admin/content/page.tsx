@@ -66,6 +66,7 @@ export default async function AdminContentPage() {
             mode: maintenanceState.mode,
             messageTitle: maintenanceState.messageTitle,
             messageBody: maintenanceState.messageBody,
+            links: maintenanceState.links,
             eta: maintenanceState.eta,
           }}
         />
