@@ -11,11 +11,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface EventFormProps {
   venues: { id: string; name: string }[];
-  markets: { id: string; name: string }[];
+  markets: { id: string; name: string; venueId: string }[];
   tags: { id: string; name: string; slug: string }[];
   features: { id: string; name: string; slug: string }[];
   initialData?: EventInput & { id: string };
@@ -53,8 +53,17 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
   });
 
   const watchTitle = watch("title");
+  const watchMarketId = watch("marketId");
+  const watchVenueId = watch("venueId");
   const watchTagIds = watch("tagIds") ?? [];
   const watchFeatureIds = watch("featureIds") ?? [];
+
+  useEffect(() => {
+    if (watchMarketId && !watchVenueId) {
+      const market = markets.find((m) => m.id === watchMarketId);
+      if (market?.venueId) setValue("venueId", market.venueId);
+    }
+  }, [watchMarketId, watchVenueId, markets, setValue]);
 
   const autoSlug = () => {
     setValue("slug", slugify(watchTitle));
@@ -167,6 +176,21 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="marketId">Market (optional)</Label>
+        <Select id="marketId" {...register("marketId")}>
+          <option value="">None</option>
+          {markets.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name}
+            </option>
+          ))}
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          Selecting a market will default the venue below.
+        </p>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="venueId">Venue</Label>
         <Select id="venueId" {...register("venueId")}>
           <option value="">Select a venue...</option>
@@ -179,18 +203,6 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
         {errors.venueId && (
           <p className="text-sm text-destructive">{errors.venueId.message}</p>
         )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="marketId">Market (optional)</Label>
-        <Select id="marketId" {...register("marketId")}>
-          <option value="">None</option>
-          {markets.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </Select>
       </div>
 
       <div className="space-y-2">

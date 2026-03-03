@@ -17,7 +17,7 @@ export default async function EditEventPage({
       include: { tags: true, features: true },
     }),
     db.venue.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
-    db.market.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    db.market.findMany({ select: { id: true, name: true, venueId: true }, orderBy: { name: "asc" } }),
     db.tag.findMany({ orderBy: { name: "asc" } }),
     db.feature.findMany({ orderBy: { name: "asc" } }),
   ]);

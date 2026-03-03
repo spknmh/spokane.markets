@@ -16,11 +16,12 @@ import { useState } from "react";
 
 interface MarketFormProps {
   initialData?: MarketInput & { id: string };
+  venues: Array<{ id: string; name: string }>;
   users?: Array<{ id: string; name: string | null; email: string }>;
   ownerDisplay?: string;
 }
 
-export function MarketForm({ initialData, users = [], ownerDisplay }: MarketFormProps) {
+export function MarketForm({ initialData, venues, users = [], ownerDisplay }: MarketFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +37,7 @@ export function MarketForm({ initialData, users = [], ownerDisplay }: MarketForm
     defaultValues: initialData ?? {
       name: "",
       slug: "",
+      venueId: "",
       description: "",
       imageUrl: "",
       websiteUrl: "",
@@ -112,6 +114,21 @@ export function MarketForm({ initialData, users = [], ownerDisplay }: MarketForm
         </div>
         {errors.slug && (
           <p className="text-sm text-destructive">{errors.slug.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="venueId">Venue</Label>
+        <Select id="venueId" {...register("venueId")}>
+          <option value="">Select a venue...</option>
+          {venues.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
+            </option>
+          ))}
+        </Select>
+        {errors.venueId && (
+          <p className="text-sm text-destructive">{errors.venueId.message}</p>
         )}
       </div>
 

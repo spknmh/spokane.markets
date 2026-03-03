@@ -134,6 +134,8 @@ docker compose run --rm init npx prisma db seed
 - https://your-domain/admin → admin login works
 - Uploads: create a review with a photo, confirm `/uploads/photos/...` serves
 
+**Admin operations:** See [docs/ADMIN-GUIDE.md](docs/ADMIN-GUIDE.md) for markets vs venues, events, vendors, and workflows.
+
 ## 6. Image Reference
 
 `docker-compose.prod.yml` uses:

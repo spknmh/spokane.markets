@@ -12,8 +12,8 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { Calendar, CheckCircle2, ExternalLink, Facebook, Instagram } from "lucide-react";
-import { formatDateRange, formatNeighborhoodLabel } from "@/lib/utils";
+import { Calendar, CheckCircle2, ExternalLink, Facebook, Instagram, MapPin } from "lucide-react";
+import { formatDateRange, formatNeighborhoodLabel, getDirectionsUrl } from "@/lib/utils";
 import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
 import { ReportButton } from "@/components/report-button";
@@ -53,6 +53,7 @@ export default async function MarketDetailPage({ params }: PageProps) {
   const market = await db.market.findUnique({
     where: { slug },
     include: {
+      venue: true,
       events: {
         where: {
           status: "PUBLISHED",
@@ -70,6 +71,8 @@ export default async function MarketDetailPage({ params }: PageProps) {
   if (!market) notFound();
 
   const session = await getSession();
+  const fullAddress = `${market.venue.address}, ${market.venue.city}, ${market.venue.state} ${market.venue.zip}`;
+  const directionsUrl = getDirectionsUrl(fullAddress);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
@@ -145,6 +148,25 @@ export default async function MarketDetailPage({ params }: PageProps) {
                 </div>
               </div>
             )}
+
+            <div className="flex items-start gap-2">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Location</p>
+                <p className="mt-0.5 font-semibold text-foreground">{market.venue.name}</p>
+                <p className="mt-0.5 text-sm text-foreground">{fullAddress}</p>
+                {market.venue.parkingNotes && (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    🅿️ {market.venue.parkingNotes}
+                  </p>
+                )}
+                <Button size="sm" variant="outline" className="mt-2" asChild>
+                  <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
+                    Get Directions →
+                  </a>
+                </Button>
+              </div>
+            </div>
 
             <div className="flex flex-wrap gap-3">
               {market.websiteUrl && (

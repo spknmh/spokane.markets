@@ -18,6 +18,7 @@ export default async function OrganizerDashboardPage() {
   const [markets, events] = await Promise.all([
     db.market.findMany({
       where: { ownerId: userId },
+      include: { venue: { select: { name: true } } },
       orderBy: { name: "asc" },
     }),
     db.event.findMany({
@@ -89,8 +90,11 @@ export default async function OrganizerDashboardPage() {
                       {market.verificationStatus}
                     </Badge>
                   </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    At {market.venue.name}
+                  </p>
                   {market.description && (
-                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                    <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
                       {market.description}
                     </p>
                   )}

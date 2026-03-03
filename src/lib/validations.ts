@@ -63,6 +63,7 @@ export type VenueInput = z.infer<typeof venueSchema>;
 export const marketSchema = z.object({
   name: z.string().min(1, "Name is required"),
   slug: z.string().min(1, "Slug is required"),
+  venueId: z.string().min(1, "Venue is required"),
   description: z.string().optional(),
   imageUrl: z.string().url().optional().or(z.literal("")),
   websiteUrl: z.string().url().optional().or(z.literal("")),

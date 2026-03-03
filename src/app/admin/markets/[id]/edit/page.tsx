@@ -11,10 +11,16 @@ export default async function EditMarketPage({
   await requireAdmin();
   const { id } = await params;
 
-  const market = await db.market.findUnique({
-    where: { id },
-    include: { owner: { select: { name: true, email: true } } },
-  });
+  const [market, venues] = await Promise.all([
+    db.market.findUnique({
+      where: { id },
+      include: { owner: { select: { name: true, email: true } } },
+    }),
+    db.venue.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
   if (!market) notFound();
 
   const ownerDisplay = market.owner
@@ -25,6 +31,7 @@ export default async function EditMarketPage({
     id: market.id,
     name: market.name,
     slug: market.slug,
+    venueId: market.venueId,
     description: market.description ?? "",
     imageUrl: market.imageUrl ?? "",
     websiteUrl: market.websiteUrl ?? "",
@@ -41,7 +48,7 @@ export default async function EditMarketPage({
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Edit Market</h1>
-      <MarketForm initialData={initialData} ownerDisplay={ownerDisplay} />
+      <MarketForm initialData={initialData} venues={venues} ownerDisplay={ownerDisplay} />
     </div>
   );
 }

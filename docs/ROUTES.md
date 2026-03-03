@@ -2,6 +2,8 @@
 
 This document catalogs all 60 routes and their accessibility via navigation.
 
+**See also:** [ADMIN-GUIDE.md](./ADMIN-GUIDE.md) — setup, markets vs venues, events, vendors, and admin workflows.
+
 ---
 
 ## Route Summary

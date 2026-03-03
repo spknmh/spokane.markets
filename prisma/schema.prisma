@@ -169,7 +169,8 @@ model Venue {
   neighborhood String?
   parkingNotes String?
 
-  events Event[]
+  events  Event[]
+  markets Market[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -182,6 +183,7 @@ model Market {
   id                 String             @id @default(cuid())
   name               String
   slug               String             @unique
+  venueId            String
   description        String?            @db.Text
   imageUrl           String?
   websiteUrl         String?
@@ -195,6 +197,7 @@ model Market {
   contactPhone       String?
 
   owner         User?          @relation("MarketOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  venue         Venue          @relation(fields: [venueId], references: [id], onDelete: Restrict)
   events        Event[]
   reviews       Review[]
   photos        Photo[]
@@ -204,6 +207,7 @@ model Market {
   updatedAt DateTime @updatedAt
 
   @@index([slug])
+  @@index([venueId])
   @@map("markets")
 }
 

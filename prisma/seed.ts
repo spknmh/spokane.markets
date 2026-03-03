@@ -139,11 +139,12 @@ async function main() {
     create: {
       name: "Spokane Saturday Market",
       slug: "spokane-saturday-market",
+      venueId: venues["Riverfront Park"].id,
       baseArea: "downtown",
       typicalSchedule: "Saturdays, May–October",
       verificationStatus: "VERIFIED",
     },
-    update: {},
+    update: { venueId: venues["Riverfront Park"].id },
   });
 
   const southPerryMarket = await prisma.market.upsert({
@@ -151,10 +152,11 @@ async function main() {
     create: {
       name: "South Perry Farmers Market",
       slug: "south-perry-farmers-market",
+      venueId: venues["South Perry District"].id,
       baseArea: "south-hill",
       typicalSchedule: "Thursdays, June–September",
     },
-    update: {},
+    update: { venueId: venues["South Perry District"].id },
   });
 
   const kendallYardsMarket = await prisma.market.upsert({
@@ -162,10 +164,11 @@ async function main() {
     create: {
       name: "Kendall Yards Night Market",
       slug: "kendall-yards-night-market",
+      venueId: venues["Kendall Yards"].id,
       baseArea: "kendall-yards",
       typicalSchedule: "2nd Wednesday, May–September",
     },
-    update: {},
+    update: { venueId: venues["Kendall Yards"].id },
   });
 
   const valleyCraftMarket = await prisma.market.upsert({
@@ -173,10 +176,11 @@ async function main() {
     create: {
       name: "Valley Craft & Vintage Fair",
       slug: "valley-craft-vintage-fair",
+      venueId: venues["Spokane Valley Mall Area"].id,
       baseArea: "spokane-valley",
       typicalSchedule: "Monthly, year-round",
     },
-    update: {},
+    update: { venueId: venues["Spokane Valley Mall Area"].id },
   });
 
   // 6. Events (March–April 2026)

@@ -29,7 +29,7 @@ export default async function OrganizerEditEventPage({
     db.feature.findMany({ orderBy: { name: "asc" } }),
     db.market.findMany({
       where: { ownerId: session.user.id },
-      select: { id: true, name: true },
+      select: { id: true, name: true, venueId: true },
       orderBy: { name: "asc" },
     }),
   ]);

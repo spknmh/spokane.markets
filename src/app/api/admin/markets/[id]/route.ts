@@ -38,6 +38,7 @@ export async function PUT(
     data: {
       name: data.name,
       slug: data.slug,
+      venueId: data.venueId,
       description: data.description || null,
       imageUrl: data.imageUrl || null,
       websiteUrl: data.websiteUrl || null,
