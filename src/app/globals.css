@@ -38,14 +38,14 @@
 @layer theme {
   [data-theme="admin"] {
     --color-background: #0f172a;
-    --color-foreground: #f1f5f9;
+    --color-foreground: #f8fafc;
     --color-muted: #1e293b;
-    --color-muted-foreground: #94a3b8;
-    --color-border: #334155;
+    --color-muted-foreground: #cbd5e1;
+    --color-border: #475569;
     --color-primary: #3b82f6;
     --color-primary-foreground: #ffffff;
     --color-card: #1e293b;
-    --color-card-foreground: #f1f5f9;
+    --color-card-foreground: #f8fafc;
     --color-ring: #60a5fa;
     --color-destructive: #ef4444;
     --color-destructive-foreground: #ffffff;
@@ -55,8 +55,9 @@
     --color-going-foreground: #ffffff;
     --color-interested: #eab308;
     --color-interested-foreground: #0f172a;
-    --color-link: #60a5fa;
+    --color-link: #93c5fd;
     --color-nav: #1e293b;
+    --font-heading: ui-sans-serif, system-ui, "Inter", sans-serif;
     color-scheme: dark;
   }
 }
@@ -98,6 +99,14 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
+  }
+  [data-theme="admin"] h1,
+  [data-theme="admin"] h2,
+  [data-theme="admin"] h3,
+  [data-theme="admin"] h4,
+  [data-theme="admin"] h5,
+  [data-theme="admin"] h6 {
+    font-weight: 600;
   }
 }
 
