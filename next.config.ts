@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       { source: "/admin/analytics", destination: "/admin", permanent: true },
       { source: "/admin/banners", destination: "/admin/content", permanent: true },
       { source: "/admin/landing", destination: "/admin/content", permanent: true },
+      { source: "/admin/moderation", destination: "/admin/queues", permanent: true },
     ];
   },
   images: {

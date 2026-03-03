@@ -1,7 +1,10 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { getQueuesSummary } from "@/lib/admin/queues";
+import { formatAuditEntry } from "@/lib/audit/labels";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDate } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { formatDate, formatRelativeTime } from "@/lib/utils";
 import Link from "next/link";
 import {
   Calendar,
@@ -15,7 +18,27 @@ import {
   Heart,
   Flag,
   ImageIcon,
+  Plus,
+  Settings,
 } from "lucide-react";
+
+const QUEUE_LABELS: Record<string, string> = {
+  submission: "Pending Submissions",
+  review: "Pending Reviews",
+  photo: "Pending Photos",
+  market_claim: "Pending Market Claims",
+  vendor_claim: "Pending Vendor Claims",
+  report: "Pending Reports",
+};
+
+const QUEUE_ICONS: Record<string, typeof Inbox> = {
+  submission: Inbox,
+  review: MessageSquare,
+  photo: ImageIcon,
+  market_claim: Shield,
+  vendor_claim: Shield,
+  report: Flag,
+};
 
 export default async function AdminOverviewPage() {
   await requireAdmin();
@@ -31,12 +54,8 @@ export default async function AdminOverviewPage() {
     totalSubscribers,
     totalReviews,
     totalFavorites,
-    pendingSubmissions,
-    pendingReviews,
-    pendingClaims,
-    pendingVendorClaims,
-    pendingReports,
-    pendingPhotos,
+    queueSummary,
+    recentAuditLogs,
     recentSubmissions,
     recentReviews,
     recentUsers,
@@ -51,12 +70,12 @@ export default async function AdminOverviewPage() {
     db.subscriber.count(),
     db.review.count(),
     db.favoriteVendor.count(),
-    db.submission.count({ where: { status: "PENDING" } }),
-    db.review.count({ where: { status: "PENDING" } }),
-    db.claimRequest.count({ where: { status: "PENDING" } }),
-    db.vendorClaimRequest.count({ where: { status: "PENDING" } }),
-    db.report.count({ where: { status: "PENDING" } }),
-    db.photo.count({ where: { status: "PENDING" } }),
+    getQueuesSummary(),
+    db.auditLog.findMany({
+      take: 15,
+      orderBy: { createdAt: "desc" },
+      include: { user: { select: { name: true, email: true } } },
+    }),
     db.submission.findMany({
       take: 5,
       orderBy: { createdAt: "desc" },
@@ -77,15 +96,6 @@ export default async function AdminOverviewPage() {
     usersByRole.map((r) => [r.role, r._count.id])
   );
 
-  const queueStats = [
-    { label: "Pending Submissions", value: pendingSubmissions, icon: Inbox, href: "/admin/submissions?status=PENDING" },
-    { label: "Pending Reviews", value: pendingReviews, icon: MessageSquare, href: "/admin/reviews?status=PENDING" },
-    { label: "Pending Photos", value: pendingPhotos, icon: ImageIcon, href: "/admin/photos?status=PENDING" },
-    { label: "Pending Market Claims", value: pendingClaims, icon: Shield, href: "/admin/claims?tab=market&status=PENDING" },
-    { label: "Pending Vendor Claims", value: pendingVendorClaims, icon: Shield, href: "/admin/claims?tab=vendor&status=PENDING" },
-    { label: "Pending Reports", value: pendingReports, icon: Flag, href: "/admin/reports?status=PENDING" },
-  ];
-
   const metricStats = [
     { label: "Total Users", value: totalUsers, icon: Users },
     { label: "Published Events", value: publishedEvents, sub: `of ${totalEvents}`, icon: Calendar },
@@ -99,27 +109,61 @@ export default async function AdminOverviewPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
-      <p className="text-muted-foreground">
-        Site metrics and operational queues. For full web analytics (page views, traffic), consider adding Plausible, Vercel Analytics, or Google Analytics.
-      </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
+          <p className="text-muted-foreground">
+            Site metrics and operational queues. For full web analytics (page views, traffic), consider adding Plausible, Vercel Analytics, or Google Analytics.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild size="sm">
+            <Link href="/admin/events/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Event
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/admin/markets/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Market
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/admin/maintenance">
+              <Settings className="mr-2 h-4 w-4" />
+              Maintenance
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/admin/queues">View all queues</Link>
+          </Button>
+        </div>
+      </div>
 
       <section>
         <h2 className="mb-4 text-lg font-semibold">Queues</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {queueStats.map((stat) => {
-            const Icon = stat.icon;
+          {queueSummary.map((q) => {
+            const Icon = QUEUE_ICONS[q.type];
+            const label = QUEUE_LABELS[q.type];
+            const href = `/admin/queues?type=${q.type}`;
             return (
-              <Link key={stat.label} href={stat.href}>
+              <Link key={q.type} href={href}>
                 <Card className="transition-colors hover:bg-muted/50">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {stat.label}
+                      {label}
                     </CardTitle>
                     <Icon className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <div className="text-2xl font-bold">{q.count}</div>
+                    {q.oldestAt && q.count > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Oldest: {formatRelativeTime(q.oldestAt)}
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </Link>
@@ -151,6 +195,51 @@ export default async function AdminOverviewPage() {
             );
           })}
         </div>
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-lg font-semibold">Recent Activity</h2>
+        <Card>
+          <CardContent className="pt-6">
+            {recentAuditLogs.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No activity yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {recentAuditLogs.map((log) => {
+                  const { message, href } = formatAuditEntry(log);
+                  return (
+                    <div
+                      key={log.id}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <div>
+                        {href ? (
+                          <Link
+                            href={href}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            {message}
+                          </Link>
+                        ) : (
+                          <span className="font-medium">{message}</span>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {formatRelativeTime(log.createdAt)}
+                      </span>
+                    </div>
+                  );
+                })}
+                <Link
+                  href="/admin/audit-log"
+                  className="text-sm text-primary hover:underline"
+                >
+                  View full audit log →
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </section>
 
       <section>

@@ -21,32 +21,88 @@ import {
   Flag,
   ShoppingBag,
   FileText,
+  ChevronDown,
+  ChevronRight,
+  ClipboardList,
+  Settings,
 } from "lucide-react";
 
-const navItems = [
-  { label: "Overview", href: "/admin", icon: LayoutDashboard },
-  { label: "Content", href: "/admin/content", icon: LayoutTemplate },
-  { label: "Users", href: "/admin/users", icon: Users },
-  { label: "Events", href: "/admin/events", icon: Calendar },
-  { label: "Markets", href: "/admin/markets", icon: Store },
-  { label: "Venues", href: "/admin/venues", icon: MapPin },
-  { label: "Vendors", href: "/admin/vendors", icon: ShoppingBag },
-  { label: "Submissions", href: "/admin/submissions", icon: Inbox },
-  { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
-  { label: "Photos", href: "/admin/photos", icon: ImageIcon },
-  { label: "Claims", href: "/admin/claims", icon: Shield },
-  { label: "Reports", href: "/admin/reports", icon: Flag },
-  { label: "Subscribers", href: "/admin/subscribers", icon: Mail },
-  { label: "Audit Log", href: "/admin/audit-log", icon: FileText },
+type NavItem = { label: string; href: string; icon: React.ComponentType<{ className?: string }> };
+
+type NavGroup = {
+  label: string;
+  defaultOpen?: boolean;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
+  {
+    label: "Operations",
+    defaultOpen: true,
+    items: [
+      { label: "Overview", href: "/admin", icon: LayoutDashboard },
+      { label: "Queues", href: "/admin/queues", icon: ClipboardList },
+    ],
+  },
+  {
+    label: "Directory",
+    defaultOpen: false,
+    items: [
+      { label: "Events", href: "/admin/events", icon: Calendar },
+      { label: "Markets", href: "/admin/markets", icon: Store },
+      { label: "Venues", href: "/admin/venues", icon: MapPin },
+      { label: "Vendors", href: "/admin/vendors", icon: ShoppingBag },
+    ],
+  },
+  {
+    label: "Users",
+    defaultOpen: false,
+    items: [
+      { label: "Users", href: "/admin/users", icon: Users },
+      { label: "Subscribers", href: "/admin/subscribers", icon: Mail },
+    ],
+  },
+  {
+    label: "Moderation",
+    defaultOpen: true,
+    items: [
+      { label: "Submissions", href: "/admin/submissions", icon: Inbox },
+      { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
+      { label: "Photos", href: "/admin/photos", icon: ImageIcon },
+      { label: "Reports", href: "/admin/reports", icon: Flag },
+      { label: "Claims", href: "/admin/claims", icon: Shield },
+    ],
+  },
+  {
+    label: "System",
+    defaultOpen: false,
+    items: [
+      { label: "Site", href: "/admin/content", icon: LayoutTemplate },
+      { label: "Maintenance", href: "/admin/maintenance", icon: Settings },
+      { label: "Audit Log", href: "/admin/audit-log", icon: FileText },
+    ],
+  },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(
+      navGroups.map((g) => [g.label, g.defaultOpen ?? false])
+    )
+  );
 
   const isActive = (href: string) => {
     if (href === "/admin") return pathname === "/admin";
+    if (href === "/admin/content") {
+      return pathname === "/admin/content";
+    }
     return pathname.startsWith(href);
+  };
+
+  const toggleGroup = (label: string) => {
+    setExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
   return (
@@ -78,24 +134,53 @@ export function AdminSidebar() {
           <p className="text-xs text-muted-foreground">Admin Dashboard</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
+        <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+          {navGroups.map((group) => {
+            const isExpanded = expanded[group.label];
+            const hasActive = group.items.some((item) => isActive(item.href));
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  isActive(item.href)
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-primary"
+              <div key={group.label} className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.label)}
+                  className={cn(
+                    "flex w-full items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    hasActive
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4 shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 shrink-0" />
+                  )}
+                  {group.label}
+                </button>
+                {isExpanded && (
+                  <div className="ml-4 space-y-0.5 border-l border-border pl-2">
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href + item.label}
+                          href={item.href}
+                          onClick={() => setOpen(false)}
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                            isActive(item.href)
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:bg-muted hover:text-primary"
+                          )}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
+              </div>
             );
           })}
         </nav>

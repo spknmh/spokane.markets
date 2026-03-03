@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
+import { ConditionalChrome } from "@/components/conditional-chrome";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Providers } from "@/components/providers";
@@ -41,9 +42,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to main content
         </a>
         <Providers>
-          <Navbar />
-          <main id="main" className="min-h-screen">{children}</main>
-          <Footer />
+          <ConditionalChrome
+            nav={<Navbar />}
+            footer={<Footer />}
+          >
+            <main id="main" className="min-h-screen">{children}</main>
+          </ConditionalChrome>
         </Providers>
       </body>
     </html>

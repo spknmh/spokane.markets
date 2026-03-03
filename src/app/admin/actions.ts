@@ -118,6 +118,7 @@ export async function updateSubmissionStatus(
     status,
   });
   revalidatePath("/admin/submissions");
+  revalidatePath("/admin/queues");
 }
 
 export async function updateReviewStatus(id: string, status: "APPROVED" | "REJECTED") {
@@ -128,6 +129,7 @@ export async function updateReviewStatus(id: string, status: "APPROVED" | "REJEC
   });
   await logAudit(session.user.id, "UPDATE_REVIEW_STATUS", "REVIEW", id, { status });
   revalidatePath("/admin/reviews");
+  revalidatePath("/admin/queues");
 }
 
 export async function updatePhotoStatus(id: string, status: "APPROVED" | "REJECTED") {
@@ -138,6 +140,7 @@ export async function updatePhotoStatus(id: string, status: "APPROVED" | "REJECT
   });
   await logAudit(session.user.id, "UPDATE_PHOTO_STATUS", "PHOTO", id, { status });
   revalidatePath("/admin/photos");
+  revalidatePath("/admin/queues");
 }
 
 export async function updateClaimStatus(id: string, status: "APPROVED" | "REJECTED") {
@@ -177,6 +180,7 @@ export async function updateClaimStatus(id: string, status: "APPROVED" | "REJECT
     type: "MARKET",
   });
   revalidatePath("/admin/claims");
+  revalidatePath("/admin/queues");
 }
 
 export async function updateVendorClaimStatus(id: string, status: "APPROVED" | "REJECTED") {
@@ -216,6 +220,7 @@ export async function updateVendorClaimStatus(id: string, status: "APPROVED" | "
     status,
   });
   revalidatePath("/admin/claims");
+  revalidatePath("/admin/queues");
 }
 
 export async function updateReportStatus(
@@ -229,4 +234,5 @@ export async function updateReportStatus(
   });
   await logAudit(session.user.id, "UPDATE_REPORT_STATUS", "REPORT", id, { status });
   revalidatePath("/admin/reports");
+  revalidatePath("/admin/queues");
 }

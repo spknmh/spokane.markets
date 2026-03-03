@@ -1,9 +1,7 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { getBannerImages } from "@/lib/banner-images";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
-import { getMaintenanceState } from "@/lib/maintenance";
 import { BannerEditor } from "@/components/admin/banner-editor";
-import { MaintenanceForm } from "@/components/admin/maintenance-form";
 
 const BANNER_LABELS: Record<string, string> = {
   hero: "Homepage hero",
@@ -18,15 +16,12 @@ const BANNER_LABELS: Record<string, string> = {
 
 export default async function AdminContentPage() {
   await requireAdmin();
-  const [images, maintenanceState] = await Promise.all([
-    getBannerImages(),
-    getMaintenanceState(),
-  ]);
+  const images = await getBannerImages();
 
   return (
     <div className="space-y-12">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Content</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Site</h1>
         <p className="mt-1 text-muted-foreground">
           Manage banner images and landing page configuration.
         </p>
@@ -51,25 +46,6 @@ export default async function AdminContentPage() {
             );
           })}
         </div>
-      </section>
-
-      <section className="space-y-6">
-        <h2 className="text-xl font-semibold">Maintenance Mode</h2>
-        <p className="text-sm text-muted-foreground">
-          Control site-wide access. When enabled, non-privileged visitors see a maintenance page. Admins can always access /admin. Vendors and organizers can be allowed in &quot;Privileged&quot; mode.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          <strong>Config:</strong> Set <code className="rounded bg-muted px-1">NEXT_PUBLIC_APP_URL</code> in .env.local for middleware to fetch config when behind a reverse proxy.
-        </p>
-        <MaintenanceForm
-          initialState={{
-            mode: maintenanceState.mode,
-            messageTitle: maintenanceState.messageTitle,
-            messageBody: maintenanceState.messageBody,
-            links: maintenanceState.links,
-            eta: maintenanceState.eta,
-          }}
-        />
       </section>
     </div>
   );
