@@ -1,8 +1,5 @@
--- AlterTable: Add venue_id to markets (nullable first for backfill)
-ALTER TABLE "markets" ADD COLUMN "venue_id" TEXT;
-
--- CreateIndex (will be used after backfill)
--- CreateIndex "markets_venue_id_idx" ON "markets"("venue_id");
+-- AlterTable: Add venueId to markets (nullable first for backfill)
+ALTER TABLE "markets" ADD COLUMN "venueId" TEXT;
 
 -- Backfill: Ensure at least one venue exists (for fresh DB with no venues)
 INSERT INTO "venues" ("id", "name", "address", "city", "state", "zip", "lat", "lng", "createdAt", "updatedAt")
@@ -10,18 +7,18 @@ SELECT gen_random_uuid()::text, 'Location TBD', 'TBD', 'TBD', 'TBD', '00000', 0,
 WHERE NOT EXISTS (SELECT 1 FROM "venues" LIMIT 1);
 
 -- Backfill: Use first event's venue, or first venue in DB
-UPDATE "markets" m SET "venue_id" = (
+UPDATE "markets" m SET "venueId" = (
   SELECT COALESCE(
-    (SELECT "venue_id" FROM "events" WHERE "market_id" = m.id LIMIT 1),
+    (SELECT "venueId" FROM "events" WHERE "marketId" = m.id LIMIT 1),
     (SELECT "id" FROM "venues" LIMIT 1)
   )
-) WHERE m."venue_id" IS NULL;
+) WHERE m."venueId" IS NULL;
 
 -- AddForeignKey
-ALTER TABLE "markets" ADD CONSTRAINT "markets_venue_id_fkey" FOREIGN KEY ("venue_id") REFERENCES "venues"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "markets" ADD CONSTRAINT "markets_venueId_fkey" FOREIGN KEY ("venueId") REFERENCES "venues"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AlterTable: Make venue_id NOT NULL
-ALTER TABLE "markets" ALTER COLUMN "venue_id" SET NOT NULL;
+-- AlterTable: Make venueId NOT NULL
+ALTER TABLE "markets" ALTER COLUMN "venueId" SET NOT NULL;
 
 -- CreateIndex
-CREATE INDEX "markets_venue_id_idx" ON "markets"("venue_id");
+CREATE INDEX "markets_venueId_idx" ON "markets"("venueId");
