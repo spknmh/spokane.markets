@@ -37,6 +37,7 @@
 /* Admin dashboard — SaaS dark blue (applies only when data-theme="admin") */
 @layer theme {
   [data-theme="admin"] {
+    color: var(--color-foreground);
     --color-background: #0f172a;
     --color-foreground: #f8fafc;
     --color-muted: #1e293b;
