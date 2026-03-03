@@ -14,7 +14,7 @@ export default async function AdminLayout({
   await requireAdmin();
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div data-theme="admin" className="flex min-h-screen bg-background">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <header className="shrink-0 border-b border-border px-6 py-3 flex items-center justify-end">

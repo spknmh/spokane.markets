@@ -34,6 +34,33 @@
   --shadow-md: 0 4px 6px -1px rgb(31 36 34 / 0.06), 0 2px 4px -2px rgb(31 36 34 / 0.04);
 }
 
+/* Admin dashboard — SaaS dark blue (applies only when data-theme="admin") */
+@layer theme {
+  [data-theme="admin"] {
+    --color-background: #0f172a;
+    --color-foreground: #f1f5f9;
+    --color-muted: #1e293b;
+    --color-muted-foreground: #94a3b8;
+    --color-border: #334155;
+    --color-primary: #3b82f6;
+    --color-primary-foreground: #ffffff;
+    --color-card: #1e293b;
+    --color-card-foreground: #f1f5f9;
+    --color-ring: #60a5fa;
+    --color-destructive: #ef4444;
+    --color-destructive-foreground: #ffffff;
+    --color-accent: #2563eb;
+    --color-accent-foreground: #ffffff;
+    --color-going: #22c55e;
+    --color-going-foreground: #ffffff;
+    --color-interested: #eab308;
+    --color-interested-foreground: #0f172a;
+    --color-link: #60a5fa;
+    --color-nav: #1e293b;
+    color-scheme: dark;
+  }
+}
+
 /* Cedar & Harvest dark mode — deeper charcoal, muted greens, warm accents */
 @layer theme {
   .dark {
