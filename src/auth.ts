@@ -8,12 +8,11 @@ import { db } from "@/lib/db";
 import { signInSchema } from "@/lib/validations";
 import type { Role } from "@prisma/client";
 import type { Adapter } from "next-auth/adapters";
+import authConfig from "./auth.config";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(db) as Adapter,
-  session: {
-    strategy: "jwt",
-  },
   providers: [
     ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
       ? [Google]
@@ -53,17 +52,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/auth/signin",
   },
   callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = (user as { role: Role }).role;
-      }
-      return token;
-    },
+    ...authConfig.callbacks,
     async session({ session, token }) {
       if (session.user && token.id) {
         session.user.id = token.id as string;
-        session.user.role = token.role as Role;
+        session.user.role = (token.role as Role) ?? "USER";
         const user = await db.user.findUnique({
           where: { id: token.id as string },
           select: { name: true, email: true, image: true },

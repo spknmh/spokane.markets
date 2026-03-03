@@ -69,6 +69,7 @@ model User {
   organizerEvents     Event[]              @relation("OrganizerEvents")
   reports             Report[]
   auditLogs           AuditLog[]
+  siteStateUpdates    SiteState[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -525,4 +526,25 @@ model SiteConfig {
   updatedAt DateTime @updatedAt
 
   @@map("site_config")
+}
+
+// Maintenance mode: single row, id = "default"
+enum MaintenanceMode {
+  OFF
+  MAINTENANCE_ADMIN_ONLY
+  MAINTENANCE_PRIVILEGED
+}
+
+model SiteState {
+  id              String           @id @default("default")
+  mode            MaintenanceMode  @default(OFF)
+  messageTitle    String           @default("We'll be right back")
+  messageBody     String?          @db.Text
+  eta             DateTime?
+  updatedByUserId String?
+  updatedAt       DateTime         @updatedAt
+
+  updatedBy User? @relation(fields: [updatedByUserId], references: [id], onDelete: SetNull)
+
+  @@map("site_state")
 }

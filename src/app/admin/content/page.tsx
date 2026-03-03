@@ -1,9 +1,9 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { getBannerImages } from "@/lib/banner-images";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
-import { getLandingConfig } from "@/lib/landing-config";
+import { getMaintenanceState } from "@/lib/maintenance";
 import { BannerEditor } from "@/components/admin/banner-editor";
-import { LandingConfigForm } from "@/components/admin/landing-config-form";
+import { MaintenanceForm } from "@/components/admin/maintenance-form";
 
 const BANNER_LABELS: Record<string, string> = {
   hero: "Homepage hero",
@@ -18,9 +18,9 @@ const BANNER_LABELS: Record<string, string> = {
 
 export default async function AdminContentPage() {
   await requireAdmin();
-  const [images, config] = await Promise.all([
+  const [images, maintenanceState] = await Promise.all([
     getBannerImages(),
-    getLandingConfig(),
+    getMaintenanceState(),
   ]);
 
   return (
@@ -54,14 +54,21 @@ export default async function AdminContentPage() {
       </section>
 
       <section className="space-y-6">
-        <h2 className="text-xl font-semibold">Landing Page</h2>
+        <h2 className="text-xl font-semibold">Maintenance Mode</h2>
         <p className="text-sm text-muted-foreground">
-          Show a configurable landing page (e.g. Coming Soon, Down for Maintenance) instead of the main site. Admins can always access /admin.
+          Control site-wide access. When enabled, non-privileged visitors see a maintenance page. Admins can always access /admin. Vendors and organizers can be allowed in &quot;Privileged&quot; mode.
         </p>
         <p className="text-sm text-muted-foreground">
-          <strong>Config:</strong> Set <code className="rounded bg-muted px-1">NEXT_PUBLIC_APP_URL</code> in .env.local (e.g. <code className="rounded bg-muted px-1">https://spokane.markets</code> or <code className="rounded bg-muted px-1">http://localhost:3000</code>). Test in an incognito window or different browser—visit / to see the landing page.
+          <strong>Config:</strong> Set <code className="rounded bg-muted px-1">NEXT_PUBLIC_APP_URL</code> in .env.local for middleware to fetch config when behind a reverse proxy.
         </p>
-        <LandingConfigForm initialConfig={config} />
+        <MaintenanceForm
+          initialState={{
+            mode: maintenanceState.mode,
+            messageTitle: maintenanceState.messageTitle,
+            messageBody: maintenanceState.messageBody,
+            eta: maintenanceState.eta,
+          }}
+        />
       </section>
     </div>
   );

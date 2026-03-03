@@ -1,0 +1,139 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
+import type { MaintenanceMode } from "@prisma/client";
+
+interface MaintenanceFormProps {
+  initialState: {
+    mode: MaintenanceMode;
+    messageTitle: string;
+    messageBody: string | null;
+    eta: Date | null;
+  };
+}
+
+const MODE_LABELS: Record<MaintenanceMode, string> = {
+  OFF: "Off (normal site)",
+  MAINTENANCE_ADMIN_ONLY: "Maintenance — Admins only",
+  MAINTENANCE_PRIVILEGED: "Maintenance — Admins + Vendors + Organizers",
+};
+
+export function MaintenanceForm({ initialState }: MaintenanceFormProps) {
+  const router = useRouter();
+  const [mode, setMode] = React.useState<MaintenanceMode>(initialState.mode);
+  const [messageTitle, setMessageTitle] = React.useState(
+    initialState.messageTitle
+  );
+  const [messageBody, setMessageBody] = React.useState(
+    initialState.messageBody ?? ""
+  );
+  const [eta, setEta] = React.useState(
+    initialState.eta
+      ? new Date(initialState.eta).toISOString().slice(0, 16)
+      : ""
+  );
+  const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/site-config/maintenance", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode,
+          messageTitle,
+          messageBody: messageBody.trim() || null,
+          eta: eta || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed to save");
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-xl space-y-6 rounded-lg border border-border bg-card p-6"
+    >
+      <div className="space-y-2">
+        <Label htmlFor="maintenance-mode">Mode</Label>
+        <Select
+          id="maintenance-mode"
+          value={mode}
+          onChange={(e) => setMode(e.target.value as MaintenanceMode)}
+        >
+          {(Object.keys(MODE_LABELS) as MaintenanceMode[]).map((m) => (
+            <option key={m} value={m}>
+              {MODE_LABELS[m]}
+            </option>
+          ))}
+        </Select>
+        <p className="text-sm text-muted-foreground">
+          {mode === "OFF" && "Site is fully accessible."}
+          {mode === "MAINTENANCE_ADMIN_ONLY" &&
+            "Only admins can access. Everyone else sees the maintenance page."}
+          {mode === "MAINTENANCE_PRIVILEGED" &&
+            "Admins, vendors, and organizers can access. Others see the maintenance page."}
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="maintenance-title">Message title</Label>
+        <Input
+          id="maintenance-title"
+          value={messageTitle}
+          onChange={(e) => setMessageTitle(e.target.value)}
+          placeholder="We'll be right back"
+          className="font-semibold"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="maintenance-body">Message body</Label>
+        <Textarea
+          id="maintenance-body"
+          value={messageBody}
+          onChange={(e) => setMessageBody(e.target.value)}
+          placeholder="We're working on something great. Check back soon!"
+          rows={4}
+          className="resize-y"
+        />
+        <p className="text-xs text-muted-foreground">Supports multiple lines.</p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="maintenance-eta">Estimated return (optional)</Label>
+        <Input
+          id="maintenance-eta"
+          type="datetime-local"
+          value={eta}
+          onChange={(e) => setEta(e.target.value)}
+        />
+      </div>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
+      <Button type="submit" disabled={saving}>
+        {saving ? "Saving…" : "Save"}
+      </Button>
+    </form>
+  );
+}

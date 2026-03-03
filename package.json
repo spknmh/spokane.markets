@@ -20,6 +20,8 @@
     "db:studio": "prisma studio",
     "digest": "tsx scripts/weekly-digest.ts",
     "filter-alerts": "tsx scripts/filter-alerts.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -59,7 +61,8 @@
     "prisma": "^7.4.2",
     "tailwindcss": "^4.2.1",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

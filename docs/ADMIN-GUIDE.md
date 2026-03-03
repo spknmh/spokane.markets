@@ -183,9 +183,9 @@ Seed creates `admin@spokane.markets` / `admin123`. **Change the password** after
 
 ## Configuration Reference
 
-### Landing page
+### Maintenance mode
 
-Admin → Content → Landing Page. When enabled, visitors see a configurable "Coming Soon" or "Down for Maintenance" page instead of the main site. Admins can always access `/admin`.
+Admin → Content → Maintenance Mode. Control site-wide access with three modes: Off (normal), Admins only, or Privileged (admins + vendors + organizers). Non-privileged visitors see a configurable maintenance page. See `docs/MAINTENANCE-MODE.md` for details.
 
 Requires `NEXT_PUBLIC_APP_URL` in `.env.local`.
 
