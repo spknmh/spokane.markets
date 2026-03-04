@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { evaluateAndGrantBadges } from "@/lib/badges";
 
 export async function GET(
   _request: Request,
@@ -66,6 +67,7 @@ export async function POST(
       emailAlerts: true,
     },
   });
+  evaluateAndGrantBadges(userId).catch(() => {});
   return NextResponse.json({ favorited: true });
 }
 

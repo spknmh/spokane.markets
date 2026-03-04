@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { createNotification } from "@/lib/notifications";
 import { logAudit } from "@/lib/audit";
+import { evaluateAndGrantBadges } from "@/lib/badges";
 import { revalidatePath } from "next/cache";
 
 async function requireAdminAction() {
@@ -131,10 +132,17 @@ export async function updateSubmissionStatus(
 
 export async function updateReviewStatus(id: string, status: "APPROVED" | "REJECTED") {
   const session = await requireAdminAction();
+  const review = await db.review.findUnique({
+    where: { id },
+    select: { userId: true },
+  });
   await db.review.update({
     where: { id },
     data: { status },
   });
+  if (status === "APPROVED" && review?.userId) {
+    evaluateAndGrantBadges(review.userId).catch(() => {});
+  }
   await logAudit(session.user.id, "UPDATE_REVIEW_STATUS", "REVIEW", id, { status });
   revalidatePath("/admin/reviews");
   revalidatePath("/admin/queues");
@@ -167,6 +175,7 @@ export async function updateClaimStatus(id: string, status: "APPROVED" | "REJECT
         ownerId: claim.userId,
       },
     });
+    evaluateAndGrantBadges(claim.userId).catch(() => {});
     await createNotification(
       claim.userId,
       "CLAIM_APPROVED",

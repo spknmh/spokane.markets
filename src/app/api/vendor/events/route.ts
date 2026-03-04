@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { sendVendorFavoriteAlerts } from "@/lib/vendor-alerts";
+import { evaluateAndGrantBadges } from "@/lib/badges";
 import { vendorEventsSchema } from "@/lib/validations";
 
 export async function GET() {
@@ -106,6 +107,7 @@ export async function POST(request: Request) {
     });
 
     sendVendorFavoriteAlerts(profile.id, eventId);
+    evaluateAndGrantBadges(session.user.id).catch(() => {});
 
     return NextResponse.json(vendorEvent, { status: 201 });
   } catch (err) {

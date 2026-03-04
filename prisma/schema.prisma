@@ -46,6 +46,12 @@ enum PromotionType {
   FEATURED
 }
 
+enum BadgeRole {
+  GLOBAL
+  VENDOR
+  ORGANIZER
+}
+
 // ─── Auth Models (Auth.js / Prisma Adapter) ──────────────────────────
 
 model User {
@@ -76,11 +82,41 @@ model User {
   reports             Report[]
   auditLogs           AuditLog[]
   siteStateUpdates    SiteState[]
+  userBadges          UserBadge[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model BadgeDefinition {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  name         String
+  description  String?   @db.Text
+  icon         String?   // Lucide icon name
+  requiredRole BadgeRole @default(GLOBAL)
+  criteria     Json?     // e.g. { "type": "member_years", "years": 1 }
+  sortOrder    Int       @default(0)
+  createdAt    DateTime  @default(now())
+  userBadges   UserBadge[]
+
+  @@map("badge_definitions")
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge BadgeDefinition @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@map("user_badges")
 }
 
 model AuditLog {

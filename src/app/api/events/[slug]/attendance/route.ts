@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { attendanceSchema } from "@/lib/validations";
+import { evaluateAndGrantBadges } from "@/lib/badges";
 
 export async function POST(
   request: Request,
@@ -46,6 +47,8 @@ export async function POST(
       data: { userId, eventId: event.id, status },
     });
   }
+
+  evaluateAndGrantBadges(userId).catch(() => {});
 
   const [goingCount, interestedCount] = await Promise.all([
     db.attendance.count({ where: { eventId: event.id, status: "GOING" } }),
