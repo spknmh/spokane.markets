@@ -4,7 +4,6 @@ import * as React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Camera } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface ProfileImageUploadProps {
   currentImage: string | null;
@@ -18,6 +17,7 @@ export function ProfileImageUpload({
   const router = useRouter();
   const [uploading, setUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [success, setSuccess] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -25,6 +25,7 @@ export function ProfileImageUpload({
     if (!file) return;
 
     setError(null);
+    setSuccess(false);
     setUploading(true);
 
     try {
@@ -50,10 +51,13 @@ export function ProfileImageUpload({
       });
 
       if (!updateRes.ok) {
-        throw new Error("Failed to update profile");
+        const data = await updateRes.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed to update profile");
       }
 
       router.refresh();
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 2500);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -100,9 +104,10 @@ export function ProfileImageUpload({
           Uploading…
         </span>
       )}
-      {error && (
-        <p className="mt-1 text-xs text-destructive">{error}</p>
+      {success && (
+        <p className="mt-1 text-xs font-medium text-going">Profile updated</p>
       )}
+      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
     </div>
   );
 }

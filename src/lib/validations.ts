@@ -215,7 +215,17 @@ export type ReportInput = z.infer<typeof reportSchema>;
 
 export const userProfilePatchSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  image: z.string().url().optional().nullable(),
+  image: z
+    .union([
+      z
+        .string()
+        .refine(
+          (v) => v.startsWith("/uploads/") || /^https?:\/\//.test(v),
+          "Invalid image URL"
+        ),
+      z.null(),
+    ])
+    .optional(),
 });
 export type UserProfilePatchInput = z.infer<typeof userProfilePatchSchema>;
 

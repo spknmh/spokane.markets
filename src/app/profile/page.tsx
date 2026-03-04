@@ -9,8 +9,8 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { User, Mail, Shield, Store, LayoutDashboard, Bell } from "lucide-react";
-import { ProfileImageUpload } from "@/components/profile-image-upload";
+import { User, Shield, Store, LayoutDashboard, Bell, KeyRound } from "lucide-react";
+import { ProfileForm } from "@/components/profile-form";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -55,26 +55,13 @@ export default async function ProfilePage() {
               Account
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <ProfileImageUpload
-                currentImage={user.image}
-                fallbackLetter={(user.name ?? user.email).charAt(0).toUpperCase()}
-              />
-              <div>
-                <p className="text-lg font-bold text-foreground">
-                  {user.name ?? "—"}
-                </p>
-                <p className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Mail className="h-4 w-4" />
-                  {user.email}
-                </p>
-                <p className="mt-1 flex items-center gap-2 text-sm font-semibold text-primary">
-                  <Shield className="h-4 w-4" />
-                  {role}
-                </p>
-              </div>
-            </div>
+          <CardContent>
+            <ProfileForm
+              initialName={user.name}
+              email={user.email}
+              image={user.image}
+              role={role}
+            />
           </CardContent>
         </Card>
 
@@ -123,6 +110,13 @@ export default async function ProfilePage() {
                 Edit Vendor Profile
               </Link>
             )}
+            <Link
+              href="/auth/request-password-reset"
+              className="flex items-center gap-2 rounded-lg border-2 border-border p-3 font-semibold text-foreground transition-colors hover:border-primary hover:bg-muted/50"
+            >
+              <KeyRound className="h-4 w-4" />
+              Change password
+            </Link>
             <Link
               href="/notifications"
               className="flex items-center gap-2 rounded-lg border-2 border-border p-3 font-semibold text-foreground transition-colors hover:border-primary hover:bg-muted/50"

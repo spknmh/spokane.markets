@@ -50,10 +50,12 @@ export function MaintenanceForm({ initialState }: MaintenanceFormProps) {
   );
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [success, setSuccess] = React.useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccess(false);
     setSaving(true);
     try {
       const res = await fetch("/api/admin/site-config/maintenance", {
@@ -72,6 +74,8 @@ export function MaintenanceForm({ initialState }: MaintenanceFormProps) {
         throw new Error(data.error ?? "Failed to save");
       }
       router.refresh();
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 2500);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
     } finally {
@@ -192,6 +196,9 @@ export function MaintenanceForm({ initialState }: MaintenanceFormProps) {
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
+      {success && (
+        <p className="text-sm font-medium text-going">Saved</p>
+      )}
 
       <Button type="submit" disabled={saving}>
         {saving ? "Saving…" : "Save"}
