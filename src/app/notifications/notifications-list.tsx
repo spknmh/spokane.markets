@@ -32,8 +32,8 @@ export function NotificationsList({ notifications }: NotificationsListProps) {
   async function markAllAsRead() {
     setMarkingAll(true);
     try {
-      const res = await fetch("/api/notifications/read-all", {
-        method: "PATCH",
+      const res = await fetch("/api/notifications/mark-all-read", {
+        method: "POST",
       });
       if (res.ok) {
         setItems((prev) =>

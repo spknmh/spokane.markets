@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Menu, X, Store, Home, Bell } from "lucide-react";
+import { NotificationBell } from "@/components/notification-bell";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -72,22 +73,7 @@ export function NavbarClient({ session, unreadCount = 0 }: NavbarClientProps) {
         <div className="hidden md:flex md:items-center md:gap-2">
           <ThemeToggle />
           {session && (
-            <Link
-              href="/notifications"
-              className="relative rounded p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label={
-                unreadCount > 0
-                  ? `${unreadCount} unread notifications`
-                  : "Notifications"
-              }
-            >
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
-            </Link>
+            <NotificationBell unreadCount={unreadCount} />
           )}
           {session ? (
             <UserMenu session={session} />
