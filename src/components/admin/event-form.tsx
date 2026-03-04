@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -55,6 +56,7 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
   const watchTitle = watch("title");
   const watchMarketId = watch("marketId");
   const watchVenueId = watch("venueId");
+  const watchImageUrl = watch("imageUrl");
   const watchTagIds = watch("tagIds") ?? [];
   const watchFeatureIds = watch("featureIds") ?? [];
 
@@ -205,10 +207,13 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
         )}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="imageUrl">Image URL</Label>
-        <Input id="imageUrl" type="url" {...register("imageUrl")} />
-      </div>
+      <ImageUploadWithUrl
+        value={watchImageUrl ?? ""}
+        onChange={(url) => setValue("imageUrl", url)}
+        uploadType="event"
+        label="Event image"
+        aspectRatio="banner"
+      />
 
       <div className="space-y-2">
         <Label htmlFor="status">Status</Label>

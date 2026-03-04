@@ -34,6 +34,10 @@ export default async function AdminMarketsPage({
       include: {
         _count: { select: { events: true } },
         owner: { select: { name: true, email: true } },
+        claimRequests: {
+          where: { status: "PENDING" },
+          select: { id: true },
+        },
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -58,6 +62,7 @@ export default async function AdminMarketsPage({
               <th className="text-left p-3 font-medium">Area</th>
               <th className="text-left p-3 font-medium">Owner</th>
               <th className="text-left p-3 font-medium">Status</th>
+              <th className="text-left p-3 font-medium">Claim</th>
               <th className="text-left p-3 font-medium">Events</th>
               <th className="text-right p-3 font-medium">Actions</th>
             </tr>
@@ -65,7 +70,7 @@ export default async function AdminMarketsPage({
           <tbody className="divide-y divide-border">
             {markets.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                <td colSpan={7} className="p-6 text-center text-muted-foreground">
                   No markets found.
                 </td>
               </tr>
@@ -82,6 +87,23 @@ export default async function AdminMarketsPage({
                   <td className="p-3">
                     <Badge variant={verificationVariant[market.verificationStatus]}>
                       {market.verificationStatus}
+                    </Badge>
+                  </td>
+                  <td className="p-3">
+                    <Badge
+                      variant={
+                        market.ownerId
+                          ? "default"
+                          : market.claimRequests.length > 0
+                            ? "outline"
+                            : "secondary"
+                      }
+                    >
+                      {market.ownerId
+                        ? "Claimed"
+                        : market.claimRequests.length > 0
+                          ? "Claim pending review"
+                          : "Unclaimed"}
                     </Badge>
                   </td>
                   <td className="p-3 text-muted-foreground">

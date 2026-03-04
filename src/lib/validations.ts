@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+/** Accepts empty string, /uploads/ paths, or http(s) URLs. Use for imageUrl fields. */
+export const imageUrlSchema = z
+  .string()
+  .optional()
+  .refine(
+    (v) =>
+      !v ||
+      v.trim() === "" ||
+      v.startsWith("/uploads/") ||
+      /^https?:\/\//.test(v),
+    "Must be a valid image URL or upload path"
+  );
+
 export const submissionSchema = z.object({
   submitterName: z.string().min(1, "Name is required"),
   submitterEmail: z.string().email("Valid email is required"),
@@ -75,7 +88,7 @@ export const marketSchema = z.object({
   slug: z.string().min(1, "Slug is required"),
   venueId: z.string().min(1, "Venue is required"),
   description: z.string().optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  imageUrl: imageUrlSchema,
   websiteUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   instagramUrl: z.string().url().optional().or(z.literal("")),
@@ -98,7 +111,7 @@ export const eventSchema = z.object({
   timezone: z.string().optional().nullable(),
   venueId: z.string().min(1, "Venue is required"),
   marketId: z.string().optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  imageUrl: imageUrlSchema,
   status: z.enum(["DRAFT", "PENDING", "PUBLISHED", "REJECTED", "CANCELLED"]),
   websiteUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
@@ -204,7 +217,7 @@ export const vendorProfileSchema = z.object({
   businessName: z.string().min(1, "Business name is required"),
   slug: z.string().optional(),
   description: z.string().optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  imageUrl: imageUrlSchema,
   websiteUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   instagramUrl: z.string().url().optional().or(z.literal("")),
@@ -301,7 +314,7 @@ export const promotionSchema = z.object({
   eventId: z.string().min(1, "Event is required"),
   type: z.enum(["SPONSORED", "PARTNERSHIP", "FEATURED"]),
   sponsorName: z.string().optional().nullable(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  imageUrl: imageUrlSchema,
   linkUrl: z.string().url().optional().or(z.literal("")),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
@@ -321,7 +334,7 @@ export const organizerEventSchema = z.object({
   timezone: z.string().optional().nullable(),
   venueId: z.string().min(1, "Venue is required"),
   marketId: z.string().optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  imageUrl: imageUrlSchema,
   websiteUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   tagIds: z.array(z.string()).optional(),

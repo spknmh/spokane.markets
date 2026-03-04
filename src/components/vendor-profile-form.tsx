@@ -21,7 +21,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { VendorImageUpload } from "@/components/vendor-image-upload";
+import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 
 interface VendorProfileFormProps {
   initialData?: VendorProfileInput & { id?: string };
@@ -157,28 +157,19 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Profile Image</Label>
-            <VendorImageUpload
-              value={watch("imageUrl") ?? ""}
-              onChange={(url) => setValue("imageUrl", url)}
-              disabled={isSubmitting}
-            />
-            <p className="text-xs text-muted-foreground">
-              Or paste a URL:
+          <ImageUploadWithUrl
+            value={watch("imageUrl") ?? ""}
+            onChange={(url) => setValue("imageUrl", url)}
+            uploadType="vendor"
+            disabled={isSubmitting}
+            label="Profile image"
+            aspectRatio="square"
+          />
+          {errors.imageUrl && (
+            <p className="text-sm text-destructive">
+              {errors.imageUrl.message}
             </p>
-            <Input
-              id="imageUrl"
-              type="url"
-              placeholder="https://example.com/image.jpg"
-              {...register("imageUrl")}
-            />
-            {errors.imageUrl && (
-              <p className="text-sm text-destructive">
-                {errors.imageUrl.message}
-              </p>
-            )}
-          </div>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">

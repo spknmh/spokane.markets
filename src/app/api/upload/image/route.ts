@@ -26,10 +26,18 @@ export async function POST(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") ?? "avatar";
-  if (type !== "avatar" && type !== "vendor" && type !== "banner") {
+  const allowedTypes = ["avatar", "vendor", "banner", "event", "market"];
+  if (!allowedTypes.includes(type)) {
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
   }
-  if (type === "banner" && session.user.role !== "ADMIN") {
+  const role = session.user.role ?? "USER";
+  if (type === "banner" && role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  if (type === "market" && role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  if (type === "event" && role !== "ADMIN" && role !== "ORGANIZER") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

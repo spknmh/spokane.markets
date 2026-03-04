@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { UserSearchInput } from "@/components/admin/user-search-input";
+import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 import { NEIGHBORHOODS } from "@/lib/constants";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -53,6 +54,7 @@ export function MarketForm({ initialData, venues, users = [], ownerDisplay }: Ma
   });
 
   const watchName = watch("name");
+  const watchImageUrl = watch("imageUrl");
 
   const autoSlug = () => {
     setValue("slug", slugify(watchName));
@@ -137,10 +139,13 @@ export function MarketForm({ initialData, venues, users = [], ownerDisplay }: Ma
         <Textarea id="description" rows={4} {...register("description")} />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="imageUrl">Image URL</Label>
-        <Input id="imageUrl" type="url" {...register("imageUrl")} />
-      </div>
+      <ImageUploadWithUrl
+        value={watchImageUrl ?? ""}
+        onChange={(url) => setValue("imageUrl", url)}
+        uploadType="market"
+        label="Market image"
+        aspectRatio="banner"
+      />
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

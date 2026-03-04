@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -55,6 +56,8 @@ export function PromotionForm({ events, initialData }: PromotionFormProps) {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<PromotionInput>({
     resolver: zodResolver(promotionSchema),
@@ -139,6 +142,24 @@ export function PromotionForm({ events, initialData }: PromotionFormProps) {
           id="sponsorName"
           {...register("sponsorName")}
           placeholder="e.g. Local Business Inc."
+        />
+      </div>
+
+      <ImageUploadWithUrl
+        value={watch("imageUrl") ?? ""}
+        onChange={(url) => setValue("imageUrl", url)}
+        uploadType="banner"
+        label="Promotion image"
+        aspectRatio="banner"
+      />
+
+      <div className="space-y-2">
+        <Label htmlFor="linkUrl">Link URL (optional)</Label>
+        <Input
+          id="linkUrl"
+          type="url"
+          placeholder="https://..."
+          {...register("linkUrl")}
         />
       </div>
 

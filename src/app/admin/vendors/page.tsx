@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { Badge } from "@/components/ui/badge";
 import { Pagination } from "@/components/pagination";
 
 const DEFAULT_LIMIT = 25;
@@ -22,6 +23,10 @@ export default async function AdminVendorsPage({
       orderBy: { businessName: "asc" },
       include: {
         _count: { select: { vendorEvents: true } },
+        claimRequests: {
+          where: { status: "PENDING" },
+          select: { id: true },
+        },
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -45,6 +50,7 @@ export default async function AdminVendorsPage({
               <th className="px-4 py-3 text-left font-medium">Business Name</th>
               <th className="px-4 py-3 text-left font-medium">Slug</th>
               <th className="px-4 py-3 text-left font-medium">Specialties</th>
+              <th className="px-4 py-3 text-left font-medium">Claim</th>
               <th className="px-4 py-3 text-left font-medium">Events</th>
               <th className="px-4 py-3 text-left font-medium">Link</th>
             </tr>
@@ -52,7 +58,7 @@ export default async function AdminVendorsPage({
           <tbody>
             {vendors.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                   No vendor profiles yet.
                 </td>
               </tr>
@@ -63,6 +69,23 @@ export default async function AdminVendorsPage({
                   <td className="px-4 py-3 text-muted-foreground">{v.slug}</td>
                   <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">
                     {v.specialties ?? "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge
+                      variant={
+                        v.userId
+                          ? "default"
+                          : v.claimRequests.length > 0
+                            ? "outline"
+                            : "secondary"
+                      }
+                    >
+                      {v.userId
+                        ? "Claimed"
+                        : v.claimRequests.length > 0
+                          ? "Claim pending review"
+                          : "Unclaimed"}
+                    </Badge>
                   </td>
                   <td className="px-4 py-3">{v._count.vendorEvents}</td>
                   <td className="px-4 py-3">
