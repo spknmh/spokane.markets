@@ -14,16 +14,26 @@ const DEFAULT_LIMIT = 25;
 const STATUS_TABS = [
   { label: "All", value: "" },
   { label: "Draft", value: "DRAFT" },
-  { label: "Pending", value: "PENDING" },
+  { label: "Pending Review", value: "PENDING" },
   { label: "Published", value: "PUBLISHED" },
+  { label: "Rejected", value: "REJECTED" },
   { label: "Cancelled", value: "CANCELLED" },
 ] as const;
 
-const statusVariant: Record<EventStatus, "secondary" | "default" | "destructive" | "outline"> = {
-  DRAFT: "secondary",
-  PENDING: "outline",
-  PUBLISHED: "default",
+const statusVariant: Record<EventStatus, "info" | "warning" | "success" | "destructive" | "outline"> = {
+  DRAFT: "info",
+  PENDING: "warning",
+  PUBLISHED: "success",
+  REJECTED: "destructive",
   CANCELLED: "destructive",
+};
+
+const statusLabel: Record<EventStatus, string> = {
+  DRAFT: "Draft",
+  PENDING: "Pending Review",
+  PUBLISHED: "Published",
+  REJECTED: "Rejected",
+  CANCELLED: "Cancelled",
 };
 
 export default async function AdminEventsPage({
@@ -105,7 +115,7 @@ export default async function AdminEventsPage({
                   <td className="p-3 text-muted-foreground">{event.venue.name}</td>
                   <td className="p-3">
                     <Badge variant={statusVariant[event.status]}>
-                      {event.status}
+                      {statusLabel[event.status]}
                     </Badge>
                   </td>
                   <td className="p-3 text-right space-x-2">

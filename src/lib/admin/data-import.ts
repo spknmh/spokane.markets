@@ -43,7 +43,7 @@ type EventRow = {
   marketId?: string;
   marketSlug?: string;
   imageUrl?: string;
-  status?: "DRAFT" | "PENDING" | "PUBLISHED" | "CANCELLED";
+  status?: "DRAFT" | "PENDING" | "PUBLISHED" | "REJECTED" | "CANCELLED";
   websiteUrl?: string;
   facebookUrl?: string;
   tagNames?: string[];

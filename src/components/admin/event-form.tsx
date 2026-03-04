@@ -214,8 +214,9 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
         <Label htmlFor="status">Status</Label>
         <Select id="status" {...register("status")}>
           <option value="DRAFT">Draft</option>
-          <option value="PENDING">Pending</option>
+          <option value="PENDING">Pending Review</option>
           <option value="PUBLISHED">Published</option>
+          <option value="REJECTED">Rejected</option>
           <option value="CANCELLED">Cancelled</option>
         </Select>
       </div>

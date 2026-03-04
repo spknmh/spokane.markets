@@ -99,7 +99,7 @@ export const eventSchema = z.object({
   venueId: z.string().min(1, "Venue is required"),
   marketId: z.string().optional(),
   imageUrl: z.string().url().optional().or(z.literal("")),
-  status: z.enum(["DRAFT", "PENDING", "PUBLISHED", "CANCELLED"]),
+  status: z.enum(["DRAFT", "PENDING", "PUBLISHED", "REJECTED", "CANCELLED"]),
   websiteUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   tagIds: z.array(z.string()).optional(),

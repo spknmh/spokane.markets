@@ -27,6 +27,7 @@ enum EventStatus {
   PENDING
   PUBLISHED
   CANCELLED
+  REJECTED
 }
 
 enum AttendanceStatus {

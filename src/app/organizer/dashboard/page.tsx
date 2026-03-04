@@ -60,16 +60,26 @@ export default async function OrganizerDashboardPage() {
         : undefined;
 
   const statusColor: Record<string, string> = {
-    DRAFT: "secondary",
-    PENDING: "outline",
-    PUBLISHED: "default",
+    DRAFT: "info",
+    PENDING: "warning",
+    PUBLISHED: "success",
+    REJECTED: "destructive",
     CANCELLED: "destructive",
+  };
+
+  const statusLabel: Record<string, string> = {
+    DRAFT: "Draft",
+    PENDING: "Pending Review",
+    PUBLISHED: "Published",
+    REJECTED: "Rejected",
+    CANCELLED: "Cancelled",
   };
 
   const eventCounts = {
     published: events.filter((e) => e.status === "PUBLISHED").length,
     pending: events.filter((e) => e.status === "PENDING").length,
     draft: events.filter((e) => e.status === "DRAFT").length,
+    rejected: events.filter((e) => e.status === "REJECTED").length,
   };
 
   if (!user) return null;
@@ -114,17 +124,22 @@ export default async function OrganizerDashboardPage() {
       {/* Event stats */}
       {events.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
-          <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
+          <span className="rounded-full bg-emerald-500/10 px-3 py-1 font-medium text-emerald-700 dark:text-emerald-400">
             {eventCounts.published} published
           </span>
           {eventCounts.pending > 0 && (
             <span className="rounded-full bg-amber-500/10 px-3 py-1 font-medium text-amber-700 dark:text-amber-400">
-              {eventCounts.pending} pending
+              {eventCounts.pending} pending review
             </span>
           )}
           {eventCounts.draft > 0 && (
-            <span className="rounded-full bg-muted px-3 py-1 font-medium text-muted-foreground">
+            <span className="rounded-full bg-blue-500/10 px-3 py-1 font-medium text-blue-700 dark:text-blue-400">
               {eventCounts.draft} draft
+            </span>
+          )}
+          {eventCounts.rejected > 0 && (
+            <span className="rounded-full bg-destructive/10 px-3 py-1 font-medium text-destructive">
+              {eventCounts.rejected} rejected
             </span>
           )}
         </div>
@@ -232,10 +247,13 @@ export default async function OrganizerDashboardPage() {
                             | "default"
                             | "secondary"
                             | "outline"
-                            | "destructive") ?? "outline"
+                            | "destructive"
+                            | "warning"
+                            | "success"
+                            | "info") ?? "outline"
                         }
                       >
-                        {event.status}
+                        {statusLabel[event.status] ?? event.status}
                       </Badge>
                     </div>
                     <p className="mt-0.5 text-sm text-muted-foreground">

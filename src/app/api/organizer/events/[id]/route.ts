@@ -93,9 +93,9 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (event.status !== "DRAFT" && event.status !== "PENDING") {
+  if (event.status !== "DRAFT" && event.status !== "PENDING" && event.status !== "REJECTED") {
     return NextResponse.json(
-      { error: "Only DRAFT or PENDING events can be deleted" },
+      { error: "Only DRAFT, PENDING, or REJECTED events can be deleted" },
       { status: 400 }
     );
   }
