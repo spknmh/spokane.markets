@@ -20,11 +20,20 @@ export function AuthGate({ session, callbackUrl, children }: AuthGateProps) {
   return (
     <>
       <span
+        role="button"
+        tabIndex={0}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           setOpen(true);
         }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setOpen(true);
+          }
+        }}
+        className="cursor-pointer"
       >
         {children}
       </span>

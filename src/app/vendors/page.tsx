@@ -107,7 +107,23 @@ export default async function VendorsPage({
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {vendors.map((vendor) => (
             <Link key={vendor.id} href={`/vendors/${vendor.slug}`}>
-              <Card className="h-full border-2 transition-all hover:shadow-lg hover:border-primary/50">
+              <Card className="h-full border-2 transition-all hover:shadow-lg hover:border-primary/50 overflow-hidden">
+                {vendor.imageUrl ? (
+                  <div className="relative aspect-[16/9] w-full shrink-0 bg-muted">
+                    <Image
+                      src={vendor.imageUrl}
+                      alt={vendor.businessName}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      unoptimized={vendor.imageUrl.startsWith("/uploads/") || vendor.imageUrl.startsWith("http")}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex aspect-[16/9] w-full shrink-0 items-center justify-center bg-primary/10 text-4xl font-bold text-primary">
+                    {vendor.businessName.charAt(0)}
+                  </div>
+                )}
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle className="font-sans line-clamp-2 text-lg font-bold text-foreground">

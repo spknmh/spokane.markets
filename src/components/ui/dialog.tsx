@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 
@@ -12,14 +15,26 @@ interface DialogProps {
 
 function Dialog({ open, onOpenChange, children }: DialogProps) {
   if (!open) return null;
-  return (
+
+  const content = (
     <DialogContext.Provider value={onOpenChange}>
-      <div className="fixed inset-0 z-50">
-        <div className="fixed inset-0 bg-black/50" onClick={() => onOpenChange(false)} />
-        <div className="fixed inset-0 flex items-center justify-center p-4">{children}</div>
+      <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 bg-black/50"
+          onClick={() => onOpenChange(false)}
+          aria-hidden
+        />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          {children}
+        </div>
       </div>
     </DialogContext.Provider>
   );
+
+  if (typeof document !== "undefined" && document.body) {
+    return createPortal(content, document.body);
+  }
+  return content;
 }
 
 interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {
