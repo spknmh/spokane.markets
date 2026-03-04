@@ -52,6 +52,35 @@ enum BadgeRole {
   ORGANIZER
 }
 
+enum VendorIntentStatus {
+  INTERESTED
+  APPLIED
+  REQUESTED
+  ATTENDING
+  WAITLISTED
+  DECLINED
+  WITHDREW
+}
+
+enum IntentVisibility {
+  PRIVATE
+  PUBLIC
+}
+
+enum RosterStatus {
+  INVITED
+  ACCEPTED
+  CONFIRMED
+  CANCELLED
+}
+
+enum ParticipationMode {
+  OPEN
+  REQUEST_TO_JOIN
+  INVITE_ONLY
+  CAPACITY_LIMITED
+}
+
 // ─── Auth Models (Auth.js / Prisma Adapter) ──────────────────────────
 
 model User {
@@ -63,27 +92,28 @@ model User {
   image          String?
   hashedPassword String?
 
-  accounts            Account[]
-  sessions            Session[]
-  attendances         Attendance[]
-  reviews             Review[]
-  photos              Photo[]
-  ownedMarkets        Market[]             @relation("MarketOwner")
-  claimRequests       ClaimRequest[]       @relation("ClaimRequester")
-  reviewedClaims      ClaimRequest[]       @relation("ClaimReviewer")
-  reviewedSubmissions Submission[]         @relation("SubmissionReviewer")
-  vendorProfile       VendorProfile?
-  notifications       Notification[]
-  vendorClaimRequests VendorClaimRequest[] @relation("VendorClaimRequester")
-  vendorClaimReviews  VendorClaimRequest[] @relation("VendorClaimReviewer")
-  savedFilters            SavedFilter[]
-  favoriteVendors         FavoriteVendor[]
-  organizerEvents         Event[]              @relation("OrganizerEvents")
-  reports                 Report[]
-  auditLogs               AuditLog[]
-  siteStateUpdates        SiteState[]
-  userBadges              UserBadge[]
-  notificationPreference  NotificationPreference?
+  accounts               Account[]
+  sessions               Session[]
+  attendances            Attendance[]
+  reviews                Review[]
+  photos                 Photo[]
+  ownedMarkets           Market[]                @relation("MarketOwner")
+  claimRequests          ClaimRequest[]          @relation("ClaimRequester")
+  reviewedClaims         ClaimRequest[]          @relation("ClaimReviewer")
+  reviewedSubmissions    Submission[]            @relation("SubmissionReviewer")
+  vendorProfile          VendorProfile?
+  notifications          Notification[]
+  vendorClaimRequests    VendorClaimRequest[]    @relation("VendorClaimRequester")
+  vendorClaimReviews     VendorClaimRequest[]    @relation("VendorClaimReviewer")
+  savedFilters           SavedFilter[]
+  favoriteVendors        FavoriteVendor[]
+  organizerEvents        Event[]                 @relation("OrganizerEvents")
+  reports                Report[]
+  auditLogs              AuditLog[]
+  rosterApprovals        EventVendorRoster[]     @relation("RosterApprover")
+  siteStateUpdates       SiteState[]
+  userBadges             UserBadge[]
+  notificationPreference NotificationPreference?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -92,15 +122,15 @@ model User {
 }
 
 model BadgeDefinition {
-  id           String    @id @default(cuid())
-  slug         String    @unique
+  id           String      @id @default(cuid())
+  slug         String      @unique
   name         String
-  description  String?   @db.Text
-  icon         String?   // Lucide icon name
-  requiredRole BadgeRole @default(GLOBAL)
-  criteria     Json?     // e.g. { "type": "member_years", "years": 1 }
-  sortOrder    Int       @default(0)
-  createdAt    DateTime  @default(now())
+  description  String?     @db.Text
+  icon         String? // Lucide icon name
+  requiredRole BadgeRole   @default(GLOBAL)
+  criteria     Json? // e.g. { "type": "member_years", "years": 1 }
+  sortOrder    Int         @default(0)
+  createdAt    DateTime    @default(now())
   userBadges   UserBadge[]
 
   @@map("badge_definitions")
@@ -112,7 +142,7 @@ model UserBadge {
   badgeId  String
   earnedAt DateTime @default(now())
 
-  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   badge BadgeDefinition @relation(fields: [badgeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, badgeId])
@@ -123,10 +153,10 @@ model UserBadge {
 model AuditLog {
   id         String   @id @default(cuid())
   userId     String
-  action     String   // e.g. DELETE_EVENT, APPROVE_REVIEW, UPDATE_USER_ROLE
-  targetType String?  // EVENT, MARKET, USER, REVIEW, etc.
+  action     String // e.g. DELETE_EVENT, APPROVE_REVIEW, UPDATE_USER_ROLE
+  targetType String? // EVENT, MARKET, USER, REVIEW, etc.
   targetId   String?
-  metadata   Json?    // extra context
+  metadata   Json? // extra context
   createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -139,9 +169,9 @@ model AuditLog {
 model Report {
   id         String   @id @default(cuid())
   userId     String
-  targetType String   // EVENT | MARKET | VENDOR | REVIEW
+  targetType String // EVENT | MARKET | VENDOR | REVIEW
   targetId   String
-  reason     String?  // spam | inappropriate | other
+  reason     String? // spam | inappropriate | other
   notes      String?  @db.Text
   status     String   @default("PENDING") // PENDING | RESOLVED | DISMISSED
   createdAt  DateTime @default(now())
@@ -224,21 +254,27 @@ model Venue {
 }
 
 model Market {
-  id                 String             @id @default(cuid())
-  name               String
-  slug               String             @unique
-  venueId            String
-  description        String?            @db.Text
-  imageUrl           String?
-  websiteUrl         String?
-  facebookUrl        String?
-  instagramUrl       String?
-  baseArea           String?
-  verificationStatus VerificationStatus @default(UNVERIFIED)
-  ownerId            String?
-  typicalSchedule    String?
-  contactEmail       String?
-  contactPhone       String?
+  id                       String             @id @default(cuid())
+  name                     String
+  slug                     String             @unique
+  venueId                  String
+  description              String?            @db.Text
+  imageUrl                 String?
+  websiteUrl               String?
+  facebookUrl              String?
+  instagramUrl             String?
+  baseArea                 String?
+  verificationStatus       VerificationStatus @default(UNVERIFIED)
+  ownerId                  String?
+  typicalSchedule          String?
+  contactEmail             String?
+  contactPhone             String?
+  participationMode        ParticipationMode  @default(OPEN)
+  vendorCapacity           Int?
+  publicIntentListEnabled  Boolean            @default(true)
+  publicIntentNamesEnabled Boolean            @default(true)
+  publicRosterEnabled      Boolean            @default(true)
+  rosterClaimRequired      Boolean            @default(false)
 
   owner         User?          @relation("MarketOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   venue         Venue          @relation(fields: [venueId], references: [id], onDelete: Restrict)
@@ -256,31 +292,38 @@ model Market {
 }
 
 model Event {
-  id                String      @id @default(cuid())
-  marketId          String?
-  venueId           String
-  title             String
-  slug              String      @unique
-  description       String?     @db.Text
-  startDate         DateTime
-  endDate           DateTime
-  timezone          String?     // e.g. America/Los_Angeles
-  imageUrl          String?
-  status            EventStatus @default(DRAFT)
-  recurrenceGroupId String?
-  websiteUrl        String?
-  facebookUrl       String?
+  id                       String             @id @default(cuid())
+  marketId                 String?
+  venueId                  String
+  title                    String
+  slug                     String             @unique
+  description              String?            @db.Text
+  startDate                DateTime
+  endDate                  DateTime
+  timezone                 String? // e.g. America/Los_Angeles
+  imageUrl                 String?
+  status                   EventStatus        @default(DRAFT)
+  recurrenceGroupId        String?
+  websiteUrl               String?
+  facebookUrl              String?
+  participationMode        ParticipationMode?
+  vendorCapacity           Int?
+  publicIntentListEnabled  Boolean?
+  publicIntentNamesEnabled Boolean?
+  publicRosterEnabled      Boolean?
 
   submittedById String?
-  market        Market?       @relation(fields: [marketId], references: [id], onDelete: SetNull)
-  venue         Venue         @relation(fields: [venueId], references: [id], onDelete: Restrict)
-  submittedBy   User?         @relation("OrganizerEvents", fields: [submittedById], references: [id], onDelete: SetNull)
-  tags          Tag[]         @relation("EventTags")
-  features      Feature[]     @relation("EventFeatures")
+  market        Market?             @relation(fields: [marketId], references: [id], onDelete: SetNull)
+  venue         Venue               @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  submittedBy   User?               @relation("OrganizerEvents", fields: [submittedById], references: [id], onDelete: SetNull)
+  tags          Tag[]               @relation("EventTags")
+  features      Feature[]           @relation("EventFeatures")
   attendances   Attendance[]
   reviews       Review[]
   photos        Photo[]
   vendorEvents  VendorEvent[]
+  vendorIntents EventVendorIntent[]
+  vendorRoster  EventVendorRoster[]
   promotions    Promotion[]
 
   createdAt DateTime @default(now())
@@ -526,24 +569,26 @@ model ContactMessage {
 // ─── Milestone 3: Vendor & Organizer Models ─────────────────────────
 
 model VendorProfile {
-  id           String   @id @default(cuid())
-  userId       String?  @unique
-  businessName String
-  slug         String   @unique
-  description  String?  @db.Text
-  imageUrl     String?
-  websiteUrl   String?
-  facebookUrl  String?
-  instagramUrl String?
-  contactEmail     String?
-  contactPhone    String?
-  galleryUrls     String[] @default([])
-  specialties     String?
-  contactVisible  Boolean  @default(true)
-  socialLinksVisible Boolean @default(true)
+  id                 String   @id @default(cuid())
+  userId             String?  @unique
+  businessName       String
+  slug               String   @unique
+  description        String?  @db.Text
+  imageUrl           String?
+  websiteUrl         String?
+  facebookUrl        String?
+  instagramUrl       String?
+  contactEmail       String?
+  contactPhone       String?
+  galleryUrls        String[] @default([])
+  specialties        String?
+  contactVisible     Boolean  @default(true)
+  socialLinksVisible Boolean  @default(true)
 
   user            User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   vendorEvents    VendorEvent[]
+  vendorIntents   EventVendorIntent[]
+  vendorRoster    EventVendorRoster[]
   favoriteVendors FavoriteVendor[]
   claimRequests   VendorClaimRequest[]
 
@@ -566,6 +611,46 @@ model VendorEvent {
 
   @@unique([vendorProfileId, eventId])
   @@map("vendor_events")
+}
+
+model EventVendorIntent {
+  id              String             @id @default(cuid())
+  eventId         String
+  vendorProfileId String
+  status          VendorIntentStatus
+  notes           String?            @db.Text
+  visibility      IntentVisibility   @default(PRIVATE)
+
+  event         Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  vendorProfile VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, vendorProfileId])
+  @@index([eventId, status])
+  @@index([vendorProfileId, status])
+  @@map("event_vendor_intents")
+}
+
+model EventVendorRoster {
+  id               String       @id @default(cuid())
+  eventId          String
+  vendorProfileId  String
+  status           RosterStatus
+  approvedByUserId String?
+  approvedAt       DateTime?
+
+  event          Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  vendorProfile  VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+  approvedByUser User?         @relation("RosterApprover", fields: [approvedByUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, vendorProfileId])
+  @@index([eventId, status])
+  @@map("event_vendor_roster")
 }
 
 model SavedFilter {
@@ -593,7 +678,7 @@ model NotificationPreference {
   inAppEnabled           Boolean   @default(true)
   weeklyDigestEnabled    Boolean   @default(true)
   eventMatchEnabled      Boolean   @default(true)
-  favoriteVendorEnabled   Boolean   @default(true)
+  favoriteVendorEnabled  Boolean   @default(true)
   organizerAlertsEnabled Boolean   @default(true)
   frequency              String    @default("immediate")
   quietHoursStart        Int?
@@ -640,14 +725,14 @@ enum MaintenanceMode {
 }
 
 model SiteState {
-  id              String           @id @default("default")
-  mode            MaintenanceMode  @default(OFF)
-  messageTitle    String           @default("We'll be right back")
-  messageBody     String?          @db.Text
-  links           Json?            // [{ label: string, url: string }]
+  id              String          @id @default("default")
+  mode            MaintenanceMode @default(OFF)
+  messageTitle    String          @default("We'll be right back")
+  messageBody     String?         @db.Text
+  links           Json? // [{ label: string, url: string }]
   eta             DateTime?
   updatedByUserId String?
-  updatedAt       DateTime         @updatedAt
+  updatedAt       DateTime        @updatedAt
 
   updatedBy User? @relation(fields: [updatedByUserId], references: [id], onDelete: SetNull)
 

@@ -21,6 +21,7 @@ const ACTION_CONFIG: Record<
   vendorSurvey: { windowMs: 60 * 1000, maxRequests: 5 },
   reports: { windowMs: 60 * 60 * 1000, maxRequests: 5 },
   contact: { windowMs: 60 * 60 * 1000, maxRequests: 5 },
+  vendorIntents: { windowMs: 60 * 60 * 1000, maxRequests: 30 },
 };
 
 function getKey(identifier: string, action: string): string {

@@ -14,6 +14,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { EventCard } from "@/components/event-card";
+import { VendorPipelineBoard } from "@/components/vendor-pipeline-board";
 import { ExternalLink, Heart } from "lucide-react";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 
@@ -30,20 +31,31 @@ export default async function VendorDashboardPage() {
       },
     }),
     db.vendorProfile.findUnique({
-    where: { userId: session.user.id },
+      where: { userId: session.user.id },
       include: {
         _count: { select: { favoriteVendors: true } },
         vendorEvents: {
-        include: {
-          event: {
-            include: {
-              venue: true,
-              tags: true,
-              features: true,
-              _count: { select: { vendorEvents: true } },
+          include: {
+            event: {
+              include: {
+                venue: true,
+                tags: true,
+                features: true,
+                _count: { select: { vendorEvents: true } },
+              },
             },
           },
+          orderBy: { event: { startDate: "asc" } },
         },
+        vendorIntents: {
+          include: {
+            event: {
+              include: {
+                venue: true,
+                market: true,
+              },
+            },
+          },
           orderBy: { event: { startDate: "asc" } },
         },
       },
@@ -157,6 +169,29 @@ export default async function VendorDashboardPage() {
           />
         </CardContent>
       </Card>
+
+      <section className="mt-10">
+        <h2 className="text-xl font-semibold">My Season Pipeline</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Events you&apos;ve requested, marked attending, or expressed interest in.
+        </p>
+        <VendorPipelineBoard
+          intents={profile.vendorIntents.map((i) => ({
+            id: i.id,
+            status: i.status,
+            visibility: i.visibility,
+            event: {
+              id: i.event.id,
+              title: i.event.title,
+              slug: i.event.slug,
+              startDate: i.event.startDate,
+              endDate: i.event.endDate,
+              venue: i.event.venue,
+              market: i.event.market,
+            },
+          }))}
+        />
+      </section>
 
       <section className="mt-10">
         <div className="flex items-center justify-between">

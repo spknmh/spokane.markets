@@ -245,6 +245,21 @@ export const vendorEventsSchema = z.object({
 });
 export type VendorEventsInput = z.infer<typeof vendorEventsSchema>;
 
+export const vendorIntentSchema = z.object({
+  status: z.enum([
+    "INTERESTED",
+    "APPLIED",
+    "REQUESTED",
+    "ATTENDING",
+    "WAITLISTED",
+    "DECLINED",
+    "WITHDREW",
+  ]),
+  visibility: z.enum(["PRIVATE", "PUBLIC"]).optional(),
+  notes: z.string().max(1000).optional(),
+});
+export type VendorIntentInput = z.infer<typeof vendorIntentSchema>;
+
 export const reportSchema = z.object({
   targetType: z.enum(["EVENT", "MARKET", "VENDOR", "REVIEW"]),
   targetId: z.string().min(1, "Target ID is required"),

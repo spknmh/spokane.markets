@@ -17,6 +17,10 @@ import { WriteReviewButton } from "@/components/write-review-button";
 import { ShareButton } from "@/components/share-button";
 import { AddToCalendar } from "@/components/add-to-calendar";
 import { ReportButton } from "@/components/report-button";
+import { OfficialVendorRoster } from "@/components/official-vendor-roster";
+import { SelfReportedVendorList } from "@/components/self-reported-vendor-list";
+import { EventVendorActions } from "@/components/event-vendor-actions";
+import { getParticipationConfig } from "@/lib/participation-config";
 
 interface EventDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -32,6 +36,25 @@ async function getEvent(slug: string) {
       features: true,
       attendances: true,
       vendorEvents: {
+        include: {
+          vendorProfile: {
+            select: { id: true, businessName: true, slug: true, imageUrl: true, specialties: true },
+          },
+        },
+      },
+      vendorRoster: {
+        where: { status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] } },
+        include: {
+          vendorProfile: {
+            select: { id: true, businessName: true, slug: true, imageUrl: true, specialties: true },
+          },
+        },
+      },
+      vendorIntents: {
+        where: {
+          status: { in: ["ATTENDING", "INTERESTED"] },
+          visibility: "PUBLIC",
+        },
         include: {
           vendorProfile: {
             select: { id: true, businessName: true, slug: true, imageUrl: true, specialties: true },
@@ -76,13 +99,42 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const interestedCount = event.attendances.filter((a) => a.status === "INTERESTED").length;
 
   const session = await getSession();
-  const userAttendance = session?.user
-    ? await db.attendance.findUnique({
-        where: { userId_eventId: { userId: session.user.id!, eventId: event.id } },
+  const vendorProfile = session?.user
+    ? await db.vendorProfile.findUnique({
+        where: { userId: session.user.id! },
+        select: { id: true },
       })
     : null;
 
-  const vendors = event.vendorEvents.map((ve) => ve.vendorProfile);
+  const [userAttendance, userIntent] = session?.user
+    ? await Promise.all([
+        db.attendance.findUnique({
+          where: { userId_eventId: { userId: session.user.id!, eventId: event.id } },
+        }),
+        vendorProfile
+          ? db.eventVendorIntent.findUnique({
+              where: {
+                eventId_vendorProfileId: {
+                  eventId: event.id,
+                  vendorProfileId: vendorProfile.id,
+                },
+              },
+            })
+          : Promise.resolve(null),
+      ])
+    : [null, null];
+
+  const participationConfig = getParticipationConfig(event);
+
+  const officialVendors =
+    event.vendorRoster.length > 0
+      ? event.vendorRoster.map((r) => r.vendorProfile)
+      : event.vendorEvents.map((ve) => ve.vendorProfile);
+
+  const officialIds = new Set(officialVendors.map((v) => v.id));
+  const selfReportedVendors = event.vendorIntents
+    .map((i) => i.vendorProfile)
+    .filter((v) => !officialIds.has(v.id));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
@@ -224,43 +276,29 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               </div>
             )}
 
-            {vendors.length > 0 && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Vendors ({vendors.length})
-                </p>
-                <ul className="mt-2 space-y-2">
-                  {vendors.map((v) => (
-                    <li key={v.id}>
-                      <Link
-                        href={`/vendors/${v.slug}`}
-                        className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted"
-                      >
-                        {v.imageUrl ? (
-                          <img
-                            src={v.imageUrl}
-                            alt=""
-                            className="h-10 w-10 shrink-0 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-primary">
-                            {v.businessName.charAt(0)}
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <span className="font-medium text-foreground">{v.businessName}</span>
-                          {v.specialties && (
-                            <p className="truncate text-xs text-muted-foreground">
-                              {v.specialties.split(",")[0]?.trim()}
-                            </p>
-                          )}
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <OfficialVendorRoster
+              vendors={officialVendors}
+              capacity={participationConfig.vendorCapacity}
+              publicRosterEnabled={participationConfig.publicRosterEnabled}
+            />
+
+            {participationConfig.publicIntentListEnabled &&
+              selfReportedVendors.length > 0 && (
+                <SelfReportedVendorList
+                  vendors={selfReportedVendors}
+                  count={selfReportedVendors.length}
+                  showNames={participationConfig.publicIntentNamesEnabled}
+                />
+              )}
+
+            <EventVendorActions
+              eventId={event.id}
+              mode={participationConfig.mode}
+              isLoggedIn={!!session?.user}
+              hasVendorProfile={!!vendorProfile}
+              userIntent={userIntent?.status ?? null}
+              callbackUrl={`/events/${event.slug}`}
+            />
 
             <AttendanceToggle
               eventId={event.id}

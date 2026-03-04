@@ -243,11 +243,18 @@ export default async function OrganizerDashboardPage() {
                       {event.venue.name}
                     </p>
                   </div>
-                  <Link href={`/organizer/events/${event.id}/edit`}>
-                    <Button variant="outline" size="sm">
-                      Edit
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/organizer/events/${event.id}/roster`}>
+                        Roster
+                      </Link>
                     </Button>
-                  </Link>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/organizer/events/${event.id}/edit`}>
+                        Edit
+                      </Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}

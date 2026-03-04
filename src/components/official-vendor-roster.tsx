@@ -1,0 +1,79 @@
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+
+interface Vendor {
+  id: string;
+  businessName: string;
+  slug: string;
+  imageUrl: string | null;
+  specialties: string | null;
+}
+
+interface OfficialVendorRosterProps {
+  vendors: Vendor[];
+  capacity?: number | null;
+  publicRosterEnabled: boolean;
+}
+
+export function OfficialVendorRoster({
+  vendors,
+  capacity,
+  publicRosterEnabled,
+}: OfficialVendorRosterProps) {
+  if (!publicRosterEnabled && vendors.length === 0) return null;
+
+  const displayVendors = publicRosterEnabled ? vendors : [];
+  const count = displayVendors.length;
+
+  if (count === 0 && !capacity) return null;
+
+  return (
+    <div>
+      <p className="text-sm font-medium text-muted-foreground">
+        Official Vendors (Organizer Verified)
+        {capacity != null && (
+          <span className="ml-1 font-normal">
+            — {count} of {capacity} slots
+          </span>
+        )}
+      </p>
+      {count === 0 ? (
+        <p className="mt-2 text-sm text-muted-foreground">No official vendors yet.</p>
+      ) : (
+        <ul className="mt-2 space-y-2">
+          {displayVendors.map((v) => (
+            <li key={v.id}>
+              <Link
+                href={`/vendors/${v.slug}`}
+                className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted"
+              >
+                {v.imageUrl ? (
+                  <img
+                    src={v.imageUrl}
+                    alt=""
+                    className="h-10 w-10 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-primary">
+                    {v.businessName.charAt(0)}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <span className="font-medium text-foreground">{v.businessName}</span>
+                  {v.specialties && (
+                    <p className="truncate text-xs text-muted-foreground">
+                      {v.specialties.split(",")[0]?.trim()}
+                    </p>
+                  )}
+                </div>
+                <Badge variant="secondary" className="shrink-0 text-xs">
+                  Official
+                </Badge>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
