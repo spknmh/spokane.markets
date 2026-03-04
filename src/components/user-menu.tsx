@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { ChevronDown, LayoutDashboard, Store, Shield, Filter, Heart, LogOut, User, Bell, Home } from "lucide-react";
+import { ChevronDown, LayoutDashboard, Store, Shield, LogOut, Bell, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Session } from "next-auth";
@@ -95,32 +95,11 @@ export function UserMenu({ session }: UserMenuProps) {
             </Link>
           )}
           <Link
-            href="/profile"
-            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
-          >
-            <User className="h-4 w-4" />
-            My Profile
-          </Link>
-          <Link
             href="/notifications"
             className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
           >
             <Bell className="h-4 w-4" />
             Notifications
-          </Link>
-          <Link
-            href="/settings/filters"
-            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
-          >
-            <Filter className="h-4 w-4" />
-            Saved Filters
-          </Link>
-          <Link
-            href="/settings/favorites"
-            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
-          >
-            <Heart className="h-4 w-4" />
-            Favorite Vendors
           </Link>
           <button
             type="button"
