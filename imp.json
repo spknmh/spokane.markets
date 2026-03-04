@@ -1,0 +1,1035 @@
+{
+    "venues": [
+        {
+            "name": "Coeur d'Alene Park",
+            "address": "W 2nd Ave & N Chestnut St",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "Browne's Addition",
+            "parkingNotes": null
+        },
+        {
+            "name": "Parkade",
+            "address": "511 W Main Ave",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "99201",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "Downtown",
+            "parkingNotes": null
+        },
+        {
+            "name": "Trackside Studio Ceramic Art Gallery",
+            "address": "115 S Adams St",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "99201",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "Downtown",
+            "parkingNotes": null
+        },
+        {
+            "name": "Spokane County Fair & Expo Center",
+            "address": "404 N Havana St",
+            "city": "Spokane Valley",
+            "state": "WA",
+            "zip": "99216",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": null,
+            "parkingNotes": null
+        },
+        {
+            "name": "John R. Rogers High School",
+            "address": "1622 E Wellesley Ave",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "99207",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "Northeast Spokane",
+            "parkingNotes": null
+        },
+        {
+            "name": "Central Valley High School",
+            "address": "821 S Sullivan Rd",
+            "city": "Spokane Valley",
+            "state": "WA",
+            "zip": "99037",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": null,
+            "parkingNotes": null
+        },
+        {
+            "name": "Shadle Park High School",
+            "address": "",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": null,
+            "parkingNotes": null
+        },
+        {
+            "name": "Northwest Museum of Arts and Culture",
+            "address": "2316 W 1st Ave",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "99201",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "Browne's Addition",
+            "parkingNotes": null
+        },
+        {
+            "name": "South Perry District",
+            "address": "S Perry St between E 9th Ave & E 12th Ave",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "99202",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "South Perry",
+            "parkingNotes": null
+        },
+        {
+            "name": "Thursday Market Lot (South Perry)",
+            "address": "1000 S Perry St",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "South Perry",
+            "parkingNotes": "Parking lot behind The Lantern and adjacent to Grant Park (per market directions)."
+        },
+        {
+            "name": "Emerson Park",
+            "address": "1116 W Alice Ave",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "Emerson-Garfield",
+            "parkingNotes": null
+        },
+        {
+            "name": "Fairwood Shopping Center",
+            "address": "319 W Hastings Rd",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "Fairwood",
+            "parkingNotes": null
+        },
+        {
+            "name": "CenterPlace Regional Event Center",
+            "address": "2426 N Discovery Pl",
+            "city": "Spokane Valley",
+            "state": "WA",
+            "zip": "99216",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": null,
+            "parkingNotes": null
+        },
+        {
+            "name": "Kendall Yards (Summit Parkway)",
+            "address": "1335 W Summit Pkwy",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "99201",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "Kendall Yards",
+            "parkingNotes": null
+        },
+        {
+            "name": "University District Gateway Bridge Area",
+            "address": "508 E Riverside Ave",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "99202",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "University District",
+            "parkingNotes": null
+        },
+        {
+            "name": "Scale House Market",
+            "address": "4422 E 8th Ave",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "East Central",
+            "parkingNotes": null
+        },
+        {
+            "name": "Commellini Estate",
+            "address": "",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": null,
+            "parkingNotes": null
+        },
+        {
+            "name": "University High School",
+            "address": "12420 E 32nd Ave",
+            "city": "Spokane Valley",
+            "state": "WA",
+            "zip": "99216",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": null,
+            "parkingNotes": null
+        },
+        {
+            "name": "Main Ave & Post St (Downtown Spokane)",
+            "address": "Main Ave & Post St",
+            "city": "Spokane",
+            "state": "WA",
+            "zip": "99201",
+            "lat": 0.0,
+            "lng": 0.0,
+            "neighborhood": "Downtown",
+            "parkingNotes": null
+        }
+    ],
+    "markets": [
+        {
+            "name": "Spokane Farmers' Market",
+            "slug": "spokane-farmers-market",
+            "venueSlug": "coeur-d-alene-park",
+            "description": "Producer-focused farmers market in Browne's Addition at Coeur d'Alene Park, with seasonal Saturday and Wednesday markets.",
+            "websiteUrl": "https://www.spokanefarmersmarket.org/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Saturdays 8am\u201312pm (May 9\u2013Nov 21, 2026); Wednesdays 8am\u201312pm (Jul 1\u2013Oct 28, 2026)",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Kendall Yards Night Market",
+            "slug": "kendall-yards-night-market",
+            "venueSlug": "kendall-yards-summit-parkway",
+            "description": "Weekly Wednesday evening market with food, local vendors, and live music in Kendall Yards.",
+            "websiteUrl": "https://www.kendallnightmarket.org/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Wednesdays 5pm\u20138:30pm (May 20\u2013Sep 16, 2026)",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Perry Street Thursday Market",
+            "slug": "perry-street-thursday-market",
+            "venueSlug": "thursday-market-lot-south-perry",
+            "description": "Neighborhood farmers market and craft market emphasizing locally grown food and locally crafted products; accepts EBT/SNAP and other benefits programs.",
+            "websiteUrl": "https://www.thursdaymarket.org/",
+            "facebookUrl": null,
+            "instagramUrl": "https://www.instagram.com/thursdaymarket/",
+            "typicalSchedule": "Thursdays 3pm\u20137pm (May\u2013Oct; first market May 7, 2026)",
+            "contactEmail": "manager@thursdaymarket.org",
+            "contactPhone": null
+        },
+        {
+            "name": "Emerson-Garfield Farmers' Market",
+            "slug": "emerson-garfield-farmers-market",
+            "venueSlug": "emerson-park",
+            "description": "Friday neighborhood farmers market at Emerson Park.",
+            "websiteUrl": "https://market.emersongarfield.org/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Fridays 3pm\u20137pm (June 5\u2013Sep 25, 2026)",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Fairwood Farmers Market",
+            "slug": "fairwood-farmers-market",
+            "venueSlug": "fairwood-shopping-center",
+            "description": "Tuesday farmers market at the Fairwood Shopping Center.",
+            "websiteUrl": "https://www.fairwoodfarmersmarket.org/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Tuesdays 3pm\u20137pm (May 12\u2013Oct 6, 2026)",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Spokane Valley Farmers Market",
+            "slug": "spokane-valley-farmers-market",
+            "venueSlug": "centerplace-regional-event-center",
+            "description": "Friday evening market at CenterPlace Regional Event Center with produce, artisan goods, food trucks and live music.",
+            "websiteUrl": "https://spokanevalleyfarmersmarket.org/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Fridays 4pm\u20138pm (May\u2013September; exact 2026 opening/closing dates not published in retrieved sources)",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Spokane Night Market & Street Fair",
+            "slug": "spokane-night-market-street-fair",
+            "venueSlug": "university-district-gateway-bridge-area",
+            "description": "Monthly themed open-air vendor faire and street-fair-style arts experience (2nd Fridays May\u2013October). Family-friendly; vendor and performer applications available via Google Forms.",
+            "websiteUrl": "https://thewavybunch.com/night-market/",
+            "facebookUrl": null,
+            "instagramUrl": "https://www.instagram.com/nightmarket_and_streetfair/",
+            "typicalSchedule": "2nd Fridays May\u2013Oct (5pm\u20139pm); 2026 dates: May 8, Jun 12, Jul 10, Aug 14, Sep 11, Oct 9",
+            "contactEmail": "hello@nightmarketandstreetfair.com",
+            "contactPhone": null
+        },
+        {
+            "name": "Moonshine: Artisan Night Market & Moonlit Movies",
+            "slug": "moonshine-artisan-night-market-moonlit-movies",
+            "venueSlug": "commellini-estate",
+            "description": "Weekly Wednesday night market with artisan vendors plus an outdoor movie at dusk at Commellini Estate.",
+            "websiteUrl": "https://commellini.com/moonshine/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Wednesdays 5:30pm\u20138:30pm (Jun 3\u2013Aug 26, 2026)",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "South Perry Street Fair",
+            "slug": "south-perry-street-fair",
+            "venueSlug": "south-perry-district",
+            "description": "Annual street fair in the South Perry District with vendors, food, and performances; 2026 date moved to September due to heat.",
+            "websiteUrl": "https://southperry.org/event-calendar/list/",
+            "facebookUrl": "https://www.facebook.com/southperry/",
+            "instagramUrl": "https://www.instagram.com/southperrystreetfair/",
+            "typicalSchedule": "Annual; 2026: Sat Sep 26, 10am\u20137pm",
+            "contactEmail": "streetfair@southperry.org",
+            "contactPhone": null
+        },
+        {
+            "name": "MAC ArtFest",
+            "slug": "mac-artfest",
+            "venueSlug": "northwest-museum-of-arts-and-culture",
+            "description": "Multi-day art and fine craft festival on the MAC campus with music, food and family activities.",
+            "websiteUrl": "https://www.artfestspokane.com/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Annual; May 29\u201331, 2026",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Terrain Bazaar",
+            "slug": "terrain-bazaar",
+            "venueSlug": "main-ave-post-st-downtown-spokane",
+            "description": "One-day, all-local summer art market by Terrain; held on Main Avenue in downtown Spokane.",
+            "websiteUrl": "https://www.terrainspokane.com/open-artist-calls",
+            "facebookUrl": null,
+            "instagramUrl": "https://www.instagram.com/terrainspokane/",
+            "typicalSchedule": "Annual; June 20, 2026 (11am\u20138pm)",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Custer's Spring Arts & Crafts Show",
+            "slug": "custer-s-spring-arts-crafts-show",
+            "venueSlug": "spokane-county-fair-expo-center",
+            "description": "Annual spring arts & crafts show.",
+            "websiteUrl": "https://custer.tixonlinenow.com/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Annual; Mar 6\u20138, 2026",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Spokane Quilt, Craft & Sewing Festival",
+            "slug": "spokane-quilt-craft-sewing-festival",
+            "venueSlug": "spokane-county-fair-expo-center",
+            "description": "Annual festival focused on quilting, crafts and sewing.",
+            "websiteUrl": "https://quiltcraftsew.com/spokane/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Annual; Apr 2\u20134, 2026",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Rogers High School Spring Craft Fair",
+            "slug": "rogers-high-school-spring-craft-fair",
+            "venueSlug": "john-r-rogers-high-school",
+            "description": "School fundraiser craft fair with local crafters and food artisans.",
+            "websiteUrl": null,
+            "facebookUrl": "https://www.facebook.com/RHSCraftFair/",
+            "instagramUrl": null,
+            "typicalSchedule": "Annual; Sat Mar 7, 2026 (9am\u20134pm)",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Central Valley High School Spring Craft Fair",
+            "slug": "central-valley-high-school-spring-craft-fair",
+            "venueSlug": "central-valley-high-school",
+            "description": "School fundraiser craft fair hosted by CVHS (Spring Craft Fair).",
+            "websiteUrl": "https://cvhs.cvsd.org/apps/events/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Annual; Sat Mar 14, 2026 (9am\u20134pm)",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Shadle Park Spring Craft Show",
+            "slug": "shadle-park-spring-craft-show",
+            "venueSlug": "shadle-park-high-school",
+            "description": "School craft show and fundraiser hosted at Shadle Park High School.",
+            "websiteUrl": "https://shadleparkboosters.com/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Annual; Mar 28\u201329, 2026",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "University High School Spring Craft Fair",
+            "slug": "university-high-school-spring-craft-fair",
+            "venueSlug": "university-high-school",
+            "description": "Large multi-vendor craft fair fundraiser supporting the University High School music program.",
+            "websiteUrl": null,
+            "facebookUrl": "https://www.facebook.com/uhicraftfair/",
+            "instagramUrl": null,
+            "typicalSchedule": "Annual; Apr 18\u201319, 2026 (Sat 9am\u20134pm; Sun 10am\u20133pm)",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "Scale House Market",
+            "slug": "scale-house-market",
+            "venueSlug": "scale-house-market",
+            "description": "Year-round market destination with additional outdoor vendors, music and food at set times (per event listing).",
+            "websiteUrl": "http://thescalehousemarket.com",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Year-round; outdoor vendors/music/food on Wed & Fri from 3pm and Sat until 2pm (per event listing)",
+            "contactEmail": null,
+            "contactPhone": null
+        },
+        {
+            "name": "First Friday Face-Off",
+            "slug": "first-friday-face-off",
+            "venueSlug": "parkade",
+            "description": "Monthly live painting draw-off art competition during First Friday in downtown Spokane.",
+            "websiteUrl": "https://downtownspokane.org/event/first-friday-face-off-4/",
+            "facebookUrl": null,
+            "instagramUrl": null,
+            "typicalSchedule": "Monthly during First Friday; examples include Mar 6 and Apr 3, 2026 (5pm\u20137pm)",
+            "contactEmail": null,
+            "contactPhone": null
+        }
+    ],
+    "events": [
+        {
+            "title": "Spokane Farmers' Market (Saturday season 2026)",
+            "slug": "spokane-farmers-market-saturday-season-2026",
+            "description": "Season range; market operates Saturdays 8am\u201312pm at Coeur d'Alene Park in Browne's Addition.",
+            "startDate": "2026-05-09T08:00:00",
+            "endDate": "2026-11-21T12:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "coeur-d-alene-park",
+            "marketSlug": "spokane-farmers-market",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://www.spokanefarmersmarket.org/",
+            "facebookUrl": null,
+            "tagNames": [
+                "farmers-market",
+                "seasonal",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "local-produce"
+            ]
+        },
+        {
+            "title": "Spokane Farmers' Market (Wednesday season 2026)",
+            "slug": "spokane-farmers-market-wednesday-season-2026",
+            "description": "Season range; market operates Wednesdays 8am\u201312pm at Coeur d'Alene Park in Browne's Addition.",
+            "startDate": "2026-07-01T08:00:00",
+            "endDate": "2026-10-28T12:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "coeur-d-alene-park",
+            "marketSlug": "spokane-farmers-market",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://www.spokanefarmersmarket.org/",
+            "facebookUrl": null,
+            "tagNames": [
+                "farmers-market",
+                "seasonal",
+                "midweek"
+            ],
+            "featureNames": [
+                "local-produce"
+            ]
+        },
+        {
+            "title": "Kendall Yards Night Market (2026 season)",
+            "slug": "kendall-yards-night-market-2026-season",
+            "description": "Season range; Wednesday evening night market in Kendall Yards.",
+            "startDate": "2026-05-20T17:00:00",
+            "endDate": "2026-09-16T20:30:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "kendall-yards-summit-parkway",
+            "marketSlug": "kendall-yards-night-market",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://www.kendallnightmarket.org/",
+            "facebookUrl": null,
+            "tagNames": [
+                "night-market",
+                "farmers-market",
+                "seasonal",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "live-music",
+                "food-vendors"
+            ]
+        },
+        {
+            "title": "Perry Street Thursday Market (2026 season)",
+            "slug": "perry-street-thursday-market-2026-season",
+            "description": "Season range; Thursdays 3\u20137pm. End date set to last Thursday of October as a placeholder (market listed as running May\u2013October).",
+            "startDate": "2026-05-07T15:00:00",
+            "endDate": "2026-10-29T19:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "thursday-market-lot-south-perry",
+            "marketSlug": "perry-street-thursday-market",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://www.thursdaymarket.org/",
+            "facebookUrl": null,
+            "tagNames": [
+                "farmers-market",
+                "seasonal",
+                "neighborhood"
+            ],
+            "featureNames": [
+                "ebt-snap",
+                "local-produce",
+                "local-crafts"
+            ]
+        },
+        {
+            "title": "Emerson-Garfield Farmers' Market (2026 season)",
+            "slug": "emerson-garfield-farmers-market-2026-season",
+            "description": "Season range; Fridays 3\u20137pm at Emerson Park.",
+            "startDate": "2026-06-05T15:00:00",
+            "endDate": "2026-09-25T19:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "emerson-park",
+            "marketSlug": "emerson-garfield-farmers-market",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://market.emersongarfield.org/",
+            "facebookUrl": null,
+            "tagNames": [
+                "farmers-market",
+                "seasonal",
+                "neighborhood"
+            ],
+            "featureNames": [
+                "local-produce"
+            ]
+        },
+        {
+            "title": "Fairwood Farmers Market (2026 season)",
+            "slug": "fairwood-farmers-market-2026-season",
+            "description": "Season range; Tuesdays 3\u20137pm at Fairwood Shopping Center.",
+            "startDate": "2026-05-12T15:00:00",
+            "endDate": "2026-10-06T19:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "fairwood-shopping-center",
+            "marketSlug": "fairwood-farmers-market",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://www.fairwoodfarmersmarket.org/",
+            "facebookUrl": null,
+            "tagNames": [
+                "farmers-market",
+                "seasonal"
+            ],
+            "featureNames": [
+                "local-produce"
+            ]
+        },
+        {
+            "title": "Spokane Valley Farmers Market (2026 season placeholder)",
+            "slug": "spokane-valley-farmers-market-2026-season-placeholder",
+            "description": "Season range placeholder (market described as May\u2013September, Fridays 4\u20138pm). Exact 2026 opening/closing dates not published in retrieved sources.",
+            "startDate": "2026-05-01T16:00:00",
+            "endDate": "2026-09-30T20:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "centerplace-regional-event-center",
+            "marketSlug": "spokane-valley-farmers-market",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://spokanevalleyfarmersmarket.org/",
+            "facebookUrl": null,
+            "tagNames": [
+                "farmers-market",
+                "seasonal",
+                "evening-market"
+            ],
+            "featureNames": [
+                "food-trucks",
+                "live-music"
+            ]
+        },
+        {
+            "title": "Spokane Night Market & Street Fair (2026-05-08)",
+            "slug": "spokane-night-market-street-fair-2026-05-08",
+            "description": "Monthly themed night market and street fair (2nd Friday season).",
+            "startDate": "2026-05-08T17:00:00",
+            "endDate": "2026-05-08T21:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "university-district-gateway-bridge-area",
+            "marketSlug": "spokane-night-market-street-fair",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://thewavybunch.com/night-market/",
+            "facebookUrl": null,
+            "tagNames": [
+                "night-market",
+                "street-fair",
+                "vendor-market",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "live-music",
+                "food-vendors",
+                "artist-vendors"
+            ]
+        },
+        {
+            "title": "Spokane Night Market & Street Fair (2026-06-12)",
+            "slug": "spokane-night-market-street-fair-2026-06-12",
+            "description": "Monthly themed night market and street fair (2nd Friday season).",
+            "startDate": "2026-06-12T17:00:00",
+            "endDate": "2026-06-12T21:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "university-district-gateway-bridge-area",
+            "marketSlug": "spokane-night-market-street-fair",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://thewavybunch.com/night-market/",
+            "facebookUrl": null,
+            "tagNames": [
+                "night-market",
+                "street-fair",
+                "vendor-market",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "live-music",
+                "food-vendors",
+                "artist-vendors"
+            ]
+        },
+        {
+            "title": "Spokane Night Market & Street Fair (2026-07-10)",
+            "slug": "spokane-night-market-street-fair-2026-07-10",
+            "description": "Monthly themed night market and street fair (2nd Friday season).",
+            "startDate": "2026-07-10T17:00:00",
+            "endDate": "2026-07-10T21:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "university-district-gateway-bridge-area",
+            "marketSlug": "spokane-night-market-street-fair",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://thewavybunch.com/night-market/",
+            "facebookUrl": null,
+            "tagNames": [
+                "night-market",
+                "street-fair",
+                "vendor-market",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "live-music",
+                "food-vendors",
+                "artist-vendors"
+            ]
+        },
+        {
+            "title": "Spokane Night Market & Street Fair (2026-08-14)",
+            "slug": "spokane-night-market-street-fair-2026-08-14",
+            "description": "Monthly themed night market and street fair (2nd Friday season).",
+            "startDate": "2026-08-14T17:00:00",
+            "endDate": "2026-08-14T21:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "university-district-gateway-bridge-area",
+            "marketSlug": "spokane-night-market-street-fair",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://thewavybunch.com/night-market/",
+            "facebookUrl": null,
+            "tagNames": [
+                "night-market",
+                "street-fair",
+                "vendor-market",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "live-music",
+                "food-vendors",
+                "artist-vendors"
+            ]
+        },
+        {
+            "title": "Spokane Night Market & Street Fair (2026-09-11)",
+            "slug": "spokane-night-market-street-fair-2026-09-11",
+            "description": "Monthly themed night market and street fair (2nd Friday season).",
+            "startDate": "2026-09-11T17:00:00",
+            "endDate": "2026-09-11T21:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "university-district-gateway-bridge-area",
+            "marketSlug": "spokane-night-market-street-fair",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://thewavybunch.com/night-market/",
+            "facebookUrl": null,
+            "tagNames": [
+                "night-market",
+                "street-fair",
+                "vendor-market",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "live-music",
+                "food-vendors",
+                "artist-vendors"
+            ]
+        },
+        {
+            "title": "Spokane Night Market & Street Fair (2026-10-09)",
+            "slug": "spokane-night-market-street-fair-2026-10-09",
+            "description": "Monthly themed night market and street fair (2nd Friday season).",
+            "startDate": "2026-10-09T17:00:00",
+            "endDate": "2026-10-09T21:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "university-district-gateway-bridge-area",
+            "marketSlug": "spokane-night-market-street-fair",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://thewavybunch.com/night-market/",
+            "facebookUrl": null,
+            "tagNames": [
+                "night-market",
+                "street-fair",
+                "vendor-market",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "live-music",
+                "food-vendors",
+                "artist-vendors"
+            ]
+        },
+        {
+            "title": "Moonshine: Artisan Night Market & Moonlit Movies (2026 season)",
+            "slug": "moonshine-artisan-night-market-moonlit-movies-2026-season",
+            "description": "Season range; Wednesday evening artisan market with movie at dusk.",
+            "startDate": "2026-06-03T17:30:00",
+            "endDate": "2026-08-26T20:30:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "commellini-estate",
+            "marketSlug": "moonshine-artisan-night-market-moonlit-movies",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://commellini.com/moonshine/",
+            "facebookUrl": null,
+            "tagNames": [
+                "night-market",
+                "artisan-market",
+                "seasonal",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "movie-at-dusk",
+                "vendor-market"
+            ]
+        },
+        {
+            "title": "South Perry Street Fair 2026",
+            "slug": "south-perry-street-fair-2026",
+            "description": "Annual street fair; 2026 hosted in September.",
+            "startDate": "2026-09-26T10:00:00",
+            "endDate": "2026-09-26T19:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "south-perry-district",
+            "marketSlug": "south-perry-street-fair",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://southperry.org/event-calendar/list/",
+            "facebookUrl": null,
+            "tagNames": [
+                "street-fair",
+                "vendor-market",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "live-performances",
+                "food-vendors"
+            ]
+        },
+        {
+            "title": "Terrain Bazaar 2026",
+            "slug": "terrain-bazaar-2026",
+            "description": "Terrain's annual all-local summer art market on Main Ave & Post St.",
+            "startDate": "2026-06-20T11:00:00",
+            "endDate": "2026-06-20T20:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "main-ave-post-st-downtown-spokane",
+            "marketSlug": "terrain-bazaar",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://www.terrainspokane.com/open-artist-calls",
+            "facebookUrl": null,
+            "tagNames": [
+                "art-market",
+                "street-fair",
+                "handmade"
+            ],
+            "featureNames": [
+                "artist-vendors",
+                "food-vendors"
+            ]
+        },
+        {
+            "title": "MAC ArtFest 2026",
+            "slug": "mac-artfest-2026",
+            "description": "Multi-day art and fine craft festival on the MAC campus. Times not specified in retrieved sources; date range only.",
+            "startDate": "2026-05-29T00:00:00",
+            "endDate": "2026-05-31T23:59:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "northwest-museum-of-arts-and-culture",
+            "marketSlug": "mac-artfest",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://www.artfestspokane.com/",
+            "facebookUrl": null,
+            "tagNames": [
+                "art-festival",
+                "craft-fair",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "live-music",
+                "food-trucks",
+                "kids-activities"
+            ]
+        },
+        {
+            "title": "Custer's Spring Arts & Crafts Show 2026",
+            "slug": "custer-s-spring-arts-crafts-show-2026",
+            "description": "Annual spring arts & crafts show. Daily hours not specified in retrieved sources; date range only.",
+            "startDate": "2026-03-06T00:00:00",
+            "endDate": "2026-03-08T23:59:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "spokane-county-fair-expo-center",
+            "marketSlug": "custer-s-spring-arts-crafts-show",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://custer.tixonlinenow.com/",
+            "facebookUrl": null,
+            "tagNames": [
+                "craft-fair",
+                "art-show",
+                "indoor"
+            ],
+            "featureNames": []
+        },
+        {
+            "title": "Spokane Quilt, Craft & Sewing Festival 2026",
+            "slug": "spokane-quilt-craft-sewing-festival-2026",
+            "description": "Annual quilt, craft and sewing festival. Daily hours not specified in retrieved sources; date range only.",
+            "startDate": "2026-04-02T00:00:00",
+            "endDate": "2026-04-04T23:59:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "spokane-county-fair-expo-center",
+            "marketSlug": "spokane-quilt-craft-sewing-festival",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://quiltcraftsew.com/spokane/",
+            "facebookUrl": null,
+            "tagNames": [
+                "craft-fair",
+                "sewing",
+                "quilt-show"
+            ],
+            "featureNames": []
+        },
+        {
+            "title": "Rogers High School Spring Craft Fair 2026",
+            "slug": "rogers-high-school-spring-craft-fair-2026",
+            "description": "School fundraiser craft fair.",
+            "startDate": "2026-03-07T09:00:00",
+            "endDate": "2026-03-07T16:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "john-r-rogers-high-school",
+            "marketSlug": "rogers-high-school-spring-craft-fair",
+            "status": "PUBLISHED",
+            "websiteUrl": null,
+            "facebookUrl": "https://www.facebook.com/RHSCraftFair/",
+            "tagNames": [
+                "craft-fair",
+                "fundraiser",
+                "family-friendly"
+            ],
+            "featureNames": []
+        },
+        {
+            "title": "Central Valley High School Spring Craft Fair 2026",
+            "slug": "central-valley-high-school-spring-craft-fair-2026",
+            "description": "Spring Craft Fair at Central Valley High School (CVHS).",
+            "startDate": "2026-03-14T09:00:00",
+            "endDate": "2026-03-14T16:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "central-valley-high-school",
+            "marketSlug": "central-valley-high-school-spring-craft-fair",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://cvhs.cvsd.org/apps/events/",
+            "facebookUrl": null,
+            "tagNames": [
+                "craft-fair",
+                "fundraiser",
+                "family-friendly"
+            ],
+            "featureNames": []
+        },
+        {
+            "title": "Shadle Park Spring Craft Show 2026",
+            "slug": "shadle-park-spring-craft-show-2026",
+            "description": "School craft show fundraiser. Daily hours not specified in retrieved sources; date range only.",
+            "startDate": "2026-03-28T00:00:00",
+            "endDate": "2026-03-29T23:59:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "shadle-park-high-school",
+            "marketSlug": "shadle-park-spring-craft-show",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://shadleparkboosters.com/",
+            "facebookUrl": null,
+            "tagNames": [
+                "craft-fair",
+                "fundraiser"
+            ],
+            "featureNames": []
+        },
+        {
+            "title": "University High School Spring Craft Fair 2026",
+            "slug": "university-high-school-spring-craft-fair-2026",
+            "description": "Annual UHi Craft Fair fundraiser (Sat 9\u20134, Sun 10\u20133).",
+            "startDate": "2026-04-18T09:00:00",
+            "endDate": "2026-04-19T15:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "university-high-school",
+            "marketSlug": "university-high-school-spring-craft-fair",
+            "status": "PUBLISHED",
+            "websiteUrl": null,
+            "facebookUrl": "https://www.facebook.com/uhicraftfair/",
+            "tagNames": [
+                "craft-fair",
+                "fundraiser",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "live-music",
+                "food-trucks"
+            ]
+        },
+        {
+            "title": "Scale House Market at the Quarry (May 29, 2026)",
+            "slug": "scale-house-market-at-the-quarry-may-29-2026",
+            "description": "Outdoor vendors, music and food on Fridays starting at 3pm (per event listing).",
+            "startDate": "2026-05-29T15:00:00",
+            "endDate": "2026-05-29T20:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "scale-house-market",
+            "marketSlug": "scale-house-market",
+            "status": "PUBLISHED",
+            "websiteUrl": "http://thescalehousemarket.com",
+            "facebookUrl": null,
+            "tagNames": [
+                "farmers-market",
+                "vendor-market"
+            ],
+            "featureNames": [
+                "outdoor-vendors",
+                "music",
+                "food"
+            ]
+        },
+        {
+            "title": "First Friday Face-Off (March 6, 2026)",
+            "slug": "first-friday-face-off-march-6-2026",
+            "description": "Live art draw-off event; includes food trucks, live DJ, and artist vendors.",
+            "startDate": "2026-03-06T17:00:00",
+            "endDate": "2026-03-06T19:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "parkade",
+            "marketSlug": "first-friday-face-off",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://downtownspokane.org/event/first-friday-face-off-4/",
+            "facebookUrl": null,
+            "tagNames": [
+                "art-event",
+                "first-friday",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "food-trucks",
+                "live-dj",
+                "artist-vendors",
+                "beer-and-wine"
+            ]
+        },
+        {
+            "title": "First Friday Face-Off (April 3, 2026)",
+            "slug": "first-friday-face-off-april-3-2026",
+            "description": "Monthly live painting draw-off art competition during First Friday.",
+            "startDate": "2026-04-03T17:00:00",
+            "endDate": "2026-04-03T19:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "parkade",
+            "marketSlug": "first-friday-face-off",
+            "status": "PUBLISHED",
+            "websiteUrl": "https://downtownspokane.org/event/first-friday-face-off/2026-04-03/",
+            "facebookUrl": null,
+            "tagNames": [
+                "art-event",
+                "first-friday",
+                "family-friendly"
+            ],
+            "featureNames": [
+                "food-trucks",
+                "live-dj",
+                "artist-vendors",
+                "beer-and-wine"
+            ]
+        },
+        {
+            "title": "Stoked! Work from the Kurōrukamegama wood kiln (exhibit)",
+            "slug": "stoked-work-from-the-kurorukamegama-wood-kiln-exhibit",
+            "description": "Ceramic art exhibit hosted by Trackside Studio Ceramic Art Gallery.",
+            "startDate": "2026-03-06T17:00:00",
+            "endDate": "2026-03-27T20:00:00",
+            "timezone": "America/Los_Angeles",
+            "venueSlug": "trackside-studio-ceramic-art-gallery",
+            "marketSlug": null,
+            "status": "PUBLISHED",
+            "websiteUrl": "https://downtownspokane.org/first-friday/",
+            "facebookUrl": null,
+            "tagNames": [
+                "art-show",
+                "exhibition",
+                "first-friday"
+            ],
+            "featureNames": []
+        }
+    ]
+}
