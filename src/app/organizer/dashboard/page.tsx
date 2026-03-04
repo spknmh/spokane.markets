@@ -3,9 +3,11 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
+import { DashboardHeaderCard } from "@/components/dashboard-header-card";
+import { evaluateAndGrantBadges } from "@/lib/badges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatDateRange } from "@/lib/utils";
+import { formatDate, formatDateRange } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Organizer Dashboard — Spokane Markets",
@@ -15,10 +17,21 @@ export default async function OrganizerDashboardPage() {
   const session = await requireRole("ORGANIZER");
   const userId = session.user.id;
 
+  await evaluateAndGrantBadges(userId);
+
   const [markets, events] = await Promise.all([
     db.market.findMany({
       where: { ownerId: userId },
-      include: { venue: { select: { name: true } } },
+      include: {
+        venue: { select: { name: true } },
+        _count: { select: { events: true } },
+        events: {
+          where: { startDate: { gte: new Date() }, status: "PUBLISHED" },
+          orderBy: { startDate: "asc" },
+          take: 1,
+          select: { id: true, title: true, startDate: true, slug: true },
+        },
+      },
       orderBy: { name: "asc" },
     }),
     db.event.findMany({
@@ -28,9 +41,23 @@ export default async function OrganizerDashboardPage() {
     }),
   ]);
 
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    include: {
+      userBadges: { include: { badge: true }, orderBy: { badge: { sortOrder: "asc" } } },
+    },
+  });
+
   const hasVerifiedMarket = markets.some(
     (m) => m.verificationStatus === "VERIFIED"
   );
+
+  const organizerSince =
+    events.length > 0
+      ? new Date(Math.min(...events.map((e) => e.createdAt.getTime())))
+      : markets.length > 0
+        ? new Date(Math.min(...markets.map((m) => m.createdAt.getTime())))
+        : undefined;
 
   const statusColor: Record<string, string> = {
     DRAFT: "secondary",
@@ -38,6 +65,14 @@ export default async function OrganizerDashboardPage() {
     PUBLISHED: "default",
     CANCELLED: "destructive",
   };
+
+  const eventCounts = {
+    published: events.filter((e) => e.status === "PUBLISHED").length,
+    pending: events.filter((e) => e.status === "PENDING").length,
+    draft: events.filter((e) => e.status === "DRAFT").length,
+  };
+
+  if (!user) return null;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -53,6 +88,22 @@ export default async function OrganizerDashboardPage() {
         </Link>
       </div>
 
+      <DashboardHeaderCard
+        user={{
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          createdAt: user.createdAt,
+          role: user.role,
+        }}
+        organizerSince={organizerSince}
+        badges={(user.userBadges ?? []).map((ub) => ({
+          slug: ub.badge.slug,
+          name: ub.badge.name,
+          icon: ub.badge.icon,
+        }))}
+      />
+
       {hasVerifiedMarket && (
         <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
           You own a verified market — your submitted events will be
@@ -60,13 +111,49 @@ export default async function OrganizerDashboardPage() {
         </div>
       )}
 
+      {/* Event stats */}
+      {events.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-3 text-sm">
+          <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
+            {eventCounts.published} published
+          </span>
+          {eventCounts.pending > 0 && (
+            <span className="rounded-full bg-amber-500/10 px-3 py-1 font-medium text-amber-700 dark:text-amber-400">
+              {eventCounts.pending} pending
+            </span>
+          )}
+          {eventCounts.draft > 0 && (
+            <span className="rounded-full bg-muted px-3 py-1 font-medium text-muted-foreground">
+              {eventCounts.draft} draft
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Browse to claim CTA */}
+      {markets.length === 0 && (
+        <Card className="mt-6 border-2 border-dashed">
+          <CardContent className="flex flex-col items-center justify-center gap-3 py-8 text-center sm:flex-row">
+            <p className="text-muted-foreground">
+              Don&apos;t own a market? Browse markets to claim one.
+            </p>
+            <Button asChild variant="outline">
+              <Link href="/markets">Browse Markets</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Markets */}
-      <section className="mt-10">
+      <section id="markets" className="mt-10 scroll-mt-8">
         <h2 className="text-xl font-semibold">Your Markets</h2>
         {markets.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
-            You don&apos;t own any markets yet. Claim a market from its detail
-            page to get started.
+            You don&apos;t own any markets yet.{" "}
+            <Link href="/markets" className="text-primary hover:underline">
+              Browse markets
+            </Link>{" "}
+            and claim one from its detail page to get started.
           </p>
         ) : (
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -93,6 +180,20 @@ export default async function OrganizerDashboardPage() {
                   <p className="mt-1 text-sm text-muted-foreground">
                     At {market.venue.name}
                   </p>
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <span>{market._count.events} events</span>
+                    {market.events[0] && (
+                      <span>
+                        Next:{" "}
+                        <Link
+                          href={`/events/${market.events[0].slug}`}
+                          className="text-primary hover:underline"
+                        >
+                          {formatDate(market.events[0].startDate)}
+                        </Link>
+                      </span>
+                    )}
+                  </div>
                   {market.description && (
                     <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
                       {market.description}
@@ -106,7 +207,7 @@ export default async function OrganizerDashboardPage() {
       </section>
 
       {/* Events */}
-      <section className="mt-10">
+      <section id="events" className="mt-10 scroll-mt-8">
         <h2 className="text-xl font-semibold">Your Events</h2>
         {events.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">

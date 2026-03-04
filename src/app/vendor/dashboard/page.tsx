@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
+import { DashboardHeaderCard } from "@/components/dashboard-header-card";
+import { evaluateAndGrantBadges } from "@/lib/badges";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -18,11 +20,20 @@ import { VendorSocialLinks } from "@/components/vendor-social-links";
 export default async function VendorDashboardPage() {
   const session = await requireAuth();
 
-  const profile = await db.vendorProfile.findUnique({
+  await evaluateAndGrantBadges(session.user.id);
+
+  const [user, profile] = await Promise.all([
+    db.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        userBadges: { include: { badge: true }, orderBy: { badge: { sortOrder: "asc" } } },
+      },
+    }),
+    db.vendorProfile.findUnique({
     where: { userId: session.user.id },
-    include: {
-      _count: { select: { favoriteVendors: true } },
-      vendorEvents: {
+      include: {
+        _count: { select: { favoriteVendors: true } },
+        vendorEvents: {
         include: {
           event: {
             include: {
@@ -33,24 +44,43 @@ export default async function VendorDashboardPage() {
             },
           },
         },
-        orderBy: { event: { startDate: "asc" } },
+          orderBy: { event: { startDate: "asc" } },
+        },
       },
-    },
-  });
+    }),
+  ]);
+
+  if (!user) return null;
 
   if (!profile) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Welcome, Vendor!
-        </h1>
-        <p className="mt-4 text-lg text-muted-foreground">
-          You don&apos;t have a vendor profile yet. Create one to start
-          listing where you&apos;ll be selling.
-        </p>
-        <Button asChild size="lg" className="mt-8">
-          <Link href="/vendor/profile/edit">Create Your Vendor Profile</Link>
-        </Button>
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+        <DashboardHeaderCard
+          user={{
+            name: user.name,
+            email: user.email,
+            image: user.image,
+            createdAt: user.createdAt,
+            role: user.role,
+          }}
+          badges={(user.userBadges ?? []).map((ub) => ({
+            slug: ub.badge.slug,
+            name: ub.badge.name,
+            icon: ub.badge.icon,
+          }))}
+        />
+        <div className="mt-12 text-center">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome, Vendor!
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            You don&apos;t have a vendor profile yet. Create one to start
+            listing where you&apos;ll be selling.
+          </p>
+          <Button asChild size="lg" className="mt-8">
+            <Link href="/vendor/profile/edit">Create Your Vendor Profile</Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -75,6 +105,22 @@ export default async function VendorDashboardPage() {
           </Link>
         </Button>
       </div>
+
+      <DashboardHeaderCard
+        user={{
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          createdAt: user.createdAt,
+          role: user.role,
+        }}
+        vendorProfile={{ createdAt: profile.createdAt }}
+        badges={user.userBadges.map((ub) => ({
+          slug: ub.badge.slug,
+          name: ub.badge.name,
+          icon: ub.badge.icon,
+        }))}
+      />
 
       <Card className="mt-8">
         <CardHeader>

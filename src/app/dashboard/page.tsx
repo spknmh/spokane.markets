@@ -10,12 +10,15 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Filter, Heart, CheckCircle2, Star } from "lucide-react";
+import { Filter, Heart, CheckCircle2, Star, User, Shield, Store, LayoutDashboard, KeyRound } from "lucide-react";
 import { EventTimeLabel } from "@/components/event-time-label";
+import { ProfileForm } from "@/components/profile-form";
+import { DashboardHeaderCard } from "@/components/dashboard-header-card";
+import { evaluateAndGrantBadges } from "@/lib/badges";
 
 export const metadata = {
   title: "My Dashboard — Spokane Markets",
-  description: "Your saved filters, event RSVPs, and favorite vendors.",
+  description: "Your saved filters, event RSVPs, favorite vendors, and account settings.",
 };
 
 export default async function DashboardPage() {
@@ -23,6 +26,17 @@ export default async function DashboardPage() {
   if (!session?.user) {
     redirect("/auth/signin");
   }
+
+  await evaluateAndGrantBadges(session.user.id!);
+
+  const user = await db.user.findUnique({
+    where: { id: session.user.id! },
+    include: {
+      vendorProfile: true,
+      userBadges: { include: { badge: true }, orderBy: { badge: { sortOrder: "asc" } } },
+    },
+  });
+  if (!user) redirect("/auth/signin");
 
   const [savedFilters, attendances, favoriteVendors] = await Promise.all([
     db.savedFilter.findMany({
@@ -58,9 +72,24 @@ export default async function DashboardPage() {
         Your saved filters, event RSVPs, and favorite vendors
       </p>
 
+      <DashboardHeaderCard
+        user={{
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          createdAt: user.createdAt,
+          role: user.role,
+        }}
+        badges={(user.userBadges ?? []).map((ub) => ({
+          slug: ub.badge.slug,
+          name: ub.badge.name,
+          icon: ub.badge.icon,
+        }))}
+      />
+
       <div className="mt-8 flex flex-col gap-6 sm:gap-8">
         {/* Saved Filters */}
-        <Card className="border-2">
+        <Card id="saved-filters" className="border-2 scroll-mt-8">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -122,7 +151,7 @@ export default async function DashboardPage() {
         </Card>
 
         {/* My RSVPs */}
-        <Card className="border-2">
+        <Card id="rsvps" className="border-2 scroll-mt-8">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -184,7 +213,7 @@ export default async function DashboardPage() {
         </Card>
 
         {/* Favorite Vendors */}
-        <Card className="border-2">
+        <Card id="favorites" className="border-2 scroll-mt-8">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -241,6 +270,74 @@ export default async function DashboardPage() {
                 Manage all favorites →
               </Link>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Account & Settings */}
+        <Card id="account" className="border-2 scroll-mt-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Account & Settings
+            </CardTitle>
+            <CardDescription>
+              Your profile details and quick links
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <ProfileForm
+              initialName={user.name}
+              email={user.email}
+              image={user.image}
+              role={user.role}
+            />
+            <div className="space-y-2 border-t border-border pt-4">
+              <Link
+                href="/auth/request-password-reset"
+                className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border p-3 font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                <KeyRound className="h-4 w-4" />
+                Change password
+              </Link>
+              {user.role === "ADMIN" && (
+                <Link
+                  href="/admin"
+                  className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border p-3 font-medium text-foreground transition-colors hover:bg-muted"
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin Dashboard
+                </Link>
+              )}
+              {user.role === "ORGANIZER" && (
+                <Link
+                  href="/organizer/dashboard"
+                  className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border p-3 font-medium text-foreground transition-colors hover:bg-muted"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Organizer Dashboard
+                </Link>
+              )}
+              {user.role === "VENDOR" && (
+                <>
+                  <Link
+                    href="/vendor/dashboard"
+                    className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border p-3 font-medium text-foreground transition-colors hover:bg-muted"
+                  >
+                    <Store className="h-4 w-4" />
+                    Vendor Dashboard
+                  </Link>
+                  {user.vendorProfile && (
+                    <Link
+                      href="/vendor/profile/edit"
+                      className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border p-3 font-medium text-foreground transition-colors hover:bg-muted"
+                    >
+                      <Store className="h-4 w-4" />
+                      Edit Vendor Profile
+                    </Link>
+                  )}
+                </>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
