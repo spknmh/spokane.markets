@@ -4,12 +4,52 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  Filter,
+  CheckCircle2,
+  Heart,
+  User,
+  Calendar,
+  Award,
+  Settings,
+  Shield,
+  Eye,
+  Bell,
+  Bookmark,
+  Link2,
+  ExternalLink,
+  Store,
+  PlusCircle,
+  MapPin,
+} from "lucide-react";
+
+const ICON_MAP = {
+  LayoutDashboard,
+  Filter,
+  CheckCircle2,
+  Heart,
+  User,
+  Calendar,
+  Award,
+  Settings,
+  Shield,
+  Eye,
+  Bell,
+  Bookmark,
+  Link2,
+  ExternalLink,
+  Store,
+  PlusCircle,
+  MapPin,
+} as const;
 
 export type DashboardNavItem = {
   label: string;
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: keyof typeof ICON_MAP;
 };
 
 export type DashboardSidebarProps = {
@@ -31,8 +71,9 @@ export function DashboardSidebar({
   const [open, setOpen] = useState(false);
 
   const isActive = (href: string) => {
-    const base = href.split("#")[0];
+    const base = href.split("?")[0].split("#")[0];
     if (base === "/dashboard") return pathname === "/dashboard";
+    if (base.startsWith("/account")) return pathname.startsWith(base);
     return pathname.startsWith(base);
   };
 
@@ -67,7 +108,7 @@ export function DashboardSidebar({
 
         <nav className="flex-1 overflow-y-auto p-4 space-y-0.5">
           {items.map((item) => {
-            const Icon = item.icon;
+            const Icon = ICON_MAP[item.icon] ?? Menu;
             const active = isActive(item.href);
             return (
               <Link

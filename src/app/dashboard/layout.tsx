@@ -1,24 +1,15 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
-import {
-  LayoutDashboard,
-  Filter,
-  CheckCircle2,
-  Heart,
-  User,
-  Calendar,
-  Award,
-} from "lucide-react";
 
 const consumerNavItems = [
-  { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Saved Filters", href: "/settings/filters", icon: Filter },
-  { label: "My RSVPs", href: "/dashboard#rsvps", icon: CheckCircle2 },
-  { label: "Favorite Vendors", href: "/settings/favorites", icon: Heart },
-  { label: "Badges", href: "/dashboard/badges", icon: Award },
-  { label: "Account & Settings", href: "/dashboard#account", icon: User },
-  { label: "Browse Events", href: "/events", icon: Calendar },
+  { label: "Overview", href: "/dashboard", icon: "LayoutDashboard" as const },
+  { label: "Saved Filters", href: "/account/saved?tab=filters", icon: "Filter" as const },
+  { label: "My RSVPs", href: "/account/saved?tab=rsvps", icon: "CheckCircle2" as const },
+  { label: "Favorite Vendors", href: "/account/saved?tab=favorites", icon: "Heart" as const },
+  { label: "Badges", href: "/dashboard/badges", icon: "Award" as const },
+  { label: "Account & Settings", href: "/account/settings", icon: "User" as const },
+  { label: "Browse Events", href: "/events", icon: "Calendar" as const },
 ];
 
 export default async function DashboardLayout({

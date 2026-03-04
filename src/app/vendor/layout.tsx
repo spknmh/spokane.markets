@@ -1,22 +1,16 @@
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
-import {
-  LayoutDashboard,
-  User,
-  Link2,
-  ExternalLink,
-} from "lucide-react";
 
 function getVendorNavItems(profileSlug: string | null) {
   return [
-    { label: "Overview", href: "/vendor/dashboard", icon: LayoutDashboard },
-    { label: "Edit Profile", href: "/vendor/profile/edit", icon: User },
-    { label: "Link to Event", href: "/vendor/events/link", icon: Link2 },
+    { label: "Overview", href: "/vendor/dashboard", icon: "LayoutDashboard" as const },
+    { label: "Edit Profile", href: "/vendor/profile/edit", icon: "User" as const },
+    { label: "Link to Event", href: "/vendor/events/link", icon: "Link2" as const },
     {
       label: "View Public Profile",
       href: profileSlug ? `/vendors/${profileSlug}` : "/vendors",
-      icon: ExternalLink,
+      icon: "ExternalLink" as const,
     },
   ];
 }
