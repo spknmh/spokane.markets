@@ -26,6 +26,7 @@ import {
   ClipboardList,
   Settings,
   Database,
+  Megaphone,
 } from "lucide-react";
 
 type NavItem = { label: string; href: string; icon: React.ComponentType<{ className?: string }> };
@@ -78,6 +79,7 @@ const navGroups: NavGroup[] = [
     label: "System",
     defaultOpen: false,
     items: [
+      { label: "Promotions", href: "/admin/promotions", icon: Megaphone },
       { label: "Site", href: "/admin/content", icon: LayoutTemplate },
       { label: "Maintenance", href: "/admin/maintenance", icon: Settings },
       { label: "Data", href: "/admin/data", icon: Database },

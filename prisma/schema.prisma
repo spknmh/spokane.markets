@@ -40,6 +40,12 @@ enum ModerationStatus {
   REJECTED
 }
 
+enum PromotionType {
+  SPONSORED
+  PARTNERSHIP
+  FEATURED
+}
+
 // ─── Auth Models (Auth.js / Prisma Adapter) ──────────────────────────
 
 model User {
@@ -238,6 +244,7 @@ model Event {
   reviews       Review[]
   photos        Photo[]
   vendorEvents  VendorEvent[]
+  promotions    Promotion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -247,6 +254,26 @@ model Event {
   @@index([status, startDate])
   @@index([slug])
   @@map("events")
+}
+
+model Promotion {
+  id          String        @id @default(cuid())
+  eventId     String?
+  type        PromotionType
+  sponsorName String?
+  imageUrl    String?
+  linkUrl     String?
+  startDate   DateTime
+  endDate     DateTime
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([startDate, endDate])
+  @@index([eventId])
+  @@map("promotions")
 }
 
 model Tag {

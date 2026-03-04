@@ -26,7 +26,7 @@ This document catalogs all 60 routes and their accessibility via navigation.
 
 | Route                   | Purpose                                                       | Nav          | Footer        | Other Access                           |
 | ----------------------- | ------------------------------------------------------------- | ------------ | ------------- | -------------------------------------- |
-| `/`                     | Homepage — hero, this weekend events, newsletter signup       | Logo         | Logo          | —                                      |
+| `/`                     | Homepage — hero, featured carousel, this weekend, plan in advance, newsletter | Logo         | Logo          | —                                      |
 | `/events`               | Event listing with filters, saved filters, save-filter dialog | ✅ Main nav   | —             | Homepage CTA                           |
 | `/events/[slug]`        | Event detail — attendance toggle, reviews, directions         | —            | —             | Event cards, links                     |
 | `/markets`              | Market directory                                              | ✅ Main nav   | —             | —                                      |
@@ -80,6 +80,9 @@ This document catalogs all 60 routes and their accessibility via navigation.
 | Route                      | Purpose                                  | Access                          |
 | -------------------------- | ---------------------------------------- | ------------------------------- |
 | `/admin`                   | Overview — stats, queues, recent activity | **No nav link** — must know URL |
+| `/admin/promotions`        | Featured/sponsored promotions management | Admin sidebar                   |
+| `/admin/promotions/new`    | Create promotion                          | Admin promotions page           |
+| `/admin/promotions/[id]/edit` | Edit promotion                         | Admin promotions page           |
 | `/admin/content`           | Banners + Landing page config            | Admin sidebar                   |
 | `/admin/events`            | Event management                         | Admin sidebar                   |
 | `/admin/events/new`        | Create event                             | Admin events page               |
@@ -142,6 +145,8 @@ Routes `/admin`, `/api/auth/*`, `/auth/*`, `/api/site-config/maintenance`, `/api
 | PUT/DELETE      | `/api/organizer/events/[id]`    | Update/delete event                                                | Organizer             |
 | GET/POST        | `/api/filters`                  | Saved filters                                                      | User                  |
 | PUT/DELETE      | `/api/filters/[id]`             | Update/delete filter                                               | User                  |
+| GET/POST        | `/api/admin/promotions`        | List/create promotions (home page carousel)                        | Admin                 |
+| PATCH/DELETE    | `/api/admin/promotions/[id]`   | Update/delete promotion                                           | Admin                 |
 | *               | `/api/admin/`*                  | Admin CRUD (events, markets, venues, submissions, reviews, claims) | Admin                 |
 
 

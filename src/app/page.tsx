@@ -4,52 +4,75 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { EventCard } from "@/components/event-card";
+import { FeaturedEventCard } from "@/components/featured-event-card";
 import { Input } from "@/components/ui/input";
 import { AuthGate } from "@/components/auth-gate";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
-
-function getUpcomingWeekendRange(): { start: Date; end: Date } {
-  const now = new Date();
-  const day = now.getDay();
-
-  const start = new Date(now);
-  if (day === 0) {
-    start.setDate(now.getDate());
-    start.setHours(0, 0, 0, 0);
-  } else if (day === 6) {
-    start.setHours(0, 0, 0, 0);
-  } else {
-    start.setDate(now.getDate() + (6 - day));
-    start.setHours(0, 0, 0, 0);
-  }
-
-  const end = new Date(start);
-  end.setDate(start.getDate() + (start.getDay() === 6 ? 2 : 1));
-  end.setHours(23, 59, 59, 999);
-
-  return { start, end };
-}
+import {
+  getUpcomingWeekendRange,
+  getPlanAheadRange,
+} from "@/lib/date-ranges";
 
 export default async function HomePage() {
   const session = await auth();
   const banners = await getBannerImages();
   const { start, end } = getUpcomingWeekendRange();
+  const planAheadRange = getPlanAheadRange();
 
-  const weekendEvents = await db.event.findMany({
-    where: {
-      status: "PUBLISHED",
-      startDate: { gte: start, lt: end },
-    },
-    include: {
-      venue: true,
-      tags: true,
-      features: true,
-      _count: { select: { vendorEvents: true } },
-    },
-    orderBy: { startDate: "asc" },
-    take: 8,
-  });
+  const [promotions, weekendEvents, planAheadEvents] = await Promise.all([
+    db.promotion.findMany({
+      where: {
+        eventId: { not: null },
+        startDate: { lte: new Date() },
+        endDate: { gte: new Date() },
+        event: { status: "PUBLISHED" },
+      },
+      include: {
+        event: {
+          include: {
+            venue: true,
+            tags: true,
+            features: true,
+            _count: { select: { vendorEvents: true } },
+          },
+        },
+      },
+      orderBy: [{ sortOrder: "asc" }, { startDate: "asc" }],
+      take: 5,
+    }),
+    db.event.findMany({
+      where: {
+        status: "PUBLISHED",
+        startDate: { gte: start, lt: end },
+      },
+      include: {
+        venue: true,
+        tags: true,
+        features: true,
+        _count: { select: { vendorEvents: true } },
+      },
+      orderBy: { startDate: "asc" },
+      take: 8,
+    }),
+    db.event.findMany({
+      where: {
+        status: "PUBLISHED",
+        startDate: {
+          gte: planAheadRange.start,
+          lte: planAheadRange.end,
+        },
+      },
+      include: {
+        venue: true,
+        tags: true,
+        features: true,
+        _count: { select: { vendorEvents: true } },
+      },
+      orderBy: { startDate: "asc" },
+      take: 6,
+    }),
+  ]);
 
   return (
     <>
@@ -87,6 +110,43 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Featured / Sponsored */}
+      {promotions.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold tracking-tight">
+              Featured Events
+            </h2>
+            <p className="mt-1 text-muted-foreground">
+              Sponsored and partner events worth planning for
+            </p>
+          </div>
+          <div
+            className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory"
+            style={{ scrollbarWidth: "thin" }}
+          >
+            {promotions.map(
+              (p) =>
+                p.event && (
+                  <div
+                    key={p.id}
+                    className="w-[min(320px,85vw)] shrink-0 snap-start"
+                  >
+                    <FeaturedEventCard
+                      event={{
+                        ...p.event,
+                        _count: p.event._count,
+                      }}
+                      promotionType={p.type}
+                      sponsorName={p.sponsorName}
+                    />
+                  </div>
+                )
+            )}
+          </div>
+        </section>
+      )}
 
       {/* This Weekend */}
       <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
@@ -130,6 +190,53 @@ export default async function HomePage() {
           className="mt-4 block text-center text-sm font-medium text-primary hover:underline sm:hidden"
         >
           View all weekend events →
+        </Link>
+      </section>
+
+      {/* Plan in Advance */}
+      <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
+        <div className="mb-8 flex items-end justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">
+              Plan in Advance
+            </h2>
+            <p className="mt-1 text-muted-foreground">
+              Markets and events 2–4 weeks out
+            </p>
+          </div>
+          <Link
+            href="/events?dateRange=month"
+            className="hidden text-sm font-medium text-primary transition-colors hover:underline sm:block"
+          >
+            View all →
+          </Link>
+        </div>
+
+        {planAheadEvents.length > 0 ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
+            {planAheadEvents.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-border py-12 text-center">
+            <p className="text-muted-foreground">
+              No events scheduled 2–4 weeks out yet.
+            </p>
+            <Link
+              href="/events?dateRange=all"
+              className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
+            >
+              Browse all upcoming events →
+            </Link>
+          </div>
+        )}
+
+        <Link
+          href="/events?dateRange=month"
+          className="mt-4 block text-center text-sm font-medium text-primary hover:underline sm:hidden"
+        >
+          View all →
         </Link>
       </section>
 

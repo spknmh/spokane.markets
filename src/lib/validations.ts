@@ -229,6 +229,21 @@ export const userProfilePatchSchema = z.object({
 });
 export type UserProfilePatchInput = z.infer<typeof userProfilePatchSchema>;
 
+export const promotionSchema = z.object({
+  eventId: z.string().min(1, "Event is required"),
+  type: z.enum(["SPONSORED", "PARTNERSHIP", "FEATURED"]),
+  sponsorName: z.string().optional().nullable(),
+  imageUrl: z.string().url().optional().or(z.literal("")),
+  linkUrl: z.string().url().optional().or(z.literal("")),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().min(1, "End date is required"),
+  sortOrder: z.number().int().min(0).optional(),
+});
+export type PromotionInput = z.infer<typeof promotionSchema>;
+
+export const promotionPatchSchema = promotionSchema.partial();
+export type PromotionPatchInput = z.infer<typeof promotionPatchSchema>;
+
 export const organizerEventSchema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),

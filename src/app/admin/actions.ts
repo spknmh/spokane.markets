@@ -35,6 +35,14 @@ export async function deleteMarket(id: string) {
   revalidatePath("/admin/markets");
 }
 
+export async function deletePromotion(id: string) {
+  const session = await requireAdminAction();
+  await db.promotion.delete({ where: { id } });
+  await logAudit(session.user.id, "DELETE_PROMOTION", "PROMOTION", id);
+  revalidatePath("/admin/promotions");
+  revalidatePath("/");
+}
+
 export async function verifyMarket(id: string) {
   await requireAdminAction();
   const market = await db.market.findUnique({
