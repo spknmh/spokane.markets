@@ -256,6 +256,19 @@ export const userProfilePatchSchema = z.object({
 });
 export type UserProfilePatchInput = z.infer<typeof userProfilePatchSchema>;
 
+export const tagSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens only"),
+});
+export type TagInput = z.infer<typeof tagSchema>;
+
+export const featureSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens only"),
+  icon: z.string().optional().or(z.literal("")),
+});
+export type FeatureInput = z.infer<typeof featureSchema>;
+
 export const promotionSchema = z.object({
   eventId: z.string().min(1, "Event is required"),
   type: z.enum(["SPONSORED", "PARTNERSHIP", "FEATURED"]),

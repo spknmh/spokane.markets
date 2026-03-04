@@ -93,12 +93,16 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   const limit = Math.min(50, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
 
   const session = await getSession();
-  const savedFilters = session?.user
-    ? await db.savedFilter.findMany({
-        where: { userId: session.user.id },
-        orderBy: { createdAt: "desc" },
-      })
-    : [];
+  const [savedFilters, tags, features] = await Promise.all([
+    session?.user
+      ? db.savedFilter.findMany({
+          where: { userId: session.user.id },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve([]),
+    db.tag.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, slug: true } }),
+    db.feature.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, slug: true, icon: true } }),
+  ]);
 
   const { gte, lt } = getDateRange(dateRange);
 
@@ -175,7 +179,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Filters
             </h2>
-            <EventFilters />
+            <EventFilters tags={tags} features={features} />
           </div>
         </aside>
 

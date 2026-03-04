@@ -27,6 +27,7 @@ import {
   Settings,
   Database,
   Megaphone,
+  Tag,
 } from "lucide-react";
 
 type NavItem = { label: string; href: string; icon: React.ComponentType<{ className?: string }> };
@@ -54,6 +55,7 @@ const navGroups: NavGroup[] = [
       { label: "Markets", href: "/admin/markets", icon: Store },
       { label: "Venues", href: "/admin/venues", icon: MapPin },
       { label: "Vendors", href: "/admin/vendors", icon: ShoppingBag },
+      { label: "Categories", href: "/admin/categories", icon: Tag },
     ],
   },
   {

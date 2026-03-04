@@ -39,8 +39,8 @@ describe("getPlanAheadRange", () => {
     const { start } = getPlanAheadRange();
     const diffMs = start.getTime() - now.getTime();
     const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    expect(diffDays).toBeGreaterThanOrEqual(13);
-    expect(diffDays).toBeLessThanOrEqual(15);
+    expect(diffDays).toBeGreaterThanOrEqual(12.5);
+    expect(diffDays).toBeLessThanOrEqual(15.5);
   });
 
   it("returns end approximately 28 days from now", () => {

@@ -2,12 +2,20 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { DATE_FILTERS, NEIGHBORHOODS, CATEGORIES, FEATURES } from "@/lib/constants";
+import { DATE_FILTERS, NEIGHBORHOODS } from "@/lib/constants";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
-export function EventFilters() {
+type TagOption = { id: string; name: string; slug: string };
+type FeatureOption = { id: string; name: string; slug: string; icon: string | null };
+
+interface EventFiltersProps {
+  tags: TagOption[];
+  features: FeatureOption[];
+}
+
+export function EventFilters({ tags, features }: EventFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -114,9 +122,9 @@ export function EventFilters() {
           onChange={(e) => updateFilter("category", e.target.value)}
         >
           <option value="">All categories</option>
-          {CATEGORIES.map((cat) => (
-            <option key={cat.value} value={cat.value}>
-              {cat.icon} {cat.label}
+          {tags.map((tag) => (
+            <option key={tag.id} value={tag.slug}>
+              {tag.name}
             </option>
           ))}
         </Select>
@@ -133,9 +141,9 @@ export function EventFilters() {
           onChange={(e) => updateFilter("feature", e.target.value)}
         >
           <option value="">All features</option>
-          {FEATURES.map((feat) => (
-            <option key={feat.value} value={feat.value}>
-              {feat.icon} {feat.label}
+          {features.map((feat) => (
+            <option key={feat.id} value={feat.slug}>
+              {[feat.icon, feat.name].filter(Boolean).join(" ")}
             </option>
           ))}
         </Select>
