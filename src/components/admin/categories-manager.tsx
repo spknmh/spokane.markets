@@ -103,15 +103,15 @@ export function CategoriesManager({
 
   return (
     <div className="grid gap-10 lg:grid-cols-2">
-      {/* Tags */}
+      {/* Event Types (Tags) */}
       <section className="rounded-lg border border-border p-6">
-        <h2 className="text-xl font-semibold">Tags (Categories)</h2>
+        <h2 className="text-xl font-semibold">Event Types</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Event types: Farmers Market, Craft Fair, etc.
+          What kind of event: Farmers Market, Craft Fair, Flea Market, etc.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Input
-            placeholder="Name (e.g. WiFi Available)"
+            placeholder="Name (e.g. Farmers Market)"
             value={tagName}
             onChange={(e) => {
               setTagName(e.target.value);
@@ -149,7 +149,7 @@ export function CategoriesManager({
                 </span>
                 <DeleteButton
                   action={() => deleteTag(tag.id)}
-                  title="Delete tag"
+                  title="Delete event type"
                   description={`Delete "${tag.name}"? Events using it will be updated.`}
                 />
               </div>
@@ -158,11 +158,11 @@ export function CategoriesManager({
         </ul>
       </section>
 
-      {/* Features */}
+      {/* Features & Amenities */}
       <section className="rounded-lg border border-border p-6">
-        <h2 className="text-xl font-semibold">Features</h2>
+        <h2 className="text-xl font-semibold">Features & Amenities</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Venue/event attributes: Indoor, Power Available, etc.
+          Venue/event attributes: Indoor, WiFi Available, Power Available, etc.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Input
@@ -213,7 +213,7 @@ export function CategoriesManager({
                 </span>
                 <DeleteButton
                   action={() => deleteFeature(feature.id)}
-                  title="Delete feature"
+                  title="Delete feature/amenity"
                   description={`Delete "${feature.name}"? Events using it will be updated.`}
                 />
               </div>
