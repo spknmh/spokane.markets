@@ -76,13 +76,14 @@ model User {
   notifications       Notification[]
   vendorClaimRequests VendorClaimRequest[] @relation("VendorClaimRequester")
   vendorClaimReviews  VendorClaimRequest[] @relation("VendorClaimReviewer")
-  savedFilters        SavedFilter[]
-  favoriteVendors     FavoriteVendor[]
-  organizerEvents     Event[]              @relation("OrganizerEvents")
-  reports             Report[]
-  auditLogs           AuditLog[]
-  siteStateUpdates    SiteState[]
-  userBadges          UserBadge[]
+  savedFilters            SavedFilter[]
+  favoriteVendors         FavoriteVendor[]
+  organizerEvents         Event[]              @relation("OrganizerEvents")
+  reports                 Report[]
+  auditLogs               AuditLog[]
+  siteStateUpdates        SiteState[]
+  userBadges              UserBadge[]
+  notificationPreference  NotificationPreference?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -534,10 +535,12 @@ model VendorProfile {
   websiteUrl   String?
   facebookUrl  String?
   instagramUrl String?
-  contactEmail String?
-  contactPhone String?
-  galleryUrls  String[] @default([])
-  specialties  String?
+  contactEmail     String?
+  contactPhone    String?
+  galleryUrls     String[] @default([])
+  specialties     String?
+  contactVisible  Boolean  @default(true)
+  socialLinksVisible Boolean @default(true)
 
   user            User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   vendorEvents    VendorEvent[]
@@ -581,6 +584,26 @@ model SavedFilter {
   updatedAt DateTime @updatedAt
 
   @@map("saved_filters")
+}
+
+model NotificationPreference {
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  emailEnabled           Boolean   @default(true)
+  inAppEnabled           Boolean   @default(true)
+  weeklyDigestEnabled    Boolean   @default(true)
+  eventMatchEnabled      Boolean   @default(true)
+  favoriteVendorEnabled   Boolean   @default(true)
+  organizerAlertsEnabled Boolean   @default(true)
+  frequency              String    @default("immediate")
+  quietHoursStart        Int?
+  quietHoursEnd          Int?
+  emailsPausedAt         DateTime?
+  updatedAt              DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
 }
 
 model FavoriteVendor {

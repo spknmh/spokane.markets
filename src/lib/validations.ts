@@ -227,6 +227,19 @@ export const savedFilterSchema = z.object({
 });
 export type SavedFilterInput = z.infer<typeof savedFilterSchema>;
 
+export const notificationPreferenceSchema = z.object({
+  emailEnabled: z.boolean().optional(),
+  inAppEnabled: z.boolean().optional(),
+  weeklyDigestEnabled: z.boolean().optional(),
+  eventMatchEnabled: z.boolean().optional(),
+  favoriteVendorEnabled: z.boolean().optional(),
+  organizerAlertsEnabled: z.boolean().optional(),
+  frequency: z.enum(["immediate", "daily", "weekly"]).optional(),
+  quietHoursStart: z.number().int().min(0).max(23).nullable().optional(),
+  quietHoursEnd: z.number().int().min(0).max(23).nullable().optional(),
+});
+export type NotificationPreferenceInput = z.infer<typeof notificationPreferenceSchema>;
+
 export const vendorEventsSchema = z.object({
   eventId: z.string().cuid("Invalid event ID"),
 });
