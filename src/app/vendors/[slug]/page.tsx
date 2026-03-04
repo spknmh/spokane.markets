@@ -191,13 +191,16 @@ export default async function VendorProfilePage({ params }: PageProps) {
               targetId={vendor.id}
               isLoggedIn={!!session?.user}
             />
-            <VendorSocialLinks
-              websiteUrl={vendor.websiteUrl}
-              facebookUrl={vendor.facebookUrl}
-              instagramUrl={vendor.instagramUrl}
-            />
+            {vendor.socialLinksVisible !== false && (
+              <VendorSocialLinks
+                websiteUrl={vendor.websiteUrl}
+                facebookUrl={vendor.facebookUrl}
+                instagramUrl={vendor.instagramUrl}
+              />
+            )}
 
-            {(vendor.contactEmail || vendor.contactPhone) && (
+            {vendor.contactVisible !== false &&
+              (vendor.contactEmail || vendor.contactPhone) && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Contact</p>
                 <div className="mt-1 space-y-0.5 text-sm">
