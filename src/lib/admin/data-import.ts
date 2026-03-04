@@ -161,8 +161,9 @@ export async function importData(payload: ImportPayload): Promise<ImportResult> 
           continue;
         }
         const slug = row.slug || slugify(row.name) || `market-${Date.now()}-${i}`;
-        const market = await db.market.create({
-          data: {
+        const market = await db.market.upsert({
+          where: { slug },
+          create: {
             name: row.name,
             slug,
             venueId,
@@ -175,6 +176,19 @@ export async function importData(payload: ImportPayload): Promise<ImportResult> 
             typicalSchedule: row.typicalSchedule || null,
             contactEmail: row.contactEmail || null,
             contactPhone: row.contactPhone || null,
+          },
+          update: {
+            name: row.name,
+            venueId,
+            description: row.description ?? undefined,
+            imageUrl: row.imageUrl ?? undefined,
+            websiteUrl: row.websiteUrl ?? undefined,
+            facebookUrl: row.facebookUrl ?? undefined,
+            instagramUrl: row.instagramUrl ?? undefined,
+            baseArea: row.baseArea ?? undefined,
+            typicalSchedule: row.typicalSchedule ?? undefined,
+            contactEmail: row.contactEmail ?? undefined,
+            contactPhone: row.contactPhone ?? undefined,
           },
         });
         marketIdBySlug.set(market.slug, market.id);

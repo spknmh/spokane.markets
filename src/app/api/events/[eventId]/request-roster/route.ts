@@ -4,9 +4,20 @@ import { db } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getParticipationConfig } from "@/lib/participation-config";
 
+function isCuid(value: string): boolean {
+  return /^c[a-z0-9]{24}$/i.test(value);
+}
+
+async function findEvent(eventIdOrSlug: string) {
+  if (isCuid(eventIdOrSlug)) {
+    return db.event.findUnique({ where: { id: eventIdOrSlug }, include: { market: true } });
+  }
+  return db.event.findUnique({ where: { slug: eventIdOrSlug }, include: { market: true } });
+}
+
 export async function POST(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
     const session = await auth();
@@ -32,12 +43,9 @@ export async function POST(
       );
     }
 
-    const { id: eventId } = await params;
+    const { eventId: eventIdOrSlug } = await params;
 
-    const event = await db.event.findUnique({
-      where: { id: eventId },
-      include: { market: true },
-    });
+    const event = await findEvent(eventIdOrSlug);
     if (!event || event.status !== "PUBLISHED") {
       return NextResponse.json(
         { error: "Event not found or not published" },
@@ -56,12 +64,12 @@ export async function POST(
     const intent = await db.eventVendorIntent.upsert({
       where: {
         eventId_vendorProfileId: {
-          eventId,
+          eventId: event.id,
           vendorProfileId: profile.id,
         },
       },
       create: {
-        eventId,
+        eventId: event.id,
         vendorProfileId: profile.id,
         status: "REQUESTED",
         visibility: "PRIVATE",

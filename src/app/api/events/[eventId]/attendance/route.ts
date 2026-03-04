@@ -4,18 +4,29 @@ import { db } from "@/lib/db";
 import { attendanceSchema } from "@/lib/validations";
 import { evaluateAndGrantBadges } from "@/lib/badges";
 
+function isCuid(value: string): boolean {
+  return /^c[a-z0-9]{24}$/i.test(value);
+}
+
+async function findEvent(eventIdOrSlug: string) {
+  if (isCuid(eventIdOrSlug)) {
+    return db.event.findUnique({ where: { id: eventIdOrSlug } });
+  }
+  return db.event.findUnique({ where: { slug: eventIdOrSlug } });
+}
+
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ eventId: string }> }
 ) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { slug } = await params;
+  const { eventId: eventIdOrSlug } = await params;
 
-  const event = await db.event.findUnique({ where: { slug } });
+  const event = await findEvent(eventIdOrSlug);
   if (!event) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
@@ -68,16 +79,16 @@ export async function POST(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ eventId: string }> }
 ) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { slug } = await params;
+  const { eventId: eventIdOrSlug } = await params;
 
-  const event = await db.event.findUnique({ where: { slug } });
+  const event = await findEvent(eventIdOrSlug);
   if (!event) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
