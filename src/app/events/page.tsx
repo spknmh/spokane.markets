@@ -201,6 +201,17 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
             <SaveFilterDialog
               session={session}
               currentFilters={{ dateRange, neighborhood, category, feature }}
+              callbackUrl={(() => {
+                const p = new URLSearchParams();
+                if (dateRange && dateRange !== "all") p.set("dateRange", dateRange);
+                if (neighborhood) p.set("neighborhood", neighborhood);
+                if (category) p.set("category", category);
+                if (feature) p.set("feature", feature);
+                if (query) p.set("q", query);
+                if (page > 1) p.set("page", String(page));
+                const qs = p.toString();
+                return qs ? `/events?${qs}` : "/events";
+              })()}
             />
             {savedFilters.length > 0 && (
               <>

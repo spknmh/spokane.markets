@@ -136,7 +136,13 @@ export default async function VendorsPage({
                         iconOnly
                         stopPropagation
                         isLoggedIn={!!session?.user}
-                        callbackUrl="/vendors"
+                        callbackUrl={(() => {
+                          const p = new URLSearchParams();
+                          if (q) p.set("q", q);
+                          if (page > 1) p.set("page", String(page));
+                          const qs = p.toString();
+                          return qs ? `/vendors?${qs}` : "/vendors";
+                        })()}
                       />
                       {vendor._count.vendorEvents > 0 && (
                         <Badge variant="secondary">

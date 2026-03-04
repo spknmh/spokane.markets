@@ -24,9 +24,11 @@ interface SaveFilterDialogProps {
     category?: string;
     feature?: string;
   };
+  /** URL to redirect to after sign-in (e.g. /events?neighborhood=downtown) */
+  callbackUrl?: string;
 }
 
-export function SaveFilterDialog({ session, currentFilters }: SaveFilterDialogProps) {
+export function SaveFilterDialog({ session, currentFilters, callbackUrl = "/events" }: SaveFilterDialogProps) {
   const [open, setOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [name, setName] = useState("");
@@ -121,7 +123,7 @@ export function SaveFilterDialog({ session, currentFilters }: SaveFilterDialogPr
         onOpenChange={setAuthModalOpen}
         title="Sign in to save filters"
         description="Create an account or sign in to save filters and get email alerts."
-        callbackUrl="/events"
+        callbackUrl={callbackUrl}
       />
 
       <Dialog open={open} onOpenChange={setOpen}>
