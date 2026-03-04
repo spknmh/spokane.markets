@@ -130,14 +130,14 @@ export default async function VendorsPage({
                       {vendor.businessName}
                     </CardTitle>
                     <div className="flex shrink-0 items-center gap-2">
-                      {session?.user && (
-                        <FavoriteVendorButton
-                          slug={vendor.slug}
-                          initialFavorited={favoriteIds.includes(vendor.id)}
-                          iconOnly
-                          stopPropagation
-                        />
-                      )}
+                      <FavoriteVendorButton
+                        slug={vendor.slug}
+                        initialFavorited={favoriteIds.includes(vendor.id)}
+                        iconOnly
+                        stopPropagation
+                        isLoggedIn={!!session?.user}
+                        callbackUrl="/vendors"
+                      />
                       {vendor._count.vendorEvents > 0 && (
                         <Badge variant="secondary">
                           {vendor._count.vendorEvents} event

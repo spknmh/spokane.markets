@@ -99,6 +99,64 @@ export function formatDateRangeInTimezone(
   return `${dateStr} · ${startTime} – ${endTime}`;
 }
 
+/**
+ * Format event time with all-day and time-TBD heuristics.
+ * - All day: start 00:00 and end 23:59 same day, or end next day 00:00
+ * - Time TBD: start and end both midnight on same calendar day
+ * - Otherwise: date + time range
+ */
+export function formatEventTime(
+  start: Date,
+  end: Date,
+  timezone?: string | null
+): string {
+  const s = new Date(start);
+  const e = new Date(end);
+
+  const startHr = s.getHours();
+  const startMin = s.getMinutes();
+  const endHr = e.getHours();
+  const endMin = e.getMinutes();
+
+  const sameDay =
+    s.getFullYear() === e.getFullYear() &&
+    s.getMonth() === e.getMonth() &&
+    s.getDate() === e.getDate();
+
+  // Time TBD: both midnight, same day
+  if (
+    sameDay &&
+    startHr === 0 &&
+    startMin === 0 &&
+    endHr === 0 &&
+    endMin === 0
+  ) {
+    const dateStr = formatDate(s);
+    return `${dateStr} · Time TBD`;
+  }
+
+  // All day: start midnight, end 23:59 same day OR end next day 00:00
+  const endDate = new Date(e.getFullYear(), e.getMonth(), e.getDate());
+  const startDate = new Date(s.getFullYear(), s.getMonth(), s.getDate());
+  const daysDiff = (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
+  const endIsNextDayMidnight =
+    !sameDay && endHr === 0 && endMin === 0 && daysDiff === 1;
+  const endIs2359 = sameDay && endHr === 23 && endMin === 59;
+
+  if (
+    startHr === 0 &&
+    startMin === 0 &&
+    (endIs2359 || endIsNextDayMidnight)
+  ) {
+    const dateStr = formatDate(s);
+    return `${dateStr} · All day`;
+  }
+
+  return timezone
+    ? formatDateRangeInTimezone(start, end, timezone)
+    : formatDateRange(start, end);
+}
+
 export function getDirectionsUrl(address: string): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
 }

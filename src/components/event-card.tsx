@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Event, Venue, Tag, Feature } from "@prisma/client";
-import { formatDate, formatDateRange } from "@/lib/utils";
+import { EventTimeLabel } from "@/components/event-time-label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -16,9 +16,6 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const dateLabel = formatDate(event.startDate);
-  const timeRange = formatDateRange(event.startDate, event.endDate);
-
   return (
     <Link href={`/events/${event.slug}`} className="group block">
       <Card className="h-full min-h-[140px] border-2 transition-all hover:shadow-lg hover:border-primary/50">
@@ -37,7 +34,13 @@ export function EventCard({ event }: EventCardProps) {
               {event.title}
             </h3>
 
-            <p className="text-sm font-semibold text-foreground">{timeRange}</p>
+            <p className="text-sm font-semibold text-foreground">
+              <EventTimeLabel
+                startDate={event.startDate}
+                endDate={event.endDate}
+                timezone={event.timezone}
+              />
+            </p>
 
             <p className="line-clamp-2 text-sm font-medium text-foreground">
               {event.venue.name}

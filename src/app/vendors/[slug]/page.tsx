@@ -112,13 +112,13 @@ export default async function VendorProfilePage({ params }: PageProps) {
                 <h1 className="text-3xl font-bold tracking-tight">
                   {vendor.businessName}
                 </h1>
-                {session?.user && (
-                  <FavoriteVendorButton
-                    slug={vendor.slug}
-                    initialFavorited={!!favorite}
-                    initialEmailAlerts={favorite?.emailAlerts ?? true}
-                  />
-                )}
+                <FavoriteVendorButton
+                  slug={vendor.slug}
+                  initialFavorited={!!favorite}
+                  initialEmailAlerts={favorite?.emailAlerts ?? true}
+                  isLoggedIn={!!session?.user}
+                  callbackUrl={`/vendors/${vendor.slug}`}
+                />
               </div>
 
               {vendor.specialties && (
@@ -138,6 +138,29 @@ export default async function VendorProfilePage({ params }: PageProps) {
               )}
             </div>
           </div>
+
+          {(vendor.galleryUrls?.length ?? 0) > 0 && (
+            <section className="mt-10">
+              <h2 className="text-xl font-semibold">Gallery</h2>
+              <div className="mt-4 flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3">
+                {vendor.galleryUrls.map((url, i) => (
+                  <a
+                    key={i}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative h-48 shrink-0 overflow-hidden rounded-lg border border-border sm:h-40"
+                  >
+                    <img
+                      src={url}
+                      alt={`${vendor.businessName} gallery ${i + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section className="mt-10">
             <h2 className="text-xl font-semibold">
@@ -173,6 +196,34 @@ export default async function VendorProfilePage({ params }: PageProps) {
               facebookUrl={vendor.facebookUrl}
               instagramUrl={vendor.instagramUrl}
             />
+
+            {(vendor.contactEmail || vendor.contactPhone) && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Contact</p>
+                <div className="mt-1 space-y-0.5 text-sm">
+                  {vendor.contactEmail && (
+                    <p>
+                      <a
+                        href={`mailto:${vendor.contactEmail}`}
+                        className="min-h-[44px] inline-flex items-center text-primary hover:underline"
+                      >
+                        {vendor.contactEmail}
+                      </a>
+                    </p>
+                  )}
+                  {vendor.contactPhone && (
+                    <p>
+                      <a
+                        href={`tel:${vendor.contactPhone.replace(/\D/g, "")}`}
+                        className="min-h-[44px] inline-flex items-center text-foreground hover:underline"
+                      >
+                        {vendor.contactPhone}
+                      </a>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
 
             {vendor.userId == null && (
               <AuthGate

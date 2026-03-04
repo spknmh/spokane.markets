@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Calendar, CheckCircle2, ExternalLink, Facebook, Instagram, MapPin } from "lucide-react";
 import { formatDateRange, formatNeighborhoodLabel, getDirectionsUrl } from "@/lib/utils";
+import { MapPreview } from "@/components/map-preview";
 import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
 import { ReportButton } from "@/components/report-button";
@@ -125,7 +126,7 @@ export default async function MarketDetailPage({ params }: PageProps) {
           <div className="mt-10">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Reviews</h2>
-              <WriteReviewButton marketId={market.id} isLoggedIn={!!session?.user} />
+              <WriteReviewButton marketId={market.id} isLoggedIn={!!session?.user} callbackUrl={`/markets/${market.slug}`} />
             </div>
             <ReviewList marketId={market.id} isLoggedIn={!!session?.user} />
           </div>
@@ -155,12 +156,18 @@ export default async function MarketDetailPage({ params }: PageProps) {
                 <p className="text-sm font-medium text-muted-foreground">Location</p>
                 <p className="mt-0.5 font-semibold text-foreground">{market.venue.name}</p>
                 <p className="mt-0.5 text-sm text-foreground">{fullAddress}</p>
+                <MapPreview
+                  lat={market.venue.lat}
+                  lng={market.venue.lng}
+                  address={fullAddress}
+                  className="mt-2"
+                />
                 {market.venue.parkingNotes && (
                   <p className="mt-1 text-sm text-muted-foreground">
                     🅿️ {market.venue.parkingNotes}
                   </p>
                 )}
-                <Button size="sm" variant="outline" className="mt-2" asChild>
+                <Button size="sm" variant="outline" className="mt-2 min-h-[44px]" asChild>
                   <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
                     Get Directions →
                   </a>

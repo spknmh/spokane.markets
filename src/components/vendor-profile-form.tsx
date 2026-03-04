@@ -48,6 +48,9 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
       websiteUrl: "",
       facebookUrl: "",
       instagramUrl: "",
+      contactEmail: "",
+      contactPhone: "",
+      galleryUrlsText: "",
       specialties: "",
     },
   });
@@ -64,6 +67,13 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
     if (!isEditing) {
       delete payload.slug;
     }
+    // Parse gallery URLs from textarea (one per line)
+    const text = (payload.galleryUrlsText as string) ?? "";
+    payload.galleryUrls = text
+      .split("\n")
+      .map((s) => s.trim())
+      .filter((s) => s.startsWith("http"));
+    delete payload.galleryUrlsText;
 
     const method = isEditing ? "PUT" : "POST";
     const res = await fetch("/api/vendor/profile", {
@@ -168,6 +178,54 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
                 {errors.imageUrl.message}
               </p>
             )}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="contactEmail">Contact Email</Label>
+              <Input
+                id="contactEmail"
+                type="email"
+                placeholder="contact@example.com"
+                {...register("contactEmail")}
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional. Shown on your public profile if you add it.
+              </p>
+              {errors.contactEmail && (
+                <p className="text-sm text-destructive">
+                  {errors.contactEmail.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contactPhone">Contact Phone</Label>
+              <Input
+                id="contactPhone"
+                type="tel"
+                placeholder="(509) 555-0123"
+                {...register("contactPhone")}
+              />
+              {errors.contactPhone && (
+                <p className="text-sm text-destructive">
+                  {errors.contactPhone.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="galleryUrlsText">Gallery Images</Label>
+            <Textarea
+              id="galleryUrlsText"
+              placeholder="One image URL per line:&#10;https://example.com/photo1.jpg&#10;https://example.com/photo2.jpg"
+              rows={3}
+              {...register("galleryUrlsText")}
+            />
+            <p className="text-xs text-muted-foreground">
+              Add image URLs, one per line. These will appear in a gallery on your profile.
+            </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">

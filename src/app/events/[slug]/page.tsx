@@ -6,7 +6,9 @@ import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
-import { formatDateRangeInTimezone, getDirectionsUrl } from "@/lib/utils";
+import { getDirectionsUrl } from "@/lib/utils";
+import { EventTimeLabel } from "@/components/event-time-label";
+import { MapPreview } from "@/components/map-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AttendanceToggle } from "@/components/attendance-toggle";
@@ -149,7 +151,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
           <div className="mt-10">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Reviews</h2>
-              <WriteReviewButton eventId={event.id} isLoggedIn={!!session?.user} />
+              <WriteReviewButton eventId={event.id} isLoggedIn={!!session?.user} callbackUrl={`/events/${event.slug}`} />
             </div>
             <ReviewList eventId={event.id} isLoggedIn={!!session?.user} />
           </div>
@@ -161,7 +163,11 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             <div>
               <p className="text-sm font-medium text-muted-foreground">When</p>
               <p className="mt-0.5 text-lg font-semibold text-foreground">
-                {formatDateRangeInTimezone(event.startDate, event.endDate, event.timezone)}
+                <EventTimeLabel
+                  startDate={event.startDate}
+                  endDate={event.endDate}
+                  timezone={event.timezone}
+                />
               </p>
             </div>
 
@@ -169,12 +175,18 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               <p className="text-sm font-medium text-muted-foreground">Where</p>
               <p className="mt-0.5 font-semibold text-foreground">{event.venue.name}</p>
               <p className="mt-0.5 text-sm text-foreground">{fullAddress}</p>
+              <MapPreview
+                lat={event.venue.lat}
+                lng={event.venue.lng}
+                address={fullAddress}
+                className="mt-2"
+              />
               {event.venue.parkingNotes && (
                 <p className="mt-1 text-sm text-muted-foreground">
                   🅿️ {event.venue.parkingNotes}
                 </p>
               )}
-              <Button size="sm" variant="outline" className="mt-2" asChild>
+              <Button size="sm" variant="outline" className="mt-2 min-h-[44px]" asChild>
                 <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
                   Get Directions →
                 </a>
@@ -256,6 +268,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               initialGoingCount={goingCount}
               initialInterestedCount={interestedCount}
               initialUserStatus={userAttendance?.status ?? null}
+              isLoggedIn={!!session?.user}
               callbackUrl={`/events/${event.slug}`}
             />
 

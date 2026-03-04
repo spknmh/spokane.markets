@@ -4,6 +4,7 @@ import Image from "next/image";
 import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ContactForm } from "@/components/contact-form";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 
@@ -61,19 +62,19 @@ export default async function AboutPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              For general inquiries, event submissions, or vendor questions,
-              please use the forms on our site:
+              Send us a message and we&apos;ll get back to you as soon as we can.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild variant="outline" size="sm">
-                <Link href="/submit">Submit an Event</Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/vendor-survey">Vendor Survey</Link>
-              </Button>
-            </div>
+            <ContactForm />
             <p className="text-sm text-muted-foreground">
-              If you need to reach us directly, you can email{" "}
+              For event submissions or vendor questions, you can also use{" "}
+              <Link href="/submit" className="text-primary hover:underline">
+                Submit an Event
+              </Link>{" "}
+              or{" "}
+              <Link href="/vendor-survey" className="text-primary hover:underline">
+                Vendor Survey
+              </Link>
+              . Or email{" "}
               <a
                 href="mailto:hello@spokane.markets"
                 className="text-primary hover:underline"

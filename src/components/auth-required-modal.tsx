@@ -33,16 +33,16 @@ export function AuthRequiredModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="w-[calc(100%-2rem)] max-w-lg sm:w-full">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <Button asChild>
+        <DialogFooter className="flex-col gap-2 sm:flex-row">
+          <Button asChild className="min-h-[44px] w-full sm:w-auto">
             <Link href={signInHref}>Sign In</Link>
           </Button>
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild className="min-h-[44px] w-full sm:w-auto">
             <Link href={signUpHref}>Create Account</Link>
           </Button>
         </DialogFooter>

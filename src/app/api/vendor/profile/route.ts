@@ -104,6 +104,9 @@ export async function POST(request: Request) {
           websiteUrl: toOptional(data.websiteUrl),
           facebookUrl: toOptional(data.facebookUrl),
           instagramUrl: toOptional(data.instagramUrl),
+          contactEmail: toOptional(data.contactEmail),
+          contactPhone: toOptional(data.contactPhone),
+          galleryUrls: data.galleryUrls ?? [],
           specialties: toOptional(data.specialties),
         },
       });
@@ -155,6 +158,9 @@ export async function PUT(request: Request) {
         websiteUrl: toOptional(data.websiteUrl),
         facebookUrl: toOptional(data.facebookUrl),
         instagramUrl: toOptional(data.instagramUrl),
+        contactEmail: toOptional(data.contactEmail),
+        contactPhone: toOptional(data.contactPhone),
+        galleryUrls: data.galleryUrls ?? [],
         specialties: toOptional(data.specialties),
       },
     });

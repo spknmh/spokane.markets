@@ -471,18 +471,36 @@ model VendorSurvey {
   @@map("vendor_surveys")
 }
 
+model ContactMessage {
+  id        String    @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String    @db.Text
+  status    String    @default("PENDING") // PENDING | READ | ARCHIVED
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("contact_messages")
+}
+
 // ─── Milestone 3: Vendor & Organizer Models ─────────────────────────
 
 model VendorProfile {
-  id           String  @id @default(cuid())
-  userId       String? @unique
+  id           String   @id @default(cuid())
+  userId       String?  @unique
   businessName String
-  slug         String  @unique
-  description  String? @db.Text
+  slug         String   @unique
+  description  String?  @db.Text
   imageUrl     String?
   websiteUrl   String?
   facebookUrl  String?
   instagramUrl String?
+  contactEmail String?
+  contactPhone String?
+  galleryUrls  String[] @default([])
   specialties  String?
 
   user            User?                @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -182,6 +182,18 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         {/* Main content */}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/events/calendar"
+              className="min-h-[44px] inline-flex items-center rounded-lg border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              Calendar View
+            </Link>
+            <Link
+              href="/events/map"
+              className="min-h-[44px] inline-flex items-center rounded-lg border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              Map View
+            </Link>
             <SaveFilterDialog
               session={session}
               currentFilters={{ dateRange, neighborhood, category, feature }}

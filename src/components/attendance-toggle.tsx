@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useOptimistic, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Star } from "lucide-react";
+import { CheckCircle2, Lock, Star } from "lucide-react";
 import { AuthRequiredModal } from "@/components/auth-required-modal";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ interface AttendanceToggleProps {
   initialGoingCount: number;
   initialInterestedCount: number;
   initialUserStatus: "GOING" | "INTERESTED" | null;
+  isLoggedIn?: boolean;
   callbackUrl?: string;
 }
 
@@ -28,6 +29,7 @@ export function AttendanceToggle({
   initialGoingCount,
   initialInterestedCount,
   initialUserStatus,
+  isLoggedIn = true,
   callbackUrl = "/",
 }: AttendanceToggleProps) {
   const router = useRouter();
@@ -66,6 +68,10 @@ export function AttendanceToggle({
   );
 
   async function handleClick(status: "GOING" | "INTERESTED") {
+    if (!isLoggedIn) {
+      setAuthModalOpen(true);
+      return;
+    }
     startTransition(async () => {
       setOptimistic(status);
 
@@ -89,46 +95,58 @@ export function AttendanceToggle({
 
   return (
     <>
-    <div className="mt-6 rounded-xl border border-border bg-muted/30 p-4">
-      <p className="mb-3 text-sm font-medium text-foreground">
-        Planning to attend? Let others know!
-      </p>
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() => handleClick("GOING")}
-          className={cn(
-            "inline-flex min-w-[140px] items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all disabled:opacity-50",
-            isGoing
-              ? "bg-going text-going-foreground shadow-md ring-2 ring-going/40"
-              : "border-2 border-going/50 bg-background text-going hover:bg-going/10"
-          )}
-        >
-          <CheckCircle2 className="h-4 w-4" />
-          Going · {optimistic.goingCount}
-        </button>
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() => handleClick("INTERESTED")}
-          className={cn(
-            "inline-flex min-w-[140px] items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all disabled:opacity-50",
-            isInterested
-              ? "bg-interested text-interested-foreground shadow-md ring-2 ring-interested/40"
-              : "border-2 border-interested/50 bg-background text-interested hover:bg-interested/10"
-          )}
-        >
-          <Star className="h-4 w-4" />
-          Interested · {optimistic.interestedCount}
-        </button>
+      <div className="mt-6 rounded-xl border border-border bg-muted/30 p-4">
+        <p className="mb-3 text-sm font-medium text-foreground">
+          Planning to attend? Let others know!
+        </p>
+        {!isLoggedIn && (
+          <p className="mb-3 flex items-center gap-1.5 text-sm text-muted-foreground" title="Sign in to mark your attendance">
+            <Lock className="h-4 w-4 shrink-0" aria-hidden />
+            Sign in to mark your attendance
+          </p>
+        )}
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => handleClick("GOING")}
+            title={!isLoggedIn ? "Sign in to mark your attendance" : undefined}
+            className={cn(
+              "inline-flex min-h-[44px] min-w-[140px] items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all disabled:opacity-50",
+              isGoing
+                ? "bg-going text-going-foreground shadow-md ring-2 ring-going/40"
+                : "border-2 border-going/50 bg-background text-going hover:bg-going/10"
+            )}
+          >
+            {!isLoggedIn && <Lock className="h-4 w-4 shrink-0" aria-hidden />}
+            <CheckCircle2 className="h-4 w-4" />
+            Going · {optimistic.goingCount}
+          </button>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => handleClick("INTERESTED")}
+            title={!isLoggedIn ? "Sign in to mark your attendance" : undefined}
+            className={cn(
+              "inline-flex min-h-[44px] min-w-[140px] items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all disabled:opacity-50",
+              isInterested
+                ? "bg-interested text-interested-foreground shadow-md ring-2 ring-interested/40"
+                : "border-2 border-interested/50 bg-background text-interested hover:bg-interested/10"
+            )}
+          >
+            {!isLoggedIn && <Lock className="h-4 w-4 shrink-0" aria-hidden />}
+            <Star className="h-4 w-4" />
+            Interested · {optimistic.interestedCount}
+          </button>
+        </div>
       </div>
-    </div>
-    <AuthRequiredModal
-      open={authModalOpen}
-      onOpenChange={setAuthModalOpen}
-      callbackUrl={callbackUrl}
-    />
+      <AuthRequiredModal
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
+        title="Sign in to mark attendance"
+        description="Create an account or sign in to mark Going or Interested."
+        callbackUrl={callbackUrl}
+      />
     </>
   );
 }

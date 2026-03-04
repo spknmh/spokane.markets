@@ -19,6 +19,9 @@ export default async function VendorProfileEditPage() {
         websiteUrl: profile.websiteUrl ?? "",
         facebookUrl: profile.facebookUrl ?? "",
         instagramUrl: profile.instagramUrl ?? "",
+        contactEmail: profile.contactEmail ?? "",
+        contactPhone: profile.contactPhone ?? "",
+        galleryUrlsText: (profile.galleryUrls ?? []).join("\n"),
         specialties: profile.specialties ?? "",
       }
     : undefined;

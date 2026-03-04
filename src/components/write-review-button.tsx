@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AuthRequiredModal } from "@/components/auth-required-modal";
 import {
   Dialog,
   DialogContent,
@@ -16,19 +18,22 @@ interface WriteReviewButtonProps {
   eventId?: string;
   marketId?: string;
   isLoggedIn: boolean;
+  callbackUrl?: string;
 }
 
 export function WriteReviewButton({
   eventId,
   marketId,
   isLoggedIn,
+  callbackUrl,
 }: WriteReviewButtonProps) {
   const [open, setOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const router = useRouter();
 
   function handleClick() {
     if (!isLoggedIn) {
-      router.push("/auth/signin");
+      setAuthModalOpen(true);
       return;
     }
     setOpen(true);
@@ -36,9 +41,22 @@ export function WriteReviewButton({
 
   return (
     <>
-      <Button size="sm" onClick={handleClick}>
+      <Button
+        size="sm"
+        onClick={handleClick}
+        className="min-h-[44px] min-w-[44px]"
+        title={!isLoggedIn ? "Sign in to write a review" : undefined}
+      >
+        {!isLoggedIn && <Lock className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />}
         Write a Review
       </Button>
+      <AuthRequiredModal
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
+        title="Sign in to write a review"
+        description="Create an account or sign in to share your experience."
+        callbackUrl={callbackUrl}
+      />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>

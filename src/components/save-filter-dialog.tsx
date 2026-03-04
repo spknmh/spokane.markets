@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Session } from "next-auth";
+import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthRequiredModal } from "@/components/auth-required-modal";
 import { Input } from "@/components/ui/input";
@@ -102,13 +103,24 @@ export function SaveFilterDialog({ session, currentFilters }: SaveFilterDialogPr
         variant="outline"
         size="sm"
         onClick={handleOpen}
-        disabled={!hasActiveFilters}
+        disabled={session ? !hasActiveFilters : false}
+        className="min-h-[44px] min-w-[44px]"
+        title={!session ? "Sign in to save filters and get email alerts" : undefined}
       >
-        Save This Filter
+        {!session ? (
+          <>
+            <Lock className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
+            Sign in to save
+          </>
+        ) : (
+          "Save This Filter"
+        )}
       </Button>
       <AuthRequiredModal
         open={authModalOpen}
         onOpenChange={setAuthModalOpen}
+        title="Sign in to save filters"
+        description="Create an account or sign in to save filters and get email alerts."
         callbackUrl="/events"
       />
 

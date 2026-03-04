@@ -25,6 +25,16 @@ export const submissionSchemaAuthed = submissionSchema.omit({
 export type SubmissionInput = z.infer<typeof submissionSchema>;
 export type SubmissionInputAuthed = z.infer<typeof submissionSchemaAuthed>;
 
+export const contactSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Valid email is required"),
+  subject: z.string().optional(),
+  message: z.string().min(10, "Message must be at least 10 characters"),
+  /** Honeypot */
+  company: z.string().max(0).optional(),
+});
+export type ContactInput = z.infer<typeof contactSchema>;
+
 export const subscriberSchema = z.object({
   email: z.string().email("Valid email is required"),
   areas: z.array(z.string()).optional(),
@@ -104,9 +114,21 @@ export const signInSchema = z.object({
 });
 
 export const SIGNUP_ROLES = [
-  { value: "USER", label: "Consumer", description: "I want to find events and support local vendors" },
-  { value: "VENDOR", label: "Vendor", description: "I sell at markets and want to list where I'll be" },
-  { value: "ORGANIZER", label: "Organizer / Market Owner", description: "I run or own a market and want to manage events" },
+  {
+    value: "USER",
+    label: "Consumer",
+    description: "Find events, save filters, mark Going/Interested, favorite vendors, and get email alerts when new events match your interests.",
+  },
+  {
+    value: "VENDOR",
+    label: "Vendor",
+    description: "Create a vendor profile, list where you'll be selling, connect with customers who favorite you, and get discovered at markets.",
+  },
+  {
+    value: "ORGANIZER",
+    label: "Organizer / Market Owner",
+    description: "Submit and manage events for your market, get verified, and reach visitors planning their weekend.",
+  },
 ] as const;
 
 export const signUpSchema = z
@@ -186,6 +208,11 @@ export const vendorProfileSchema = z.object({
   websiteUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   instagramUrl: z.string().url().optional().or(z.literal("")),
+  contactEmail: z.string().email().optional().or(z.literal("")),
+  contactPhone: z.string().optional(),
+  galleryUrls: z.array(z.string().url()).optional(),
+  /** Form-only: textarea value, one URL per line; parsed to galleryUrls on submit */
+  galleryUrlsText: z.string().optional(),
   specialties: z.string().optional(),
 });
 export type VendorProfileInput = z.infer<typeof vendorProfileSchema>;
