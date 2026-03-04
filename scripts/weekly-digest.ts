@@ -28,6 +28,21 @@ async function main() {
   let errorCount = 0;
 
   for (const subscriber of subscribers) {
+    const user = await prisma.user.findUnique({
+      where: { email: subscriber.email.toLowerCase() },
+      include: { notificationPreference: true },
+    });
+    if (user?.notificationPreference) {
+      if (user.notificationPreference.emailsPausedAt) {
+        console.log(`Skipping ${subscriber.email} — emails paused`);
+        continue;
+      }
+      if (!user.notificationPreference.weeklyDigestEnabled) {
+        console.log(`Skipping ${subscriber.email} — weekly digest disabled`);
+        continue;
+      }
+    }
+
     const areaFilter =
       subscriber.areas.length > 0
         ? { venue: { neighborhood: { in: subscriber.areas } } }

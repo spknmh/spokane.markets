@@ -37,7 +37,13 @@ export function sendVendorFavoriteAlerts(
             emailAlerts: true,
           },
           include: {
-            user: { select: { email: true, name: true } },
+            user: {
+              select: {
+                email: true,
+                name: true,
+                notificationPreference: true,
+              },
+            },
           },
         }),
       ]);
@@ -55,6 +61,13 @@ export function sendVendorFavoriteAlerts(
       });
 
       for (const fav of favorites) {
+        const prefs = fav.user.notificationPreference;
+        if (prefs) {
+          if (prefs.emailsPausedAt) continue;
+          if (!prefs.emailEnabled) continue;
+          if (!prefs.favoriteVendorEnabled) continue;
+        }
+
         try {
           await sendWithUnsubscribeHeaders(resend, {
             from: "Spokane Markets <alerts@spokane.market>",
@@ -69,7 +82,7 @@ export function sendVendorFavoriteAlerts(
                 <a href="${eventUrl}">View event</a> ·
                 <a href="${vendorUrl}">View vendor</a>
               </p>
-              <p><a href="${APP_URL}/settings/favorites">Manage favorite vendors</a></p>
+              <p><a href="${APP_URL}/account/saved?tab=favorites">Manage favorite vendors</a></p>
               <p><a href="${APP_URL}/unsubscribe?email=${encodeURIComponent(fav.user.email)}&source=favorites">Unsubscribe from vendor alerts</a></p>
             `,
             unsubscribe: { type: "favorites", email: fav.user.email },

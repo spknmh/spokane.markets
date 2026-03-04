@@ -70,7 +70,16 @@ async function main() {
 
   const filters = await db.savedFilter.findMany({
     where: { emailAlerts: true },
-    include: { user: { select: { id: true, email: true, name: true } } },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          notificationPreference: true,
+        },
+      },
+    },
   });
 
   if (filters.length === 0) {
@@ -102,6 +111,14 @@ async function main() {
   let totalEmails = 0;
 
   for (const [, { email, name, filters: userFilters }] of filtersByUser) {
+    const firstFilter = userFilters[0];
+    const prefs = firstFilter?.user?.notificationPreference;
+    if (prefs) {
+      if (prefs.emailsPausedAt) continue;
+      if (!prefs.emailEnabled) continue;
+      if (!prefs.eventMatchEnabled) continue;
+    }
+
     const filterResults: { filterName: string; events: { title: string; slug: string }[] }[] = [];
 
     for (const filter of userFilters) {
@@ -166,7 +183,7 @@ async function main() {
           <h2>Hi${name ? ` ${name}` : ""},</h2>
           <p>New events were published in the last 24 hours that match your saved filters:</p>
           ${eventListHtml}
-          <p><a href="${APP_URL}/settings/filters">Manage your filters</a></p>
+          <p><a href="${APP_URL}/account/saved?tab=filters">Manage your filters</a></p>
           <p><a href="${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}&source=filters">Unsubscribe from filter alerts</a></p>
         `,
         unsubscribe: { type: "filters", email },
