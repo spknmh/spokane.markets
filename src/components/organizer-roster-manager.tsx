@@ -356,32 +356,48 @@ export function OrganizerRosterManager({
       </Card>
 
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Add vendor to roster</DialogTitle>
             <DialogDescription>
-              Search by business name. Vendors already on the roster won&apos;t appear.
+              Search by business name. Vendors already on the roster or with pending requests won&apos;t appear.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <Input
-              placeholder="Search vendors..."
-              value={vendorSearch}
-              onChange={(e) => setVendorSearch(e.target.value)}
-              autoFocus
-            />
+          <div className="space-y-4 px-6 pb-6">
+            <div className="relative">
+              <Input
+                placeholder="Search vendors by business name..."
+                value={vendorSearch}
+                onChange={(e) => setVendorSearch(e.target.value)}
+                autoFocus
+                className="pr-9"
+              />
+              {vendorSearching && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                </span>
+              )}
+            </div>
             {addError && (
-              <p className="text-sm text-destructive">{addError}</p>
+              <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {addError}
+              </div>
             )}
-            {vendorSearching ? (
-              <p className="text-sm text-muted-foreground">Searching...</p>
-            ) : vendorSearch.length >= 2 ? (
-              vendorResults.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No vendors found. Try a different search.
+            <div className="min-h-[120px]">
+              {vendorSearch.length < 2 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Type at least 2 characters to search for vendors.
+                </p>
+              ) : vendorSearching ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Searching...
+                </p>
+              ) : vendorResults.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  No vendors found. Try a different search term.
                 </p>
               ) : (
-                <div className="max-h-48 space-y-2 overflow-y-auto">
+                <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border p-2">
                   {vendorResults
                     .filter(
                       (v) => !rosterIds.has(v.id) && !requestIds.has(v.id)
@@ -389,17 +405,20 @@ export function OrganizerRosterManager({
                     .map((vendor) => (
                       <div
                         key={vendor.id}
-                        className="flex items-center justify-between gap-3 rounded-lg border p-2"
+                        className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2 transition-colors hover:bg-muted/50"
                       >
-                        <div className="flex min-w-0 items-center gap-2">
+                        <Link
+                          href={`/vendors/${vendor.slug}`}
+                          className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-80"
+                        >
                           {vendor.imageUrl ? (
                             <img
                               src={vendor.imageUrl}
                               alt=""
-                              className="h-8 w-8 shrink-0 rounded-full object-cover"
+                              className="h-9 w-9 shrink-0 rounded-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
                               {vendor.businessName.charAt(0)}
                             </div>
                           )}
@@ -413,11 +432,12 @@ export function OrganizerRosterManager({
                               </p>
                             )}
                           </div>
-                        </div>
+                        </Link>
                         <Button
                           size="sm"
                           disabled={isPending}
                           onClick={() => addVendor(vendor.id)}
+                          className="shrink-0"
                         >
                           Add
                         </Button>
@@ -427,18 +447,13 @@ export function OrganizerRosterManager({
                     (v) => !rosterIds.has(v.id) && !requestIds.has(v.id)
                   ).length === 0 &&
                     vendorResults.length > 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        All matching vendors are already on the roster or
-                        pending.
+                      <p className="py-4 text-center text-sm text-muted-foreground">
+                        All matching vendors are already on the roster or have pending requests.
                       </p>
                     )}
                 </div>
-              )
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Type at least 2 characters to search.
-              </p>
-            )}
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

@@ -7,8 +7,20 @@ import { Badge } from "@/components/ui/badge";
 import { DashboardHeaderCard } from "@/components/dashboard-header-card";
 import { evaluateAndGrantBadges } from "@/lib/badges";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { formatDate, formatDateRange } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDate, formatDateRange, formatRelativeTime } from "@/lib/utils";
+import { getOrganizerQueuesSummary } from "@/lib/organizer/queues";
+import { Users, Clock } from "lucide-react";
+
+const QUEUE_LABELS: Record<string, string> = {
+  vendor_requests: "Pending Vendor Requests",
+  events_pending: "Events Pending Review",
+};
+
+const QUEUE_ICONS: Record<string, typeof Users> = {
+  vendor_requests: Users,
+  events_pending: Clock,
+};
 
 export const metadata: Metadata = {
   title: `Organizer Dashboard — ${SITE_NAME}`,
@@ -20,7 +32,7 @@ export default async function OrganizerDashboardPage() {
 
   await evaluateAndGrantBadges(userId);
 
-  const [markets, events, pendingByEvent] = await Promise.all([
+  const [markets, events, pendingByEvent, queueSummary] = await Promise.all([
     db.market.findMany({
       where: { ownerId: userId },
       include: {
@@ -63,6 +75,7 @@ export default async function OrganizerDashboardPage() {
       },
       _count: true,
     }),
+    getOrganizerQueuesSummary(userId),
   ]);
 
   const pendingCountByEventId = Object.fromEntries(
@@ -170,6 +183,37 @@ export default async function OrganizerDashboardPage() {
           </Link>
         </div>
       )}
+
+      {/* Queues */}
+      <section className="mt-6">
+        <h2 className="mb-4 text-lg font-semibold">Action Items</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+            {queueSummary.map((q) => {
+              const Icon = QUEUE_ICONS[q.type];
+              const label = QUEUE_LABELS[q.type];
+              return (
+                <Link key={q.type} href={q.href}>
+                  <Card className="transition-colors hover:bg-muted/50">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {label}
+                      </CardTitle>
+                      <Icon className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{q.count}</div>
+                      {q.oldestAt && q.count > 0 && (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Oldest: {formatRelativeTime(q.oldestAt)}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
 
       {/* Event stats */}
       {events.length > 0 && (
