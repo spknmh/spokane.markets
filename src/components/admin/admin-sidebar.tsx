@@ -50,18 +50,18 @@ const navGroups: NavGroup[] = [
   },
   {
     label: "Directory",
-    defaultOpen: false,
+    defaultOpen: true,
     items: [
       { label: "Events", href: "/admin/events", icon: Calendar },
+      { label: "Vendors", href: "/admin/vendors", icon: ShoppingBag },
       { label: "Markets", href: "/admin/markets", icon: Store },
       { label: "Venues", href: "/admin/venues", icon: MapPin },
-      { label: "Vendors", href: "/admin/vendors", icon: ShoppingBag },
       { label: "Event Types & Features", href: "/admin/categories", icon: Tag },
     ],
   },
   {
     label: "Users",
-    defaultOpen: false,
+    defaultOpen: true,
     items: [
       { label: "Users", href: "/admin/users", icon: Users },
       { label: "Subscribers", href: "/admin/subscribers", icon: Mail },
@@ -80,7 +80,7 @@ const navGroups: NavGroup[] = [
   },
   {
     label: "System",
-    defaultOpen: false,
+    defaultOpen: true,
     items: [
       { label: "Promotions", href: "/admin/promotions", icon: Megaphone },
       { label: "Site", href: "/admin/content", icon: LayoutTemplate },
