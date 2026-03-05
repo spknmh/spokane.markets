@@ -23,6 +23,9 @@ const inter = Inter({
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
+/** Skip static prerender at build time; DB is unavailable in Docker build. */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: `${SITE_NAME} — Discover Local Markets, Fairs & Events`,
