@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
 import Link from "next/link";
+import { SITE_NAME } from "@/lib/constants";
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
@@ -13,7 +14,7 @@ import { Pagination } from "@/components/pagination";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "Events — Spokane Markets",
+  title: `Events — ${SITE_NAME}`,
   description:
     "Browse upcoming markets, craft fairs, and community events in the Spokane area. Filter by date, neighborhood, and category.",
 };

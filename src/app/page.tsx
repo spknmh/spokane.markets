@@ -13,6 +13,7 @@ import {
   getUpcomingWeekendRange,
   getPlanAheadRange,
 } from "@/lib/date-ranges";
+import { SITE_NAME } from "@/lib/constants";
 
 export default async function HomePage() {
   const session = await auth();
@@ -92,7 +93,7 @@ export default async function HomePage() {
         </div>
         <div className="relative mx-auto max-w-4xl px-4 py-20 md:py-28 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow-md md:text-5xl lg:text-6xl">
-            Discover Spokane Markets
+            Discover {SITE_NAME}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/90 drop-shadow-sm">
             Find markets, craft fairs, and local events across Spokane. Never

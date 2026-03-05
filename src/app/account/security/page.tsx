@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth-utils";
+import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SecuritySessionsClient } from "./security-sessions-client";
 
 export const metadata: Metadata = {
-  title: "Security — Spokane Markets",
+  title: `Security — ${SITE_NAME}`,
   description: "Manage your account security.",
 };
 

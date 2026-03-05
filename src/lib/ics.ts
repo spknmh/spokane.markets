@@ -2,6 +2,8 @@
  * Generate ICS (iCalendar) string for an event per RFC 5545.
  * Used for Add to Calendar downloads.
  */
+import { SITE_NAME } from "@/lib/constants";
+
 function formatIcsDate(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   const y = d.getUTCFullYear();
@@ -47,7 +49,7 @@ export function generateEventIcs(
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Spokane Markets//Event//EN",
+    `PRODID:-//${SITE_NAME}//Event//EN`,
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",

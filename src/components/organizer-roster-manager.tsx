@@ -1,11 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import type { ParticipationMode } from "@/lib/participation-config";
 
 interface VendorSummary {
@@ -184,6 +192,65 @@ export function OrganizerRosterManager({
   const rosterCount = roster.length;
   const capacityLabel =
     capacity != null ? `${rosterCount} / ${capacity} slots` : `${rosterCount} vendor(s)`;
+  const atCapacity = capacity != null && rosterCount >= capacity;
+
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [vendorSearch, setVendorSearch] = useState("");
+  const [vendorResults, setVendorResults] = useState<VendorSummary[]>([]);
+  const [vendorSearching, setVendorSearching] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const rosterIds = new Set(roster.map((r) => r.vendorProfileId));
+  const requestIds = new Set(requests.map((r) => r.vendorProfileId));
+
+  const searchVendors = useCallback(async (q: string) => {
+    if (q.length < 2) {
+      setVendorResults([]);
+      return;
+    }
+    setVendorSearching(true);
+    try {
+      const res = await fetch(
+        `/api/organizer/vendors/search?q=${encodeURIComponent(q)}`
+      );
+      const data = await res.json();
+      setVendorResults(Array.isArray(data) ? data : []);
+    } catch {
+      setVendorResults([]);
+    } finally {
+      setVendorSearching(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!addDialogOpen) return;
+    debounceRef.current = setTimeout(() => searchVendors(vendorSearch), 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [vendorSearch, addDialogOpen, searchVendors]);
+
+  async function addVendor(vendorId: string) {
+    setAddError(null);
+    startTransition(async () => {
+      const res = await fetch(`/api/organizer/events/${eventId}/roster/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vendorId, status: "CONFIRMED" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAddError(data.error ?? "Failed to add vendor");
+        return;
+      }
+      setAddDialogOpen(false);
+      setVendorSearch("");
+      setVendorResults([]);
+      router.refresh();
+    });
+  }
 
   function exportCsv() {
     const headers = ["Business Name", "Slug", "Specialties", "Status"];
@@ -242,18 +309,28 @@ export function OrganizerRosterManager({
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <CardTitle>Official Roster</CardTitle>
               {capacity != null && (
                 <Badge variant="secondary">{capacityLabel}</Badge>
               )}
             </div>
-            {roster.length > 0 && (
-              <Button variant="outline" size="sm" onClick={exportCsv}>
-                Export CSV
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAddDialogOpen(true)}
+                disabled={atCapacity || isPending}
+              >
+                Add vendor
               </Button>
-            )}
+              {roster.length > 0 && (
+                <Button variant="outline" size="sm" onClick={exportCsv}>
+                  Export CSV
+                </Button>
+              )}
+            </div>
           </div>
           <p className="text-sm text-muted-foreground">
             Organizer-verified vendors for this event.
@@ -277,6 +354,94 @@ export function OrganizerRosterManager({
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add vendor to roster</DialogTitle>
+            <DialogDescription>
+              Search by business name. Vendors already on the roster won&apos;t appear.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <Input
+              placeholder="Search vendors..."
+              value={vendorSearch}
+              onChange={(e) => setVendorSearch(e.target.value)}
+              autoFocus
+            />
+            {addError && (
+              <p className="text-sm text-destructive">{addError}</p>
+            )}
+            {vendorSearching ? (
+              <p className="text-sm text-muted-foreground">Searching...</p>
+            ) : vendorSearch.length >= 2 ? (
+              vendorResults.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No vendors found. Try a different search.
+                </p>
+              ) : (
+                <div className="max-h-48 space-y-2 overflow-y-auto">
+                  {vendorResults
+                    .filter(
+                      (v) => !rosterIds.has(v.id) && !requestIds.has(v.id)
+                    )
+                    .map((vendor) => (
+                      <div
+                        key={vendor.id}
+                        className="flex items-center justify-between gap-3 rounded-lg border p-2"
+                      >
+                        <div className="flex min-w-0 items-center gap-2">
+                          {vendor.imageUrl ? (
+                            <img
+                              src={vendor.imageUrl}
+                              alt=""
+                              className="h-8 w-8 shrink-0 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                              {vendor.businessName.charAt(0)}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="truncate font-medium">
+                              {vendor.businessName}
+                            </p>
+                            {vendor.specialties && (
+                              <p className="truncate text-xs text-muted-foreground">
+                                {vendor.specialties.split(",")[0]?.trim()}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          disabled={isPending}
+                          onClick={() => addVendor(vendor.id)}
+                        >
+                          Add
+                        </Button>
+                      </div>
+                    ))}
+                  {vendorResults.filter(
+                    (v) => !rosterIds.has(v.id) && !requestIds.has(v.id)
+                  ).length === 0 &&
+                    vendorResults.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        All matching vendors are already on the roster or
+                        pending.
+                      </p>
+                    )}
+                </div>
+              )
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Type at least 2 characters to search.
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

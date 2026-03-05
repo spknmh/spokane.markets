@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth-utils";
+import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { PrivacyForm } from "./privacy-form";
 
 export const metadata: Metadata = {
-  title: "Privacy — Spokane Markets",
+  title: `Privacy — ${SITE_NAME}`,
   description: "Manage your privacy preferences.",
 };
 

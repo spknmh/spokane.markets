@@ -3,6 +3,7 @@
  * is added to a new event. Fire-and-forget — does not block.
  */
 import { db } from "@/lib/db";
+import { SITE_NAME } from "@/lib/constants";
 import { Resend } from "resend";
 import { sendWithUnsubscribeHeaders } from "@/server/email/send-with-headers";
 
@@ -70,7 +71,7 @@ export function sendVendorFavoriteAlerts(
 
         try {
           await sendWithUnsubscribeHeaders(resend, {
-            from: "Spokane Markets <alerts@spokane.market>",
+            from: `${SITE_NAME} <alerts@spokane.market>`,
             to: fav.user.email,
             subject: `${vendor.businessName} is at ${event.title}`,
             html: `

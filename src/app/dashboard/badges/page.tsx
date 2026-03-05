@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
+import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BadgeIcon } from "@/components/badge-icon";
 
 export const metadata = {
-  title: "My Badges — Spokane Markets",
+  title: `My Badges — ${SITE_NAME}`,
   description: "Achievements and badges you've earned",
 };
 

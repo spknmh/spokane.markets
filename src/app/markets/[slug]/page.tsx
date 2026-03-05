@@ -20,6 +20,7 @@ import { WriteReviewButton } from "@/components/write-review-button";
 import { ReportButton } from "@/components/report-button";
 import type { Metadata } from "next";
 import type { VerificationStatus } from "@prisma/client";
+import { SITE_NAME } from "@/lib/constants";
 
 function VerificationBadge({ status }: { status: VerificationStatus }) {
   if (status !== "VERIFIED") return null;
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
   if (!market) return { title: "Market Not Found" };
   return {
-    title: `${market.name} — Spokane Markets`,
+    title: `${market.name} — ${SITE_NAME}`,
     description: market.description ?? `Discover ${market.name} and upcoming events in the Spokane area.`,
   };
 }

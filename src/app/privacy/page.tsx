@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_NAME, LEGAL_ENTITY_WITH_DBA } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Spokane Markets",
-  description: "Privacy Policy for Spokane Markets",
+  title: `Privacy Policy — ${SITE_NAME}`,
+  description: `Privacy Policy for ${SITE_NAME}`,
 };
 
 const LAST_UPDATED = "March 2, 2025";
@@ -16,7 +17,7 @@ export default function PrivacyPage() {
 
       <div className="prose prose-neutral mt-8 dark:prose-invert max-w-none">
         <p>
-          Spokane Markets (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) respects your privacy. This policy describes
+          {LEGAL_ENTITY_WITH_DBA} (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) respects your privacy. This policy describes
           how we collect, use, and protect your personal information when you use our website and services.
         </p>
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Store } from "lucide-react";
+import { SITE_NAME, LEGAL_ENTITY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/auth";
 import { AuthGate } from "@/components/auth-gate";
@@ -19,7 +20,7 @@ export async function Footer() {
               className="flex items-center gap-2 font-semibold text-primary-foreground transition-colors hover:text-primary-foreground/90"
             >
               <Store className="h-5 w-5 text-primary-foreground" aria-hidden />
-              Spokane Markets
+              {SITE_NAME}
             </Link>
             <p className="text-sm text-primary-foreground/90">
               Your community hub for local markets, craft fairs, and vendor events in the Spokane area.
@@ -115,7 +116,7 @@ export async function Footer() {
 
         <div className="mt-10 border-t border-primary-foreground/20 pt-8">
           <p className="text-center text-sm text-primary-foreground/90">
-            © {new Date().getFullYear()} Spokane Markets. All rights reserved.
+            © {new Date().getFullYear()} {LEGAL_ENTITY}. All rights reserved.
           </p>
         </div>
       </div>

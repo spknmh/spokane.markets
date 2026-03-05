@@ -1,9 +1,10 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import Link from "next/link";
+import { SITE_NAME } from "@/lib/constants";
 
 export const metadata = {
-  title: "Admin Dashboard - Spokane Markets",
+  title: `Admin Dashboard — ${SITE_NAME}`,
 };
 
 export default async function AdminLayout({

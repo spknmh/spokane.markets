@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { SITE_NAME } from "@/lib/constants";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
@@ -53,10 +54,10 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${vendor.businessName} | Spokane Markets`,
+    title: `${vendor.businessName} | ${SITE_NAME}`,
     description:
       vendor.description ??
-      `${vendor.businessName} — a local vendor on Spokane Markets.`,
+      `${vendor.businessName} — a local vendor on ${SITE_NAME}.`,
   };
 }
 

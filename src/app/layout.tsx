@@ -6,6 +6,7 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Providers } from "@/components/providers";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
+import { SITE_NAME } from "@/lib/constants";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -23,14 +24,14 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: "Spokane Markets — Discover Local Markets, Fairs & Events",
+  title: `${SITE_NAME} — Discover Local Markets, Fairs & Events`,
   description:
     "The best way to find markets, craft fairs, and vendor events in the Spokane area. Filter by date, neighborhood, and category.",
   openGraph: {
-    title: "Spokane Markets",
+    title: SITE_NAME,
     description: "Discover local markets, fairs & events in Spokane",
     type: "website",
-    images: [{ url: COMMUNITY_IMAGES.hero, width: 1200, height: 630, alt: "Spokane Markets" }],
+    images: [{ url: COMMUNITY_IMAGES.hero, width: 1200, height: 630, alt: SITE_NAME }],
   },
 };
 

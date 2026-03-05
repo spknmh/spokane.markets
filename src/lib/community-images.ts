@@ -1,5 +1,5 @@
 /**
- * Community imagery for Spokane Markets — farmers markets, local vendors, craft stalls.
+ * Community imagery for Spokane Markets (DBA) — farmers markets, local vendors, craft stalls.
  * Unsplash (CC0) — free to use, no attribution required.
  */
 export const COMMUNITY_IMAGES = {

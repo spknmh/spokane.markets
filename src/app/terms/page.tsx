@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_NAME, LEGAL_ENTITY_WITH_DBA } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — Spokane Markets",
-  description: "Terms of Service for Spokane Markets",
+  title: `Terms of Service — ${SITE_NAME}`,
+  description: `Terms of Service for ${SITE_NAME}`,
 };
 
 const LAST_UPDATED = "March 2, 2025";
@@ -17,7 +18,7 @@ export default function TermsPage() {
       <div className="prose prose-neutral mt-8 dark:prose-invert max-w-none">
         <h2 className="mt-6 text-xl font-semibold">1. Acceptance of Terms</h2>
         <p>
-          By accessing or using Spokane Markets (&quot;the Service&quot;), you agree to be bound by these
+          By accessing or using {LEGAL_ENTITY_WITH_DBA} (&quot;the Service&quot;), you agree to be bound by these
           Terms of Service and our{" "}
           <Link href="/privacy" className="text-primary hover:underline">
             Privacy Policy
@@ -27,7 +28,7 @@ export default function TermsPage() {
 
         <h2 className="mt-6 text-xl font-semibold">2. Use of the Service</h2>
         <p>
-          Spokane Markets provides a platform to discover local markets, craft fairs, vendor events, and
+          The Service provides a platform to discover local markets, craft fairs, vendor events, and
           community gatherings in the Spokane area. You may browse events, markets, and vendor profiles, create
           an account to save favorites, submit events, write reviews, and claim markets or vendor profiles
           where applicable.
@@ -51,7 +52,7 @@ export default function TermsPage() {
 
         <h2 className="mt-6 text-xl font-semibold">4. Intellectual Property</h2>
         <p>
-          The Service and its original content, features, and functionality are owned by Spokane Markets and
+          The Service and its original content, features, and functionality are owned by {LEGAL_ENTITY_WITH_DBA} and
           are protected by copyright, trademark, and other intellectual property laws. You may not copy,
           modify, distribute, or create derivative works without our prior written consent.
         </p>
@@ -75,7 +76,7 @@ export default function TermsPage() {
 
         <h2 className="mt-6 text-xl font-semibold">6. Limitation of Liability</h2>
         <p>
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, SPOKANE MARKETS AND ITS AFFILIATES SHALL NOT BE LIABLE
+          TO THE MAXIMUM EXTENT PERMITTED BY LAW, {LEGAL_ENTITY_WITH_DBA} AND ITS AFFILIATES SHALL NOT BE LIABLE
           FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS,
           DATA, OR GOODWILL, ARISING FROM YOUR USE OF THE SERVICE.
         </p>

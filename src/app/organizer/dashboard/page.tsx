@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth-utils";
+import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { DashboardHeaderCard } from "@/components/dashboard-header-card";
@@ -10,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, formatDateRange } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Organizer Dashboard — Spokane Markets",
+  title: `Organizer Dashboard — ${SITE_NAME}`,
 };
 
 export default async function OrganizerDashboardPage() {
@@ -19,7 +20,7 @@ export default async function OrganizerDashboardPage() {
 
   await evaluateAndGrantBadges(userId);
 
-  const [markets, events] = await Promise.all([
+  const [markets, events, pendingByEvent] = await Promise.all([
     db.market.findMany({
       where: { ownerId: userId },
       include: {
@@ -35,11 +36,39 @@ export default async function OrganizerDashboardPage() {
       orderBy: { name: "asc" },
     }),
     db.event.findMany({
-      where: { submittedById: userId },
-      include: { venue: true, tags: true, features: true },
-      orderBy: { startDate: "desc" },
+      where: {
+        OR: [
+          { submittedById: userId },
+          { market: { ownerId: userId } },
+        ],
+      },
+      include: {
+        venue: true,
+        tags: true,
+        features: true,
+        market: { select: { id: true, name: true, ownerId: true } },
+      },
+      orderBy: { startDate: "asc" },
+    }),
+    db.eventVendorIntent.groupBy({
+      by: ["eventId"],
+      where: {
+        event: {
+          OR: [
+            { submittedById: userId },
+            { market: { ownerId: userId } },
+          ],
+        },
+        status: { in: ["REQUESTED", "APPLIED"] },
+      },
+      _count: true,
     }),
   ]);
+
+  const pendingCountByEventId = Object.fromEntries(
+    pendingByEvent.map((p) => [p.eventId, p._count] as const)
+  ) as Record<string, number>;
+  const totalPendingRequests = pendingByEvent.reduce((s, p) => s + p._count, 0);
 
   const user = await db.user.findUnique({
     where: { id: userId },
@@ -82,6 +111,13 @@ export default async function OrganizerDashboardPage() {
     rejected: events.filter((e) => e.status === "REJECTED").length,
   };
 
+  const now = new Date();
+  const upcomingEvents = events.filter((e) => e.startDate >= now);
+  const pastEvents = events.filter((e) => e.startDate < now);
+
+  const getPendingForEvent = (eventId: string) =>
+    pendingCountByEventId[eventId] ?? 0;
+
   if (!user) return null;
 
   return (
@@ -118,6 +154,20 @@ export default async function OrganizerDashboardPage() {
         <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
           You own a verified market — your submitted events will be
           auto-published.
+        </div>
+      )}
+
+      {totalPendingRequests > 0 && (
+        <div className="mt-4 flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+          <span className="font-medium">
+            {totalPendingRequests} vendor request{totalPendingRequests !== 1 ? "s" : ""} pending review
+          </span>
+          <Link
+            href="#events"
+            className="text-amber-700 dark:text-amber-300 underline hover:no-underline"
+          >
+            Review in Your Events
+          </Link>
         </div>
       )}
 
@@ -225,57 +275,144 @@ export default async function OrganizerDashboardPage() {
       <section id="events" className="mt-10 scroll-mt-8">
         <h2 className="text-xl font-semibold">Your Events</h2>
         {events.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            You haven&apos;t submitted any events yet.
-          </p>
+          <Card className="mt-4 border-2 border-dashed">
+            <CardContent className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+              <p className="text-muted-foreground">
+                You haven&apos;t submitted any events yet.
+              </p>
+              <Button asChild>
+                <Link href="/organizer/events/new">Submit Your First Event</Link>
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="mt-4 space-y-3">
-            {events.map((event) => (
-              <Card key={event.id}>
-                <CardContent className="flex items-center justify-between gap-4 p-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/events/${event.slug}`}
-                        className="truncate font-medium hover:text-primary"
-                      >
-                        {event.title}
-                      </Link>
-                      <Badge
-                        variant={
-                          (statusColor[event.status] as
-                            | "default"
-                            | "secondary"
-                            | "outline"
-                            | "destructive"
-                            | "warning"
-                            | "success"
-                            | "info") ?? "outline"
-                        }
-                      >
-                        {statusLabel[event.status] ?? event.status}
-                      </Badge>
-                    </div>
-                    <p className="mt-0.5 text-sm text-muted-foreground">
-                      {formatDateRange(event.startDate, event.endDate)} ·{" "}
-                      {event.venue.name}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/organizer/events/${event.id}/roster`}>
-                        Roster
-                      </Link>
-                    </Button>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/organizer/events/${event.id}/edit`}>
-                        Edit
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="mt-4 space-y-8">
+            {upcomingEvents.length > 0 && (
+              <div>
+                <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+                  Upcoming ({upcomingEvents.length})
+                </h3>
+                <div className="space-y-3">
+                  {upcomingEvents.map((event) => {
+                    const pending = getPendingForEvent(event.id);
+                    return (
+                      <Card key={event.id}>
+                        <CardContent className="flex items-center justify-between gap-4 p-4">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={`/events/${event.slug}`}
+                                className="truncate font-medium hover:text-primary"
+                              >
+                                {event.title}
+                              </Link>
+                              <Badge
+                                variant={
+                                  (statusColor[event.status] as
+                                    | "default"
+                                    | "secondary"
+                                    | "outline"
+                                    | "destructive"
+                                    | "warning"
+                                    | "success"
+                                    | "info") ?? "outline"
+                                }
+                              >
+                                {statusLabel[event.status] ?? event.status}
+                              </Badge>
+                            </div>
+                            <p className="mt-0.5 text-sm text-muted-foreground">
+                              {formatDateRange(event.startDate, event.endDate)} ·{" "}
+                              {event.venue.name}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/organizer/events/${event.id}/roster`}>
+                                Roster{pending > 0 ? ` (${pending})` : ""}
+                              </Link>
+                            </Button>
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/organizer/events/${event.id}/edit`}>
+                                Edit
+                              </Link>
+                            </Button>
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/events/${event.slug}`}>
+                                View
+                              </Link>
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {pastEvents.length > 0 && (
+              <div>
+                <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+                  Past ({pastEvents.length})
+                </h3>
+                <div className="space-y-3">
+                  {pastEvents.map((event) => {
+                    const pending = getPendingForEvent(event.id);
+                    return (
+                      <Card key={event.id} className="opacity-80">
+                        <CardContent className="flex items-center justify-between gap-4 p-4">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={`/events/${event.slug}`}
+                                className="truncate font-medium hover:text-primary"
+                              >
+                                {event.title}
+                              </Link>
+                              <Badge
+                                variant={
+                                  (statusColor[event.status] as
+                                    | "default"
+                                    | "secondary"
+                                    | "outline"
+                                    | "destructive"
+                                    | "warning"
+                                    | "success"
+                                    | "info") ?? "outline"
+                                }
+                              >
+                                {statusLabel[event.status] ?? event.status}
+                              </Badge>
+                            </div>
+                            <p className="mt-0.5 text-sm text-muted-foreground">
+                              {formatDateRange(event.startDate, event.endDate)} ·{" "}
+                              {event.venue.name}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/organizer/events/${event.id}/roster`}>
+                                Roster{pending > 0 ? ` (${pending})` : ""}
+                              </Link>
+                            </Button>
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/organizer/events/${event.id}/edit`}>
+                                Edit
+                              </Link>
+                            </Button>
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/events/${event.slug}`}>
+                                View
+                              </Link>
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>

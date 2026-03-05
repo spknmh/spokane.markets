@@ -1,3 +1,12 @@
+/** DBA (display name) used across the site. */
+export const SITE_NAME = "Spokane Markets";
+
+/** Legal entity for Terms, Privacy, copyright. */
+export const LEGAL_ENTITY = "Spokane Market Hive, LLC";
+
+/** Legal entity with DBA for formal legal text. */
+export const LEGAL_ENTITY_WITH_DBA = "Spokane Market Hive, LLC, doing business as Spokane Markets";
+
 export const NEIGHBORHOODS = [
   { label: "Downtown / Riverfront", value: "downtown" },
   { label: "Kendall Yards", value: "kendall-yards" },

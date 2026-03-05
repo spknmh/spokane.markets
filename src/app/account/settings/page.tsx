@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth-utils";
+import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { ProfileForm } from "@/components/profile-form";
 import { AccountSettingsClient } from "./account-settings-client";
 
 export const metadata: Metadata = {
-  title: "Account Settings — Spokane Markets",
+  title: `Account Settings — ${SITE_NAME}`,
   description: "Manage your account settings.",
 };
 

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth-utils";
+import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { NotificationPreferencesForm } from "./notification-preferences-form";
 
 export const metadata: Metadata = {
-  title: "Notification Preferences — Spokane Markets",
+  title: `Notification Preferences — ${SITE_NAME}`,
   description: "Manage your notification preferences.",
 };
 

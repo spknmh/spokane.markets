@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { SITE_NAME } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,7 +72,7 @@ export function NotificationPreferencesForm({
         <CardHeader>
           <CardTitle>Email notifications</CardTitle>
           <CardDescription>
-            Control which emails you receive from Spokane Markets.
+            Control which emails you receive from {SITE_NAME}.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

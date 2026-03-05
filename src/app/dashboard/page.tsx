@@ -15,9 +15,10 @@ import { EventTimeLabel } from "@/components/event-time-label";
 import { ProfileForm } from "@/components/profile-form";
 import { DashboardHeaderCard } from "@/components/dashboard-header-card";
 import { evaluateAndGrantBadges } from "@/lib/badges";
+import { SITE_NAME } from "@/lib/constants";
 
 export const metadata = {
-  title: "My Dashboard — Spokane Markets",
+  title: `My Dashboard — ${SITE_NAME}`,
   description: "Your saved filters, event RSVPs, favorite vendors, and account settings.",
 };
 

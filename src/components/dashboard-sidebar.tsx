@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SITE_NAME } from "@/lib/constants";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -101,7 +102,7 @@ export function DashboardSidebar({
       >
         <div className="p-6 border-b border-border">
           <Link href="/dashboard" className="text-lg font-bold">
-            Spokane Markets
+            {SITE_NAME}
           </Link>
           <p className="text-xs text-muted-foreground">{subtitle ?? title}</p>
         </div>

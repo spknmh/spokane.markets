@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { SITE_NAME } from "@/lib/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   vendorSurveySchema,
@@ -97,7 +98,7 @@ export function VendorSurveyForm() {
         <CardHeader>
           <CardTitle>Thank you!</CardTitle>
           <CardDescription>
-            Your feedback helps us improve Spokane Markets for vendors like you.
+            Your feedback helps us improve {SITE_NAME} for vendors like you.
             We appreciate you taking the time to share your experience.
           </CardDescription>
         </CardHeader>

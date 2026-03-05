@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
 import Link from "next/link";
+import { SITE_NAME } from "@/lib/constants";
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
@@ -9,7 +10,7 @@ import { EventTimeLabel } from "@/components/event-time-label";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Events Calendar — Spokane Markets",
+  title: `Events Calendar — ${SITE_NAME}`,
   description: "Browse upcoming markets and events by date.",
 };
 

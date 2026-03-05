@@ -3,9 +3,7 @@ import { DashboardSidebar } from "@/components/dashboard-sidebar";
 
 const organizerNavItems = [
   { label: "Overview", href: "/organizer/dashboard", icon: "LayoutDashboard" as const },
-  { label: "Your Markets", href: "/organizer/dashboard#markets", icon: "Store" as const },
-  { label: "Your Events", href: "/organizer/dashboard#events", icon: "Calendar" as const },
-  { label: "Submit New Event", href: "/organizer/events/new", icon: "PlusCircle" as const },
+  { label: "Submit Event", href: "/organizer/events/new", icon: "PlusCircle" as const },
   { label: "Browse Markets", href: "/markets", icon: "MapPin" as const },
 ];
 

@@ -1,8 +1,9 @@
 import { UnsubscribeForm } from "./unsubscribe-form";
+import { SITE_NAME } from "@/lib/constants";
 
 export const metadata = {
-  title: "Unsubscribe — Spokane Markets",
-  description: "Unsubscribe from Spokane Markets emails",
+  title: `Unsubscribe — ${SITE_NAME}`,
+  description: `Unsubscribe from ${SITE_NAME} emails`,
 };
 
 export default async function UnsubscribePage({
@@ -18,7 +19,7 @@ export default async function UnsubscribePage({
     <div className="mx-auto max-w-md px-4 py-16">
       <h1 className="text-2xl font-bold tracking-tight">Unsubscribe</h1>
       <p className="mt-2 text-muted-foreground">
-        You will no longer receive emails from Spokane Markets for the selected subscription.
+        You will no longer receive emails from {SITE_NAME} for the selected subscription.
       </p>
       <UnsubscribeForm defaultEmail={email} defaultSource={source} />
     </div>

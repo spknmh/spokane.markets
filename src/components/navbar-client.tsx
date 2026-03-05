@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Menu, X, Store, Home, Bell } from "lucide-react";
+import { SITE_NAME } from "@/lib/constants";
 import { NotificationBell } from "@/components/notification-bell";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
@@ -43,7 +44,7 @@ export function NavbarClient({ session, unreadCount = 0 }: NavbarClientProps) {
           className="flex items-center gap-2 font-semibold text-foreground transition-colors hover:text-link hover:underline"
         >
           <Store className="h-5 w-5 text-primary" aria-hidden />
-          Spokane Markets
+          {SITE_NAME}
         </Link>
 
         {/* Desktop nav */}

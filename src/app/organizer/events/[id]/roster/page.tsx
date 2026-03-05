@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth-utils";
+import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { canManageEventRoster } from "@/lib/organizer-guard";
 import { OrganizerRosterManager } from "@/components/organizer-roster-manager";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { notFound, redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Manage Roster — Spokane Markets",
+  title: `Manage Roster — ${SITE_NAME}`,
 };
 
 export default async function OrganizerRosterPage({

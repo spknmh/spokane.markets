@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { MessageSquare } from "lucide-react";
+import { SITE_NAME, LEGAL_ENTITY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ContactForm } from "@/components/contact-form";
@@ -9,9 +10,9 @@ import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "About & Contact — Spokane Markets",
+  title: `About & Contact — ${SITE_NAME}`,
   description:
-    "Learn about Spokane Markets and how to get in touch. We help connect vendors, organizers, and visitors with local markets and events.",
+    `Learn about ${SITE_NAME} and how to get in touch. We help connect vendors, organizers, and visitors with local markets and events.`,
 };
 
 export default async function AboutPage() {
@@ -28,9 +29,9 @@ export default async function AboutPage() {
           unoptimized={isBannerUnoptimized(banners.produce)}
         />
       </div>
-      <h1 className="text-3xl font-bold tracking-tight">About Spokane Markets</h1>
+      <h1 className="text-3xl font-bold tracking-tight">About {SITE_NAME}</h1>
       <p className="mt-4 text-lg text-muted-foreground">
-        Spokane Markets is your go-to guide for discovering markets, craft fairs,
+        {SITE_NAME} is your go-to guide for discovering markets, craft fairs,
         and community events across the Spokane area. We aim to beat Facebook for
         clarity, filtering, and trust—giving you one place to find what&apos;s
         happening this weekend.
@@ -46,6 +47,10 @@ export default async function AboutPage() {
           <li>• Provide structured reviews and trust signals</li>
         </ul>
       </section>
+
+      <p className="mt-6 text-sm text-muted-foreground">
+        {SITE_NAME} is operated by {LEGAL_ENTITY}.
+      </p>
 
       <section className="mt-12">
         <h2 className="text-xl font-semibold">Contact</h2>

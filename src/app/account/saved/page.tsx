@@ -10,9 +10,10 @@ import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { EventTimeLabel } from "@/components/event-time-label";
 import { SavedPageTabs } from "./saved-page-tabs";
 import { CheckCircle2, Star } from "lucide-react";
+import { SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Saved — Spokane Markets",
+  title: `Saved — ${SITE_NAME}`,
   description: "Your saved filters, RSVPs, and favorite vendors.",
 };
 

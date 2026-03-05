@@ -21,6 +21,7 @@ import { OfficialVendorRoster } from "@/components/official-vendor-roster";
 import { SelfReportedVendorList } from "@/components/self-reported-vendor-list";
 import { EventVendorActions } from "@/components/event-vendor-actions";
 import { getParticipationConfig } from "@/lib/participation-config";
+import { SITE_NAME } from "@/lib/constants";
 
 interface EventDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -72,10 +73,10 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
   if (!event) return { title: "Event Not Found" };
 
   return {
-    title: `${event.title} — Spokane Markets`,
+    title: `${event.title} — ${(await import("@/lib/constants")).SITE_NAME}`,
     description:
       event.description?.slice(0, 160) ??
-      `${event.title} at ${event.venue.name}. Find details, directions, and more on Spokane Markets.`,
+      `${event.title} at ${event.venue.name}. Find details, directions, and more on ${SITE_NAME}.`,
     openGraph: {
       title: event.title,
       description: event.description?.slice(0, 160) ?? undefined,

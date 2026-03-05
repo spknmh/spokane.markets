@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
 import Link from "next/link";
+import { SITE_NAME } from "@/lib/constants";
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
@@ -8,7 +9,7 @@ import { isBannerUnoptimized } from "@/lib/utils";
 import { EventsMap } from "@/components/events-map";
 
 export const metadata: Metadata = {
-  title: "Events Map — Spokane Markets",
+  title: `Events Map — ${SITE_NAME}`,
   description: "Find markets and events near you on the map.",
 };
 

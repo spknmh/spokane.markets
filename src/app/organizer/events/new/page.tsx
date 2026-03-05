@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth-utils";
+import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { OrganizerEventForm } from "@/components/organizer-event-form";
 
 export const metadata: Metadata = {
-  title: "Submit Event — Spokane Markets",
+  title: `Submit Event — ${SITE_NAME}`,
 };
 
 export default async function OrganizerNewEventPage() {
