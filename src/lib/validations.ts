@@ -75,8 +75,8 @@ export const venueSchema = z.object({
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
   zip: z.string().min(5, "ZIP code is required"),
-  lat: z.number().min(-90).max(90),
-  lng: z.number().min(-180).max(180),
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
   neighborhood: z.string().optional(),
   parkingNotes: z.string().optional(),
 });
@@ -117,6 +117,18 @@ export const organizerMarketPatchSchema = z.object({
 });
 export type OrganizerMarketPatchInput = z.infer<typeof organizerMarketPatchSchema>;
 
+const eventScheduleDaySchema = z
+  .object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
+    allDay: z.boolean().default(true),
+    startTime: z.string().regex(/^\d{2}:\d{2}$/, "Time must be HH:mm").optional(),
+    endTime: z.string().regex(/^\d{2}:\d{2}$/, "Time must be HH:mm").optional(),
+  })
+  .refine((d) => d.allDay || (d.startTime && d.endTime), {
+    message: "Start and end time required when not all day",
+    path: ["startTime"],
+  });
+
 export const eventSchema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),
@@ -132,6 +144,7 @@ export const eventSchema = z.object({
   facebookUrl: z.string().url().optional().or(z.literal("")),
   tagIds: z.array(z.string()).optional(),
   featureIds: z.array(z.string()).optional(),
+  scheduleDays: z.array(eventScheduleDaySchema).optional(),
 });
 
 export type EventInput = z.infer<typeof eventSchema>;
@@ -356,5 +369,6 @@ export const organizerEventSchema = z.object({
   facebookUrl: z.string().url().optional().or(z.literal("")),
   tagIds: z.array(z.string()).optional(),
   featureIds: z.array(z.string()).optional(),
+  scheduleDays: z.array(eventScheduleDaySchema).optional(),
 });
 export type OrganizerEventInput = z.infer<typeof organizerEventSchema>;
