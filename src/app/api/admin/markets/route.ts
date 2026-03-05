@@ -36,6 +36,17 @@ export async function POST(request: Request) {
       typicalSchedule: data.typicalSchedule || null,
       contactEmail: data.contactEmail || null,
       contactPhone: data.contactPhone || null,
+      ...(data.participationMode && { participationMode: data.participationMode }),
+      ...(data.vendorCapacity != null && { vendorCapacity: data.vendorCapacity }),
+      ...(data.publicIntentListEnabled !== undefined && {
+        publicIntentListEnabled: data.publicIntentListEnabled,
+      }),
+      ...(data.publicIntentNamesEnabled !== undefined && {
+        publicIntentNamesEnabled: data.publicIntentNamesEnabled,
+      }),
+      ...(data.publicRosterEnabled !== undefined && {
+        publicRosterEnabled: data.publicRosterEnabled,
+      }),
     },
   });
 

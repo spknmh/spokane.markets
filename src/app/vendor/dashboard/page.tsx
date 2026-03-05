@@ -48,11 +48,17 @@ export default async function VendorDashboardPage() {
           orderBy: { event: { startDate: "asc" } },
         },
         vendorIntents: {
+          where: {
+            status: { in: ["ATTENDING", "REQUESTED", "APPLIED", "WAITLISTED"] },
+          },
           include: {
             event: {
               include: {
                 venue: true,
+                tags: true,
+                features: true,
                 market: true,
+                _count: { select: { vendorEvents: true } },
               },
             },
           },
@@ -97,9 +103,25 @@ export default async function VendorDashboardPage() {
     );
   }
 
-  const upcomingEvents = profile.vendorEvents.filter(
-    (ve) =>
-      ve.event.startDate >= new Date() && ve.event.status === "PUBLISHED",
+  const vendorEventIds = new Set(
+    profile.vendorEvents.map((ve) => ve.event.id),
+  );
+  const fromVendorEvents = profile.vendorEvents
+    .filter(
+      (ve) =>
+        ve.event.startDate >= new Date() && ve.event.status === "PUBLISHED",
+    )
+    .map((ve) => ve.event);
+  const fromIntents = profile.vendorIntents
+    .filter(
+      (i) =>
+        !vendorEventIds.has(i.event.id) &&
+        i.event.startDate >= new Date() &&
+        i.event.status === "PUBLISHED",
+    )
+    .map((i) => i.event);
+  const upcomingEvents = [...fromVendorEvents, ...fromIntents].sort(
+    (a, b) => a.startDate.getTime() - b.startDate.getTime(),
   );
 
   const favoritedCount = profile._count.favoriteVendors;
@@ -212,8 +234,8 @@ export default async function VendorDashboardPage() {
           </Card>
         ) : (
           <div className="mt-4 space-y-3">
-            {upcomingEvents.map((ve) => (
-              <EventCard key={ve.id} event={ve.event} />
+            {upcomingEvents.map((event) => (
+              <EventCard key={event.id} event={event} />
             ))}
           </div>
         )}

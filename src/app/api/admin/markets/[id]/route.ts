@@ -54,6 +54,17 @@ export async function PUT(
       ...(data.ownerId !== undefined && {
         ownerId: data.ownerId || null,
       }),
+      ...(data.participationMode && { participationMode: data.participationMode }),
+      ...(data.vendorCapacity != null && { vendorCapacity: data.vendorCapacity }),
+      ...(data.publicIntentListEnabled !== undefined && {
+        publicIntentListEnabled: data.publicIntentListEnabled,
+      }),
+      ...(data.publicIntentNamesEnabled !== undefined && {
+        publicIntentNamesEnabled: data.publicIntentNamesEnabled,
+      }),
+      ...(data.publicRosterEnabled !== undefined && {
+        publicRosterEnabled: data.publicRosterEnabled,
+      }),
     },
   });
 

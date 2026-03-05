@@ -43,6 +43,11 @@ export default async function EditMarketPage({
     contactPhone: market.contactPhone ?? "",
     verificationStatus: market.verificationStatus,
     ownerId: market.ownerId ?? "",
+    participationMode: market.participationMode ?? "OPEN",
+    vendorCapacity: market.vendorCapacity,
+    publicIntentListEnabled: market.publicIntentListEnabled ?? true,
+    publicIntentNamesEnabled: market.publicIntentNamesEnabled ?? true,
+    publicRosterEnabled: market.publicRosterEnabled ?? true,
   };
 
   return (

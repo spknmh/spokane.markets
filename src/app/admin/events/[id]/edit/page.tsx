@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import type { EventInput } from "@/lib/validations";
 import { EventForm } from "@/components/admin/event-form";
 import { notFound } from "next/navigation";
 
@@ -51,7 +52,12 @@ export default async function EditEventPage({
     tagIds: event.tags.map((t) => t.id),
     featureIds: event.features.map((f) => f.id),
     scheduleDays,
-  };
+    participationMode: (event.participationMode ?? "") as string,
+    vendorCapacity: event.vendorCapacity ?? undefined,
+    publicIntentListEnabled: event.publicIntentListEnabled ?? undefined,
+    publicIntentNamesEnabled: event.publicIntentNamesEnabled ?? undefined,
+    publicRosterEnabled: event.publicRosterEnabled ?? undefined,
+  } as EventInput & { id: string; scheduleDays?: typeof scheduleDays };
 
   return (
     <div className="space-y-6">

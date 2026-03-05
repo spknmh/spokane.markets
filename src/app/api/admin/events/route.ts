@@ -51,6 +51,17 @@ export async function POST(request: Request) {
       status: data.status,
       websiteUrl: data.websiteUrl || null,
       facebookUrl: data.facebookUrl || null,
+      ...(data.participationMode && { participationMode: data.participationMode }),
+      ...(data.vendorCapacity != null && { vendorCapacity: data.vendorCapacity }),
+      ...(data.publicIntentListEnabled !== undefined && {
+        publicIntentListEnabled: data.publicIntentListEnabled,
+      }),
+      ...(data.publicIntentNamesEnabled !== undefined && {
+        publicIntentNamesEnabled: data.publicIntentNamesEnabled,
+      }),
+      ...(data.publicRosterEnabled !== undefined && {
+        publicRosterEnabled: data.publicRosterEnabled,
+      }),
       tags: tagIds?.length ? { connect: tagIds.map((id) => ({ id })) } : undefined,
       features: featureIds?.length
         ? { connect: featureIds.map((id) => ({ id })) }

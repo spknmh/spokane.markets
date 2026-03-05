@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getParticipationConfig } from "@/lib/participation-config";
 import { sendVendorFavoriteAlerts } from "@/lib/vendor-alerts";
 import { evaluateAndGrantBadges } from "@/lib/badges";
 import { vendorEventsSchema } from "@/lib/validations";
@@ -76,11 +77,22 @@ export async function POST(request: Request) {
     }
     const { eventId } = parsed.data;
 
-    const event = await db.event.findUnique({ where: { id: eventId } });
+    const event = await db.event.findUnique({
+      where: { id: eventId },
+      include: { market: true },
+    });
     if (!event || event.status !== "PUBLISHED") {
       return NextResponse.json(
         { error: "Event not found or not published" },
         { status: 404 },
+      );
+    }
+
+    const config = getParticipationConfig(event);
+    if (config.mode === "INVITE_ONLY") {
+      return NextResponse.json(
+        { error: "This event is invite-only. Organizers add vendors." },
+        { status: 400 },
       );
     }
 

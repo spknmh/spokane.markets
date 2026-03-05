@@ -83,6 +83,13 @@ export const venueSchema = z.object({
 
 export type VenueInput = z.infer<typeof venueSchema>;
 
+const participationModeEnum = z.enum([
+  "OPEN",
+  "REQUEST_TO_JOIN",
+  "INVITE_ONLY",
+  "CAPACITY_LIMITED",
+]);
+
 export const marketSchema = z.object({
   name: z.string().min(1, "Name is required"),
   slug: z.string().min(1, "Slug is required"),
@@ -98,6 +105,11 @@ export const marketSchema = z.object({
   contactPhone: z.string().optional(),
   verificationStatus: z.enum(["UNVERIFIED", "PENDING", "VERIFIED"]).optional(),
   ownerId: z.string().optional().or(z.literal("")),
+  participationMode: participationModeEnum.optional(),
+  vendorCapacity: z.number().int().min(0).nullable().optional(),
+  publicIntentListEnabled: z.boolean().optional(),
+  publicIntentNamesEnabled: z.boolean().optional(),
+  publicRosterEnabled: z.boolean().optional(),
 });
 
 export type MarketInput = z.infer<typeof marketSchema>;
@@ -145,6 +157,15 @@ export const eventSchema = z.object({
   tagIds: z.array(z.string()).optional(),
   featureIds: z.array(z.string()).optional(),
   scheduleDays: z.array(eventScheduleDaySchema).optional(),
+  participationMode: z
+    .union([participationModeEnum, z.literal("")])
+    .optional()
+    .nullable()
+    .transform((v) => (v === "" ? undefined : v)),
+  vendorCapacity: z.number().int().min(0).nullable().optional(),
+  publicIntentListEnabled: z.boolean().optional().nullable(),
+  publicIntentNamesEnabled: z.boolean().optional().nullable(),
+  publicRosterEnabled: z.boolean().optional().nullable(),
 });
 
 export type EventInput = z.infer<typeof eventSchema>;

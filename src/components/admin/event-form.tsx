@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventSchema, type EventInput } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
@@ -71,7 +71,7 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
     control,
     formState: { errors },
   } = useForm<EventInput>({
-    resolver: zodResolver(eventSchema),
+    resolver: zodResolver(eventSchema) as Resolver<EventInput>,
     defaultValues: initialData
       ? {
           ...initialData,
@@ -336,6 +336,62 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
           <option value="CANCELLED">Cancelled</option>
         </Select>
       </div>
+
+      <details className="rounded-lg border border-border">
+        <summary className="cursor-pointer p-4 font-medium">
+          Vendor participation (override market)
+        </summary>
+        <div className="space-y-4 border-t border-border p-4">
+          <p className="text-xs text-muted-foreground">
+            Override the market&apos;s vendor participation settings for this event. Leave as default to use market settings.
+          </p>
+          <div className="space-y-2">
+            <Label htmlFor="participationMode">Participation mode</Label>
+            <Select id="participationMode" {...register("participationMode")}>
+              <option value="">Use market default</option>
+              <option value="OPEN">Mark as attending</option>
+              <option value="REQUEST_TO_JOIN">Request to join</option>
+              <option value="INVITE_ONLY">Invite only / Juried</option>
+              <option value="CAPACITY_LIMITED">Request to join (capacity limited)</option>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="eventVendorCapacity">Vendor capacity</Label>
+            <Input
+              id="eventVendorCapacity"
+              type="number"
+              min={0}
+              placeholder="Use market default"
+              {...register("vendorCapacity", {
+                setValueAs: (v) =>
+                  v === "" || v === undefined || Number.isNaN(Number(v))
+                    ? undefined
+                    : Number(v),
+              })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Display options</Label>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" {...register("publicIntentListEnabled")} />
+                <span className="text-sm">Show self-reported list</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" {...register("publicIntentNamesEnabled")} />
+                <span className="text-sm">Show names</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" {...register("publicRosterEnabled")} />
+                <span className="text-sm">Show official roster</span>
+              </label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Uncheck to use market default. Leave checked to override.
+            </p>
+          </div>
+        </div>
+      </details>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

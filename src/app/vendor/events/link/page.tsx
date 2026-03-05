@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { getParticipationConfig } from "@/lib/participation-config";
 import { Button } from "@/components/ui/button";
 import { VendorEventLinker } from "@/components/vendor-event-linker";
 import { ArrowLeft } from "lucide-react";
@@ -13,12 +14,26 @@ export default async function VendorEventsLinkPage() {
     where: { userId: session.user.id },
     include: {
       vendorEvents: { select: { eventId: true } },
+      vendorIntents: {
+        where: {
+          status: { in: ["ATTENDING", "REQUESTED", "APPLIED", "WAITLISTED"] },
+        },
+        select: { eventId: true },
+      },
     },
   });
 
   if (!profile) {
     redirect("/vendor/profile/edit");
   }
+
+  const linkedFromEvents = new Set(profile.vendorEvents.map((ve) => ve.eventId));
+  const linkedFromIntents = new Set(
+    profile.vendorIntents.map((i) => i.eventId),
+  );
+  const linkedEventIds = Array.from(
+    new Set([...linkedFromEvents, ...linkedFromIntents]),
+  );
 
   const upcomingEvents = await db.event.findMany({
     where: {
@@ -27,11 +42,10 @@ export default async function VendorEventsLinkPage() {
     },
     include: {
       venue: { select: { name: true, neighborhood: true } },
+      market: true,
     },
     orderBy: { startDate: "asc" },
   });
-
-  const linkedEventIds = profile.vendorEvents.map((ve) => ve.eventId);
 
   const serializedEvents = upcomingEvents.map((e) => ({
     id: e.id,
@@ -40,6 +54,7 @@ export default async function VendorEventsLinkPage() {
     startDate: e.startDate.toISOString(),
     endDate: e.endDate.toISOString(),
     venue: e.venue,
+    mode: getParticipationConfig(e).mode,
   }));
 
   return (

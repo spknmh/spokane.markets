@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDateRange } from "@/lib/utils";
+import type { ParticipationMode } from "@/lib/participation-config";
 
 interface EventSummary {
   id: string;
@@ -15,6 +16,7 @@ interface EventSummary {
   startDate: string;
   endDate: string;
   venue: { name: string; neighborhood: string | null };
+  mode: ParticipationMode;
 }
 
 interface VendorEventLinkerProps {
@@ -38,33 +40,47 @@ export function VendorEventLinker({
     e.title.toLowerCase().includes(search.toLowerCase()),
   );
 
-  async function toggleLink(eventId: string) {
+  async function toggleLink(event: EventSummary) {
+    const eventId = event.id;
     setError(null);
     setPending((prev) => new Set(prev).add(eventId));
 
     const isLinked = linked.has(eventId);
-    const method = isLinked ? "DELETE" : "POST";
+    let res: Response;
 
-    const res = await fetch("/api/vendor/events", {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ eventId }),
-    });
+    if (isLinked) {
+      res = await fetch(`/api/events/${eventId}/intent`, { method: "DELETE" });
+      if (res.ok) {
+        setLinked((prev) => {
+          const next = new Set(prev);
+          next.delete(eventId);
+          return next;
+        });
+        router.refresh();
+      }
+    } else {
+      if (event.mode === "OPEN") {
+        res = await fetch(`/api/events/${eventId}/intent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "ATTENDING", visibility: "PUBLIC" }),
+        });
+      } else {
+        res = await fetch(`/api/events/${eventId}/request-roster`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+      }
+      if (res.ok) {
+        setLinked((prev) => new Set(prev).add(eventId));
+        router.refresh();
+      }
+    }
 
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      setError(body.error ?? "Something went wrong");
-    } else {
-      setLinked((prev) => {
-        const next = new Set(prev);
-        if (isLinked) {
-          next.delete(eventId);
-        } else {
-          next.add(eventId);
-        }
-        return next;
-      });
-      router.refresh();
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "Something went wrong");
     }
 
     setPending((prev) => {
@@ -97,6 +113,28 @@ export function VendorEventLinker({
           {filtered.map((event) => {
             const isLinked = linked.has(event.id);
             const isPending = pending.has(event.id);
+            const isInviteOnly = event.mode === "INVITE_ONLY";
+            const isRequestMode =
+              event.mode === "REQUEST_TO_JOIN" ||
+              event.mode === "CAPACITY_LIMITED";
+
+            const badgeLabel = isInviteOnly
+              ? null
+              : isLinked
+                ? isRequestMode
+                  ? "Request sent"
+                  : "Attending"
+                : null;
+
+            const buttonLabel = isInviteOnly
+              ? "Invite only"
+              : isPending
+                ? "..."
+                : isLinked
+                  ? "Withdraw"
+                  : isRequestMode
+                    ? "Request to join"
+                    : "Mark attending";
 
             return (
               <Card key={event.id}>
@@ -117,20 +155,21 @@ export function VendorEventLinker({
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    {isLinked && (
-                      <Badge variant="secondary">Linked</Badge>
+                    {badgeLabel && (
+                      <Badge variant="secondary">{badgeLabel}</Badge>
                     )}
                     <Button
                       size="sm"
                       variant={isLinked ? "outline" : "default"}
-                      disabled={isPending}
-                      onClick={() => toggleLink(event.id)}
+                      disabled={isPending || isInviteOnly}
+                      onClick={() => !isInviteOnly && toggleLink(event)}
+                      title={
+                        isInviteOnly
+                          ? "Organizers add vendors to this event"
+                          : undefined
+                      }
                     >
-                      {isPending
-                        ? "..."
-                        : isLinked
-                          ? "Unlink"
-                          : "Link"}
+                      {buttonLabel}
                     </Button>
                   </div>
                 </CardContent>

@@ -69,6 +69,21 @@ export async function PUT(
       facebookUrl: data.facebookUrl || null,
       tags: { set: tagIds?.map((id) => ({ id })) ?? [] },
       features: { set: featureIds?.map((id) => ({ id })) ?? [] },
+      ...(data.participationMode !== undefined && {
+        participationMode: data.participationMode || null,
+      }),
+      ...(data.vendorCapacity !== undefined && {
+        vendorCapacity: data.vendorCapacity,
+      }),
+      ...(data.publicIntentListEnabled !== undefined && {
+        publicIntentListEnabled: data.publicIntentListEnabled,
+      }),
+      ...(data.publicIntentNamesEnabled !== undefined && {
+        publicIntentNamesEnabled: data.publicIntentNamesEnabled,
+      }),
+      ...(data.publicRosterEnabled !== undefined && {
+        publicRosterEnabled: data.publicRosterEnabled,
+      }),
     },
   });
 

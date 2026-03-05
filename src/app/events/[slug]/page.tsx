@@ -37,13 +37,6 @@ async function getEvent(slug: string) {
       features: true,
       scheduleDays: { orderBy: { date: "asc" } },
       attendances: true,
-      vendorEvents: {
-        include: {
-          vendorProfile: {
-            select: { id: true, businessName: true, slug: true, imageUrl: true, specialties: true },
-          },
-        },
-      },
       vendorRoster: {
         where: { status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] } },
         include: {
@@ -128,10 +121,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
   const participationConfig = getParticipationConfig(event);
 
-  const officialVendors =
-    event.vendorRoster.length > 0
-      ? event.vendorRoster.map((r) => r.vendorProfile)
-      : event.vendorEvents.map((ve) => ve.vendorProfile);
+  const officialVendors = event.vendorRoster.map((r) => r.vendorProfile);
 
   const officialIds = new Set(officialVendors.map((v) => v.id));
   const selfReportedVendors = event.vendorIntents

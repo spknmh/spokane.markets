@@ -50,6 +50,11 @@ export function MarketForm({ initialData, venues, users = [], ownerDisplay }: Ma
       contactPhone: "",
       verificationStatus: "UNVERIFIED",
       ownerId: "",
+      participationMode: "OPEN",
+      vendorCapacity: null,
+      publicIntentListEnabled: true,
+      publicIntentNamesEnabled: true,
+      publicRosterEnabled: true,
     },
   });
 
@@ -215,6 +220,54 @@ export function MarketForm({ initialData, venues, users = [], ownerDisplay }: Ma
             label="Owner (optional)"
             placeholder="Search by name or email..."
           />
+          <div className="space-y-4 rounded-lg border border-border p-4">
+            <h3 className="font-semibold">Vendor participation</h3>
+            <div className="space-y-2">
+              <Label htmlFor="participationMode">Participation mode</Label>
+              <Select id="participationMode" {...register("participationMode")}>
+                <option value="OPEN">Mark as attending</option>
+                <option value="REQUEST_TO_JOIN">Request to join</option>
+                <option value="INVITE_ONLY">Invite only / Juried</option>
+                <option value="CAPACITY_LIMITED">Request to join (capacity limited)</option>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vendorCapacity">Vendor capacity</Label>
+              <Input
+                id="vendorCapacity"
+                type="number"
+                min={0}
+                placeholder="Optional"
+                {...register("vendorCapacity", {
+                  setValueAs: (v) =>
+                    v === "" || v === undefined || Number.isNaN(Number(v))
+                      ? null
+                      : Number(v),
+                })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Only meaningful for capacity-limited mode. Leave empty for others.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" {...register("publicIntentListEnabled")} />
+                <span className="text-sm">Show self-reported vendors list</span>
+              </label>
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" {...register("publicIntentNamesEnabled")} />
+                <span className="text-sm">Show self-reported vendor names (vs counts only)</span>
+              </label>
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" {...register("publicRosterEnabled")} />
+                <span className="text-sm">Show official roster</span>
+              </label>
+            </div>
+          </div>
         </>
       )}
 
