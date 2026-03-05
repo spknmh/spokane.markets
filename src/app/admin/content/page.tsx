@@ -1,7 +1,9 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { getBannerImages } from "@/lib/banner-images";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
+import { getSiteTheme } from "@/lib/site-theme";
 import { BannerEditor } from "@/components/admin/banner-editor";
+import { SiteThemeSelector } from "@/components/admin/site-theme-selector";
 
 const BANNER_LABELS: Record<string, string> = {
   hero: "Homepage hero",
@@ -16,16 +18,24 @@ const BANNER_LABELS: Record<string, string> = {
 
 export default async function AdminContentPage() {
   await requireAdmin();
-  const images = await getBannerImages();
+  const [images, siteTheme] = await Promise.all([
+    getBannerImages(),
+    getSiteTheme(),
+  ]);
 
   return (
     <div className="space-y-12">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Site</h1>
         <p className="mt-1 text-muted-foreground">
-          Manage banner images and landing page configuration.
+          Manage banner images, color palette, and landing page configuration.
         </p>
       </div>
+
+      <section className="space-y-6">
+        <h2 className="text-xl font-semibold">Color palette</h2>
+        <SiteThemeSelector currentTheme={siteTheme} />
+      </section>
 
       <section className="space-y-6">
         <h2 className="text-xl font-semibold">Banner Images</h2>

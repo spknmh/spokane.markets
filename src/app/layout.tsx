@@ -7,6 +7,7 @@ import { Footer } from "@/components/footer";
 import { Providers } from "@/components/providers";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
 import { SITE_NAME } from "@/lib/constants";
+import { getSiteTheme } from "@/lib/site-theme";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -35,10 +36,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = await getSiteTheme();
+  const themeAttr = theme === "cedar" ? undefined : theme;
+
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} ${inter.variable} ${fraunces.variable}`}>
+      <body
+        className={`${inter.className} ${inter.variable} ${fraunces.variable}`}
+        data-theme={themeAttr}
+      >
         <a href="#main" className="skip-link">
           Skip to main content
         </a>

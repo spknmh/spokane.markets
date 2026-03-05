@@ -34,6 +34,74 @@
   --shadow-md: 0 4px 6px -1px rgb(31 36 34 / 0.06), 0 2px 4px -2px rgb(31 36 34 / 0.04);
 }
 
+/* Main site theme palettes — 60/30/10 rule, white cards, tinted backgrounds */
+
+/* Evergreen Mist */
+@layer theme {
+  [data-theme="evergreen"] {
+    --color-background: #F6F7F8;
+    --color-foreground: #111827;
+    --color-muted: #EEF1F0;
+    --color-muted-foreground: #4B5563;
+    --color-border: #D9E1DE;
+    --color-primary: #0E3B2E;
+    --color-primary-foreground: #F6F7F8;
+    --color-primary-hover: #0A2E24;
+    --color-card: #FFFFFF;
+    --color-card-foreground: #111827;
+    --color-ring: #0E3B2E;
+    --color-accent: #D7EFE6;
+    --color-accent-foreground: #111827;
+    --color-nav: #EEF1F0;
+    --shadow-sm: none;
+    color-scheme: light;
+  }
+}
+
+/* Paper Forest */
+@layer theme {
+  [data-theme="paper"] {
+    --color-background: #FFFFFF;
+    --color-foreground: #111827;
+    --color-muted: #F3F4F6;
+    --color-muted-foreground: #4B5563;
+    --color-border: #E5E7EB;
+    --color-primary: #11412F;
+    --color-primary-foreground: #FFFFFF;
+    --color-primary-hover: #0B2E22;
+    --color-card: #FFFFFF;
+    --color-card-foreground: #111827;
+    --color-ring: #11412F;
+    --color-accent: #CDEFE0;
+    --color-accent-foreground: #111827;
+    --color-nav: #F3F4F6;
+    --shadow-sm: none;
+    color-scheme: light;
+  }
+}
+
+/* Soft Clay */
+@layer theme {
+  [data-theme="clay"] {
+    --color-background: #FAF7F2;
+    --color-foreground: #111827;
+    --color-muted: #F1E9DD;
+    --color-muted-foreground: #4B5563;
+    --color-border: #E3D7C6;
+    --color-primary: #0E3B2E;
+    --color-primary-foreground: #FAF7F2;
+    --color-primary-hover: #0A2E24;
+    --color-card: #FFFFFF;
+    --color-card-foreground: #111827;
+    --color-ring: #0E3B2E;
+    --color-accent: #E7C9A8;
+    --color-accent-foreground: #111827;
+    --color-nav: #F1E9DD;
+    --shadow-sm: none;
+    color-scheme: light;
+  }
+}
+
 /* Admin dashboard — SaaS dark blue (applies only when data-theme="admin") */
 @layer theme {
   [data-theme="admin"] {
