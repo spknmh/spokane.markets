@@ -680,8 +680,10 @@ model NotificationPreference {
   weeklyDigestEnabled    Boolean   @default(true)
   eventMatchEnabled      Boolean   @default(true)
   favoriteVendorEnabled  Boolean   @default(true)
-  organizerAlertsEnabled Boolean   @default(true)
-  frequency              String    @default("immediate")
+  organizerAlertsEnabled     Boolean   @default(true)
+  vendorRequestAlertsEnabled Boolean   @default(true)
+  reviewAlertsEnabled        Boolean   @default(true)
+  frequency                  String    @default("immediate")
   quietHoursStart        Int?
   quietHoursEnd          Int?
   emailsPausedAt         DateTime?

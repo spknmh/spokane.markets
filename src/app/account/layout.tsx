@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 
 const accountNavItems = [
-  { label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" as const },
+  { label: "Overview", href: "/dashboard", icon: "LayoutDashboard" as const },
   { label: "Settings", href: "/account/settings", icon: "Settings" as const },
   { label: "Security", href: "/account/security", icon: "Shield" as const },
   { label: "Privacy", href: "/account/privacy", icon: "Eye" as const },

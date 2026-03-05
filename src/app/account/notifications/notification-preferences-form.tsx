@@ -27,6 +27,8 @@ export function NotificationPreferencesForm({
     eventMatchEnabled: initialPrefs.eventMatchEnabled,
     favoriteVendorEnabled: initialPrefs.favoriteVendorEnabled,
     organizerAlertsEnabled: initialPrefs.organizerAlertsEnabled,
+    vendorRequestAlertsEnabled: initialPrefs.vendorRequestAlertsEnabled ?? true,
+    reviewAlertsEnabled: initialPrefs.reviewAlertsEnabled ?? true,
     frequency: initialPrefs.frequency,
   });
 
@@ -129,7 +131,7 @@ export function NotificationPreferencesForm({
           </label>
           <label className="flex items-center justify-between gap-4">
             <span className="text-sm font-medium">
-              Organizer alerts (reviews, event changes, submissions)
+              Organizer alerts (event published/rejected)
             </span>
             <input
               type="checkbox"
@@ -138,6 +140,38 @@ export function NotificationPreferencesForm({
                 setPrefs((p) => ({
                   ...p,
                   organizerAlertsEnabled: e.target.checked,
+                }))
+              }
+              className="rounded border-border"
+            />
+          </label>
+          <label className="flex items-center justify-between gap-4">
+            <span className="text-sm font-medium">
+              Vendor roster requests (when vendors request to join your events)
+            </span>
+            <input
+              type="checkbox"
+              checked={prefs.vendorRequestAlertsEnabled}
+              onChange={(e) =>
+                setPrefs((p) => ({
+                  ...p,
+                  vendorRequestAlertsEnabled: e.target.checked,
+                }))
+              }
+              className="rounded border-border"
+            />
+          </label>
+          <label className="flex items-center justify-between gap-4">
+            <span className="text-sm font-medium">
+              New reviews on your events or vendor profile
+            </span>
+            <input
+              type="checkbox"
+              checked={prefs.reviewAlertsEnabled}
+              onChange={(e) =>
+                setPrefs((p) => ({
+                  ...p,
+                  reviewAlertsEnabled: e.target.checked,
                 }))
               }
               className="rounded border-border"

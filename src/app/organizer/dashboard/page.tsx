@@ -245,10 +245,12 @@ export default async function OrganizerDashboardPage() {
                   <p className="mt-1 text-sm text-muted-foreground">
                     At {market.venue.name}
                   </p>
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    <span>{market._count.events} events</span>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {market._count.events} events
+                    </span>
                     {market.events[0] && (
-                      <span>
+                      <span className="text-xs text-muted-foreground">
                         Next:{" "}
                         <Link
                           href={`/events/${market.events[0].slug}`}
@@ -257,6 +259,13 @@ export default async function OrganizerDashboardPage() {
                           {formatDate(market.events[0].startDate)}
                         </Link>
                       </span>
+                    )}
+                    {market.verificationStatus === "VERIFIED" && (
+                      <Button variant="outline" size="sm" asChild className="ml-auto">
+                        <Link href={`/organizer/markets/${market.id}/edit`}>
+                          Edit
+                        </Link>
+                      </Button>
                     )}
                   </div>
                   {market.description && (

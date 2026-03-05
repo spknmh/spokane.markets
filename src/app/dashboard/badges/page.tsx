@@ -43,7 +43,7 @@ export default async function BadgesPage() {
           href="/dashboard"
           className="text-sm text-muted-foreground hover:text-primary"
         >
-          ← Back to dashboard
+          ← Back to My Account
         </Link>
       </div>
       <h1 className="text-3xl font-bold tracking-tight">My Badges</h1>

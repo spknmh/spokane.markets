@@ -25,7 +25,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-background">
       <DashboardSidebar
-        title="My Dashboard"
+        title="My Account"
         subtitle="Your hub"
         items={consumerNavItems}
         backLabel="Back to site"

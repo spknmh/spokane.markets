@@ -91,7 +91,7 @@ export async function POST(
 
     const vendorProfile = await db.vendorProfile.findUnique({
       where: { id: vendorId },
-      select: { userId: true },
+      select: { userId: true, businessName: true, slug: true },
     });
     if (vendorProfile?.userId) {
       await createNotification(
@@ -101,6 +101,34 @@ export async function POST(
         `Your request to be listed as a vendor has been approved.`,
         `/events/${event.slug}`
       );
+    }
+
+    const favorites = await db.favoriteVendor.findMany({
+      where: { vendorProfileId: vendorId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            notificationPreference: true,
+          },
+        },
+      },
+    });
+
+    if (vendorProfile) {
+      for (const fav of favorites) {
+        const prefs = fav.user.notificationPreference;
+        if (prefs?.favoriteVendorEnabled === false) continue;
+        if (prefs?.emailsPausedAt) continue;
+
+        await createNotification(
+          fav.user.id,
+          "FAVORITE_VENDOR_EVENT",
+          `${vendorProfile.businessName} is at ${event.title}`,
+          `A vendor you follow will be at ${event.title}.`,
+          `/events/${event.slug}`
+        );
+      }
     }
 
     await logAudit(

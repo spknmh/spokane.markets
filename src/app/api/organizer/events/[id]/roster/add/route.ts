@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { canManageEventRoster } from "@/lib/organizer-guard";
 import { getParticipationConfig } from "@/lib/participation-config";
 import { logAudit } from "@/lib/audit";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(
   request: Request,
@@ -80,6 +81,40 @@ export async function POST(
       roster.id,
       { vendorId, eventId }
     );
+
+    const [vendor, favorites] = await Promise.all([
+      db.vendorProfile.findUnique({
+        where: { id: vendorId },
+        select: { businessName: true, slug: true },
+      }),
+      db.favoriteVendor.findMany({
+        where: { vendorProfileId: vendorId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              notificationPreference: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    if (vendor) {
+      for (const fav of favorites) {
+        const prefs = fav.user.notificationPreference;
+        if (prefs?.favoriteVendorEnabled === false) continue;
+        if (prefs?.emailsPausedAt) continue;
+
+        await createNotification(
+          fav.user.id,
+          "FAVORITE_VENDOR_EVENT",
+          `${vendor.businessName} is at ${event.title}`,
+          `A vendor you follow will be at ${event.title}.`,
+          `/events/${event.slug}`
+        );
+      }
+    }
 
     return NextResponse.json(roster);
   } catch (err) {

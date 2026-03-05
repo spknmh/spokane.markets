@@ -65,7 +65,7 @@ export function UserMenu({ session }: UserMenuProps) {
             className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
           >
             <Home className="h-4 w-4" />
-            My Dashboard
+            My Account
           </Link>
           <Link
             href="/account/settings"

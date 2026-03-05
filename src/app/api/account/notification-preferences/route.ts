@@ -51,6 +51,10 @@ export async function PUT(request: Request) {
     updateData.favoriteVendorEnabled = data.favoriteVendorEnabled;
   if (data.organizerAlertsEnabled !== undefined)
     updateData.organizerAlertsEnabled = data.organizerAlertsEnabled;
+  if (data.vendorRequestAlertsEnabled !== undefined)
+    updateData.vendorRequestAlertsEnabled = data.vendorRequestAlertsEnabled;
+  if (data.reviewAlertsEnabled !== undefined)
+    updateData.reviewAlertsEnabled = data.reviewAlertsEnabled;
   if (data.frequency !== undefined) updateData.frequency = data.frequency;
   if (data.quietHoursStart !== undefined)
     updateData.quietHoursStart = data.quietHoursStart;
@@ -67,6 +71,8 @@ export async function PUT(request: Request) {
       eventMatchEnabled: data.eventMatchEnabled ?? true,
       favoriteVendorEnabled: data.favoriteVendorEnabled ?? true,
       organizerAlertsEnabled: data.organizerAlertsEnabled ?? true,
+      vendorRequestAlertsEnabled: data.vendorRequestAlertsEnabled ?? true,
+      reviewAlertsEnabled: data.reviewAlertsEnabled ?? true,
       frequency: data.frequency ?? "immediate",
       quietHoursStart: data.quietHoursStart ?? null,
       quietHoursEnd: data.quietHoursEnd ?? null,

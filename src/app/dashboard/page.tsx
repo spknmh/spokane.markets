@@ -18,7 +18,7 @@ import { evaluateAndGrantBadges } from "@/lib/badges";
 import { SITE_NAME } from "@/lib/constants";
 
 export const metadata = {
-  title: `My Dashboard — ${SITE_NAME}`,
+  title: `My Account — ${SITE_NAME}`,
   description: "Your saved filters, event RSVPs, favorite vendors, and account settings.",
 };
 
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold tracking-tight">My Dashboard</h1>
+      <h1 className="text-3xl font-bold tracking-tight">My Account</h1>
       <p className="mt-1 text-muted-foreground">
         Your saved filters, event RSVPs, and favorite vendors
       </p>

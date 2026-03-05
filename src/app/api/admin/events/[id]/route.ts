@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { eventSchema } from "@/lib/validations";
+import { createNotification } from "@/lib/notifications";
 import { NextResponse } from "next/server";
 
 async function requireAdmin() {
@@ -34,6 +35,11 @@ export async function PUT(
 
   const { tagIds, featureIds, ...data } = parsed.data;
 
+  const existing = await db.event.findUnique({
+    where: { id },
+    select: { status: true, submittedById: true, title: true, slug: true },
+  });
+
   const event = await db.event.update({
     where: { id },
     data: {
@@ -53,6 +59,31 @@ export async function PUT(
       features: { set: featureIds?.map((id) => ({ id })) ?? [] },
     },
   });
+
+  if (existing?.submittedById && data.status !== existing.status) {
+    const prefs = await db.notificationPreference.findUnique({
+      where: { userId: existing.submittedById },
+    });
+    if (prefs?.organizerAlertsEnabled !== false) {
+      if (data.status === "PUBLISHED") {
+        await createNotification(
+          existing.submittedById,
+          "EVENT_PUBLISHED",
+          "Your event is now published",
+          `"${event.title}" is now live and visible to visitors.`,
+          `/events/${event.slug}`
+        );
+      } else if (data.status === "REJECTED") {
+        await createNotification(
+          existing.submittedById,
+          "EVENT_REJECTED",
+          "Your event was not approved",
+          `"${event.title}" was not approved for publication.`,
+          `/organizer/events/${event.id}/edit`
+        );
+      }
+    }
+  }
 
   return NextResponse.json(event);
 }

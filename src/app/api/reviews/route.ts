@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { reviewSchema } from "@/lib/validations";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -59,6 +60,45 @@ export async function POST(request: Request) {
       ...rest,
     },
   });
+
+  let recipientIds = new Set<string>();
+  let link: string | null = null;
+
+  if (eventId) {
+    const event = await db.event.findUnique({
+      where: { id: eventId },
+      select: { submittedById: true, slug: true, market: { select: { ownerId: true } } },
+    });
+    if (event?.submittedById) recipientIds.add(event.submittedById);
+    if (event?.market?.ownerId) recipientIds.add(event.market.ownerId);
+    link = event ? `/events/${event.slug}` : null;
+  } else if (marketId) {
+    const market = await db.market.findUnique({
+      where: { id: marketId },
+      select: { ownerId: true, slug: true },
+    });
+    if (market?.ownerId) recipientIds.add(market.ownerId);
+    link = market ? `/markets/${market.slug}` : null;
+  }
+
+  const targetName = eventId ? "event" : "market";
+  for (const recipientId of recipientIds) {
+    if (recipientId === session.user.id) continue;
+    const prefs = await db.notificationPreference.findUnique({
+      where: { userId: recipientId },
+    });
+    const allowReviewAlerts =
+      prefs?.reviewAlertsEnabled ?? prefs?.organizerAlertsEnabled ?? true;
+    if (!allowReviewAlerts) continue;
+
+    await createNotification(
+      recipientId,
+      "NEW_REVIEW",
+      "New review",
+      `Someone left a review on your ${targetName}.`,
+      link
+    );
+  }
 
   return NextResponse.json(review, { status: 201 });
 }

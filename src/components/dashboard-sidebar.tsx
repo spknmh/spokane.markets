@@ -135,7 +135,7 @@ export function DashboardSidebar({
             href="/dashboard"
             className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
-            My Dashboard
+            My Account
           </Link>
           <Link
             href={backHref}

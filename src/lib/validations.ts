@@ -102,6 +102,21 @@ export const marketSchema = z.object({
 
 export type MarketInput = z.infer<typeof marketSchema>;
 
+/** Organizer-editable market fields (verified markets only). Excludes slug, venueId, verificationStatus, ownerId. */
+export const organizerMarketPatchSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  imageUrl: imageUrlSchema,
+  websiteUrl: z.string().url().optional().or(z.literal("")),
+  facebookUrl: z.string().url().optional().or(z.literal("")),
+  instagramUrl: z.string().url().optional().or(z.literal("")),
+  baseArea: z.string().optional(),
+  typicalSchedule: z.string().optional(),
+  contactEmail: z.string().email().optional().or(z.literal("")),
+  contactPhone: z.string().optional(),
+});
+export type OrganizerMarketPatchInput = z.infer<typeof organizerMarketPatchSchema>;
+
 export const eventSchema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),
@@ -247,6 +262,8 @@ export const notificationPreferenceSchema = z.object({
   eventMatchEnabled: z.boolean().optional(),
   favoriteVendorEnabled: z.boolean().optional(),
   organizerAlertsEnabled: z.boolean().optional(),
+  vendorRequestAlertsEnabled: z.boolean().optional(),
+  reviewAlertsEnabled: z.boolean().optional(),
   frequency: z.enum(["immediate", "daily", "weekly"]).optional(),
   quietHoursStart: z.number().int().min(0).max(23).nullable().optional(),
   quietHoursEnd: z.number().int().min(0).max(23).nullable().optional(),

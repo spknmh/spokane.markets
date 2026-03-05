@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getParticipationConfig } from "@/lib/participation-config";
+import { createNotification } from "@/lib/notifications";
 
 function isCuid(value: string): boolean {
   return /^c[a-z0-9]{24}$/i.test(value);
@@ -79,6 +80,27 @@ export async function POST(
         visibility: "PRIVATE",
       },
     });
+
+    const organizerIds = new Set<string>();
+    if (event.submittedById) organizerIds.add(event.submittedById);
+    if (event.market?.ownerId) organizerIds.add(event.market.ownerId);
+
+    for (const organizerId of organizerIds) {
+      const prefs = await db.notificationPreference.findUnique({
+        where: { userId: organizerId },
+      });
+      const allowVendorRequests =
+        prefs?.vendorRequestAlertsEnabled ?? prefs?.organizerAlertsEnabled ?? true;
+      if (!allowVendorRequests) continue;
+
+      await createNotification(
+        organizerId,
+        "VENDOR_ROSTER_REQUEST",
+        `${profile.businessName} requested to join`,
+        `${profile.businessName} requested to be listed as a vendor for ${event.title}.`,
+        `/organizer/events/${event.id}/roster`
+      );
+    }
 
     return NextResponse.json(intent, { status: 201 });
   } catch (err) {
