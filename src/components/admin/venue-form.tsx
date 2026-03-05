@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { venueSchema, type VenueInput } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export function VenueForm({ initialData }: VenueFormProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<VenueInput>({
-    resolver: zodResolver(venueSchema),
+    resolver: zodResolver(venueSchema) as Resolver<VenueInput>,
     defaultValues: initialData ?? {
       name: "",
       address: "",
