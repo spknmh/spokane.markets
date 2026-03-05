@@ -21,7 +21,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const { tagIds, featureIds, ...data } = parsed.data;
+  const { tagIds, featureIds, scheduleDays, ...data } = parsed.data;
+
+  let startDate = new Date(data.startDate);
+  let endDate = new Date(data.endDate);
+
+  if (scheduleDays?.length) {
+    const first = scheduleDays[0];
+    const last = scheduleDays[scheduleDays.length - 1];
+    const firstStart = first.allDay ? "00:00" : (first.startTime ?? "00:00");
+    const lastEnd = last.allDay ? "23:59" : (last.endTime ?? "23:59");
+    startDate = new Date(`${first.date}T${firstStart}:00`);
+    endDate = new Date(`${last.date}T${lastEnd}:00`);
+  }
 
   const hasVerifiedMarket = await db.market.findFirst({
     where: { ownerId: session.user.id, verificationStatus: "VERIFIED" },
@@ -35,8 +47,8 @@ export async function POST(request: Request) {
       title: data.title,
       slug: data.slug,
       description: data.description || null,
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
+      startDate,
+      endDate,
       timezone: data.timezone || null,
       venueId: data.venueId,
       marketId: data.marketId || null,
@@ -51,6 +63,18 @@ export async function POST(request: Request) {
         : undefined,
     },
   });
+
+  if (scheduleDays?.length) {
+    await db.eventScheduleDay.createMany({
+      data: scheduleDays.map((d) => ({
+        eventId: event.id,
+        date: new Date(d.date),
+        startTime: d.allDay ? "00:00" : (d.startTime ?? "00:00"),
+        endTime: d.allDay ? "23:59" : (d.endTime ?? "23:59"),
+        allDay: d.allDay,
+      })),
+    });
+  }
 
   return NextResponse.json(event, { status: 201 });
 }

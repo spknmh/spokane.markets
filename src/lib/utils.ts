@@ -54,8 +54,26 @@ export function formatDate(date: Date): string {
   }).format(new Date(date));
 }
 
+/** Format date as "May 12" for compact display (e.g. "thru May 12"). */
+export function formatDateShort(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(date));
+}
+
+/** True if start and end are on different calendar days. */
+export function isMultiDayEvent(start: Date, end: Date): boolean {
+  const s = new Date(start);
+  const e = new Date(end);
+  return (
+    s.getFullYear() !== e.getFullYear() ||
+    s.getMonth() !== e.getMonth() ||
+    s.getDate() !== e.getDate()
+  );
+}
+
 export function formatDateRange(start: Date, end: Date): string {
-  const startStr = formatDate(start);
   const startTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
@@ -64,7 +82,10 @@ export function formatDateRange(start: Date, end: Date): string {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(end));
-  return `${startStr} · ${startTime} – ${endTime}`;
+  if (isMultiDayEvent(start, end)) {
+    return `${formatDate(start)} – ${formatDateShort(end)} · ${startTime} – ${endTime}`;
+  }
+  return `${formatDate(start)} · ${startTime} – ${endTime}`;
 }
 
 /**
@@ -150,6 +171,21 @@ export function formatEventTime(
   ) {
     const dateStr = formatDate(s);
     return `${dateStr} · All day`;
+  }
+
+  // Multi-day: show date range + time range
+  const dateStr = formatDate(s);
+  const endDateStr = formatDate(e);
+  const startTime = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(s);
+  const endTime = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(e);
+  if (!sameDay) {
+    return `${dateStr} – ${endDateStr} · ${startTime} – ${endTime}`;
   }
 
   return timezone

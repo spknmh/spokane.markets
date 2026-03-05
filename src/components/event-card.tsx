@@ -3,6 +3,7 @@ import type { Event, Venue, Tag, Feature } from "@prisma/client";
 import { EventTimeLabel } from "@/components/event-time-label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { isMultiDayEvent, formatDateShort } from "@/lib/utils";
 
 type EventWithRelations = Event & {
   venue: Venue;
@@ -16,17 +17,31 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
+  const start = new Date(event.startDate);
+  const end = new Date(event.endDate);
+  const multiDay = isMultiDayEvent(start, end);
+
   return (
     <Link href={`/events/${event.slug}`} className="group block">
       <Card className="h-full min-h-[140px] border-2 transition-all hover:shadow-lg hover:border-primary/50">
         <CardContent className="flex gap-4 p-5">
           <div className="flex shrink-0 flex-col items-center justify-center self-start rounded-lg bg-primary px-3 py-2 text-center">
             <span className="text-xs font-bold uppercase tracking-wide text-primary-foreground">
-              {new Intl.DateTimeFormat("en-US", { month: "short" }).format(new Date(event.startDate))}
+              {new Intl.DateTimeFormat("en-US", { month: "short" }).format(start)}
             </span>
             <span className="text-2xl font-bold text-primary-foreground">
-              {new Intl.DateTimeFormat("en-US", { day: "numeric" }).format(new Date(event.startDate))}
+              {new Intl.DateTimeFormat("en-US", { day: "numeric" }).format(start)}
             </span>
+            {multiDay && (
+              <>
+                <span className="mt-1 text-[10px] font-medium uppercase tracking-wide text-primary-foreground/90">
+                  thru
+                </span>
+                <span className="text-xs font-bold text-primary-foreground">
+                  {formatDateShort(end)}
+                </span>
+              </>
+            )}
           </div>
 
           <div className="min-w-0 flex-1 space-y-2">

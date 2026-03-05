@@ -46,7 +46,19 @@ export async function PUT(
     );
   }
 
-  const { tagIds, featureIds, ...data } = parsed.data;
+  const { tagIds, featureIds, scheduleDays, ...data } = parsed.data;
+
+  let startDate = new Date(data.startDate);
+  let endDate = new Date(data.endDate);
+
+  if (scheduleDays?.length) {
+    const first = scheduleDays[0];
+    const last = scheduleDays[scheduleDays.length - 1];
+    const firstStart = first.allDay ? "00:00" : (first.startTime ?? "00:00");
+    const lastEnd = last.allDay ? "23:59" : (last.endTime ?? "23:59");
+    startDate = new Date(`${first.date}T${firstStart}:00`);
+    endDate = new Date(`${last.date}T${lastEnd}:00`);
+  }
 
   const updated = await db.event.update({
     where: { id },
@@ -54,8 +66,8 @@ export async function PUT(
       title: data.title,
       slug: data.slug,
       description: data.description || null,
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
+      startDate,
+      endDate,
       timezone: data.timezone || null,
       venueId: data.venueId,
       marketId: data.marketId || null,
@@ -66,6 +78,19 @@ export async function PUT(
       features: { set: featureIds?.map((id) => ({ id })) ?? [] },
     },
   });
+
+  await db.eventScheduleDay.deleteMany({ where: { eventId: id } });
+  if (scheduleDays?.length) {
+    await db.eventScheduleDay.createMany({
+      data: scheduleDays.map((d) => ({
+        eventId: id,
+        date: new Date(d.date),
+        startTime: d.allDay ? "00:00" : (d.startTime ?? "00:00"),
+        endTime: d.allDay ? "23:59" : (d.endTime ?? "23:59"),
+        allDay: d.allDay,
+      })),
+    });
+  }
 
   return NextResponse.json(updated);
 }

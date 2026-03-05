@@ -326,6 +326,7 @@ model Event {
   vendorIntents EventVendorIntent[]
   vendorRoster  EventVendorRoster[]
   promotions    Promotion[]
+  scheduleDays  EventScheduleDay[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -335,6 +336,21 @@ model Event {
   @@index([status, startDate])
   @@index([slug])
   @@map("events")
+}
+
+model EventScheduleDay {
+  id        String   @id @default(cuid())
+  eventId   String
+  date      DateTime @db.Date
+  startTime String
+  endTime   String
+  allDay    Boolean  @default(false)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, date])
+  @@index([eventId])
+  @@map("event_schedule_days")
 }
 
 model Promotion {

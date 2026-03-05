@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, X, Store, Home, Bell } from "lucide-react";
-import { SITE_NAME } from "@/lib/constants";
+import { Menu, X, Home, Bell } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
+import { SiteLogo } from "@/components/site-logo";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -39,13 +39,7 @@ export function NavbarClient({ session, unreadCount = 0 }: NavbarClientProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-nav/95 backdrop-blur supports-[backdrop-filter]:bg-nav/95">
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-semibold text-foreground transition-colors hover:text-link hover:underline"
-        >
-          <Store className="h-5 w-5 text-primary" aria-hidden />
-          {SITE_NAME}
-        </Link>
+        <SiteLogo />
 
         {/* Desktop nav */}
         <div className="hidden md:flex md:items-center md:gap-8">

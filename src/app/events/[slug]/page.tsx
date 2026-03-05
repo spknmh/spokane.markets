@@ -35,6 +35,7 @@ async function getEvent(slug: string) {
       market: true,
       tags: true,
       features: true,
+      scheduleDays: { orderBy: { date: "asc" } },
       attendances: true,
       vendorEvents: {
         include: {
@@ -222,6 +223,34 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   timezone={event.timezone}
                 />
               </p>
+              {event.scheduleDays && event.scheduleDays.length > 1 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Schedule
+                  </p>
+                  <ul className="space-y-1.5 text-sm">
+                    {event.scheduleDays.map((d) => (
+                      <li
+                        key={d.id}
+                        className="flex justify-between gap-2 text-foreground"
+                      >
+                        <span>
+                          {new Intl.DateTimeFormat("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          }).format(d.date)}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {d.allDay
+                            ? "All day"
+                            : `${d.startTime} – ${d.endTime}`}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             <div>

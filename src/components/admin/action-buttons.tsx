@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTransition } from "react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,11 +18,13 @@ export function DeleteButton({
   label = "Delete",
   title = "Delete",
   description = "Are you sure? This action cannot be undone.",
+  iconOnly = false,
 }: {
   action: () => Promise<void>;
   label?: string;
   title?: string;
   description?: string;
+  iconOnly?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -36,12 +39,18 @@ export function DeleteButton({
   return (
     <>
       <Button
-        variant="destructive"
-        size="sm"
+        variant={iconOnly ? "ghost" : "destructive"}
+        size={iconOnly ? "icon" : "sm"}
         disabled={isPending}
         onClick={() => setOpen(true)}
+        aria-label={title}
+        className={iconOnly ? "h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10" : undefined}
       >
-        {isPending ? "Deleting..." : label}
+        {iconOnly ? (
+          <Trash2 className="h-4 w-4" />
+        ) : (
+          isPending ? "Deleting..." : label
+        )}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

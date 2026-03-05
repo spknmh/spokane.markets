@@ -20,7 +20,7 @@ export default async function OrganizerEditEventPage({
   const [event, venues, tags, features, markets] = await Promise.all([
     db.event.findUnique({
       where: { id },
-      include: { tags: true, features: true },
+      include: { tags: true, features: true, scheduleDays: { orderBy: { date: "asc" } } },
     }),
     db.venue.findMany({
       select: { id: true, name: true },
@@ -43,6 +43,16 @@ export default async function OrganizerEditEventPage({
     redirect("/unauthorized");
   }
 
+  const scheduleDays =
+    event.scheduleDays?.length
+      ? event.scheduleDays.map((d) => ({
+          date: d.date.toISOString().slice(0, 10),
+          allDay: d.allDay,
+          startTime: d.allDay ? undefined : d.startTime,
+          endTime: d.allDay ? undefined : d.endTime,
+        }))
+      : undefined;
+
   const initialData = {
     id: event.id,
     title: event.title,
@@ -58,6 +68,7 @@ export default async function OrganizerEditEventPage({
     facebookUrl: event.facebookUrl ?? "",
     tagIds: event.tags.map((t) => t.id),
     featureIds: event.features.map((f) => f.id),
+    scheduleDays,
   };
 
   return (

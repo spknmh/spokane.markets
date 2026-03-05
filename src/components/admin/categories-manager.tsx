@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DeleteButton } from "@/components/admin/action-buttons";
@@ -31,6 +32,15 @@ export function CategoriesManager({
   const [featureSubmitting, setFeatureSubmitting] = useState(false);
   const [tagError, setTagError] = useState<string | null>(null);
   const [featureError, setFeatureError] = useState<string | null>(null);
+  const [editingTagId, setEditingTagId] = useState<string | null>(null);
+  const [editTagName, setEditTagName] = useState("");
+  const [editTagSlug, setEditTagSlug] = useState("");
+  const [editingFeatureId, setEditingFeatureId] = useState<string | null>(null);
+  const [editFeatureName, setEditFeatureName] = useState("");
+  const [editFeatureSlug, setEditFeatureSlug] = useState("");
+  const [editFeatureIcon, setEditFeatureIcon] = useState("");
+  const [tagEditSubmitting, setTagEditSubmitting] = useState(false);
+  const [featureEditSubmitting, setFeatureEditSubmitting] = useState(false);
 
   const addTag = async () => {
     const name = tagName.trim();
@@ -66,6 +76,48 @@ export function CategoriesManager({
     router.refresh();
   };
 
+  const startEditTag = (tag: TagWithCount) => {
+    setEditingTagId(tag.id);
+    setEditTagName(tag.name);
+    setEditTagSlug(tag.slug);
+  };
+
+  const cancelEditTag = () => {
+    setEditingTagId(null);
+    setEditTagName("");
+    setEditTagSlug("");
+  };
+
+  const updateTag = async () => {
+    if (!editingTagId) return;
+    const name = editTagName.trim();
+    const slug = editTagSlug.trim() || slugify(name);
+    if (!name || !slug) return;
+    setTagEditSubmitting(true);
+    setTagError(null);
+    try {
+      const res = await fetch(`/api/admin/tags/${editingTagId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, slug }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error?.message ?? "Failed to update tag");
+      }
+      const updated = await res.json();
+      setTags((prev) =>
+        prev.map((t) => (t.id === editingTagId ? { ...t, ...updated } : t)).sort((a, b) => a.name.localeCompare(b.name))
+      );
+      cancelEditTag();
+      router.refresh();
+    } catch (e) {
+      setTagError(e instanceof Error ? e.message : "Failed to update tag");
+    } finally {
+      setTagEditSubmitting(false);
+    }
+  };
+
   const addFeature = async () => {
     const name = featureName.trim();
     const slug = featureSlug.trim() || slugify(name);
@@ -99,6 +151,50 @@ export function CategoriesManager({
     await fetch(`/api/admin/features/${id}`, { method: "DELETE" });
     setFeatures((prev) => prev.filter((f) => f.id !== id));
     router.refresh();
+  };
+
+  const startEditFeature = (feature: FeatureWithCount) => {
+    setEditingFeatureId(feature.id);
+    setEditFeatureName(feature.name);
+    setEditFeatureSlug(feature.slug);
+    setEditFeatureIcon(feature.icon ?? "");
+  };
+
+  const cancelEditFeature = () => {
+    setEditingFeatureId(null);
+    setEditFeatureName("");
+    setEditFeatureSlug("");
+    setEditFeatureIcon("");
+  };
+
+  const updateFeature = async () => {
+    if (!editingFeatureId) return;
+    const name = editFeatureName.trim();
+    const slug = editFeatureSlug.trim() || slugify(name);
+    if (!name || !slug) return;
+    setFeatureEditSubmitting(true);
+    setFeatureError(null);
+    try {
+      const res = await fetch(`/api/admin/features/${editingFeatureId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, slug, icon: editFeatureIcon.trim() || undefined }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error?.message ?? "Failed to update feature");
+      }
+      const updated = await res.json();
+      setFeatures((prev) =>
+        prev.map((f) => (f.id === editingFeatureId ? { ...f, ...updated } : f)).sort((a, b) => a.name.localeCompare(b.name))
+      );
+      cancelEditFeature();
+      router.refresh();
+    } catch (e) {
+      setFeatureError(e instanceof Error ? e.message : "Failed to update feature");
+    } finally {
+      setFeatureEditSubmitting(false);
+    }
   };
 
   return (
@@ -140,19 +236,72 @@ export function CategoriesManager({
           {tags.map((tag) => (
             <li
               key={tag.id}
-              className="flex items-center justify-between rounded-md border border-border px-3 py-2"
+              className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2"
             >
-              <span className="font-medium">{tag.name}</span>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {tag.slug} · {tag._count.events} events
-                </span>
-                <DeleteButton
-                  action={() => deleteTag(tag.id)}
-                  title="Delete event type"
-                  description={`Delete "${tag.name}"? Events using it will be updated.`}
-                />
-              </div>
+              {editingTagId === tag.id ? (
+                <>
+                  <div className="flex flex-1 flex-wrap items-center gap-2">
+                    <Input
+                      value={editTagName}
+                      onChange={(e) => {
+                        setEditTagName(e.target.value);
+                        if (!editTagSlug) setEditTagSlug(slugify(e.target.value));
+                      }}
+                      placeholder="Name"
+                      className="h-8 w-36"
+                    />
+                    <Input
+                      value={editTagSlug}
+                      onChange={(e) => setEditTagSlug(e.target.value)}
+                      placeholder="Slug"
+                      className="h-8 w-28"
+                    />
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0"
+                      onClick={cancelEditTag}
+                      disabled={tagEditSubmitting}
+                      aria-label="Cancel"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={updateTag}
+                      disabled={!editTagName.trim() || tagEditSubmitting}
+                    >
+                      {tagEditSubmitting ? "Saving…" : "Save"}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="font-medium">{tag.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {tag.slug} · {tag._count.events} events
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={() => startEditTag(tag)}
+                      aria-label={`Edit ${tag.name}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <DeleteButton
+                      action={() => deleteTag(tag.id)}
+                      title="Delete event type"
+                      description={`Delete "${tag.name}"? Events using it will be updated.`}
+                      iconOnly
+                    />
+                  </div>
+                </>
+              )}
             </li>
           ))}
         </ul>
@@ -201,22 +350,81 @@ export function CategoriesManager({
           {features.map((feature) => (
             <li
               key={feature.id}
-              className="flex items-center justify-between rounded-md border border-border px-3 py-2"
+              className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2"
             >
-              <span className="font-medium">
-                {feature.icon && <span className="mr-1">{feature.icon}</span>}
-                {feature.name}
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {feature.slug} · {feature._count.events} events
-                </span>
-                <DeleteButton
-                  action={() => deleteFeature(feature.id)}
-                  title="Delete feature/amenity"
-                  description={`Delete "${feature.name}"? Events using it will be updated.`}
-                />
-              </div>
+              {editingFeatureId === feature.id ? (
+                <>
+                  <div className="flex flex-1 flex-wrap items-center gap-2">
+                    <Input
+                      value={editFeatureName}
+                      onChange={(e) => {
+                        setEditFeatureName(e.target.value);
+                        if (!editFeatureSlug) setEditFeatureSlug(slugify(e.target.value));
+                      }}
+                      placeholder="Name"
+                      className="h-8 w-36"
+                    />
+                    <Input
+                      value={editFeatureSlug}
+                      onChange={(e) => setEditFeatureSlug(e.target.value)}
+                      placeholder="Slug"
+                      className="h-8 w-28"
+                    />
+                    <Input
+                      value={editFeatureIcon}
+                      onChange={(e) => setEditFeatureIcon(e.target.value)}
+                      placeholder="Icon"
+                      className="h-8 w-16"
+                    />
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0"
+                      onClick={cancelEditFeature}
+                      disabled={featureEditSubmitting}
+                      aria-label="Cancel"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={updateFeature}
+                      disabled={!editFeatureName.trim() || featureEditSubmitting}
+                    >
+                      {featureEditSubmitting ? "Saving…" : "Save"}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="font-medium">
+                    {feature.icon && <span className="mr-1">{feature.icon}</span>}
+                    {feature.name}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {feature.slug} · {feature._count.events} events
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={() => startEditFeature(feature)}
+                      aria-label={`Edit ${feature.name}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <DeleteButton
+                      action={() => deleteFeature(feature.id)}
+                      title="Delete feature/amenity"
+                      description={`Delete "${feature.name}"? Events using it will be updated.`}
+                      iconOnly
+                    />
+                  </div>
+                </>
+              )}
             </li>
           ))}
         </ul>

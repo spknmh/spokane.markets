@@ -132,7 +132,7 @@ export default async function HomePage() {
                 p.event && (
                   <div
                     key={p.id}
-                    className="w-[min(320px,85vw)] shrink-0 snap-start"
+                    className="w-[min(400px,90vw)] shrink-0 snap-start"
                   >
                     <FeaturedEventCard
                       event={{
