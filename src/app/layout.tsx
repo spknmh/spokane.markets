@@ -58,7 +58,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <>
           <Script
             id="ga-gtag"
-            src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+            src={`https://www.googletagmanager.com/gtag/js?id=G-QNFZJVGHRX`}
             strategy="beforeInteractive"
           />
           <Script
