@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -43,10 +44,12 @@ export function VendorClaimForm({
       });
 
       if (!res.ok) {
+        trackEvent("api_error", { endpoint: "/api/vendors/claim", status: res.status });
         const body = await res.json();
         throw new Error(body.error?.message ?? "Something went wrong");
       }
 
+      trackEvent("vendor_verification_submit");
       setSubmitted(true);
     } catch (err) {
       setServerError(

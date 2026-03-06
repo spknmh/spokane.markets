@@ -1,0 +1,84 @@
+import { auth } from "@/auth";
+import { db } from "@/lib/db";
+import { adminVendorProfileSchema } from "@/lib/validations";
+import { slugify } from "@/lib/utils";
+import { NextResponse } from "next/server";
+
+function toOptional(value: string | undefined): string | undefined {
+  if (value === undefined || value === "") return undefined;
+  return value;
+}
+
+async function generateUniqueSlug(base: string, excludeId?: string): Promise<string> {
+  let slug = slugify(base) || "vendor";
+  let candidate = slug;
+  let n = 0;
+  while (true) {
+    const existing = await db.vendorProfile.findUnique({
+      where: { slug: candidate },
+      select: { id: true },
+    });
+    if (!existing || (excludeId && existing.id === excludeId)) break;
+    n += 1;
+    candidate = `${slug}-${n}`;
+  }
+  return candidate;
+}
+
+export async function POST(request: Request) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const parsed = adminVendorProfileSchema.safeParse(body);
+  if (!parsed.success) {
+    const msg = parsed.error.issues[0]?.message ?? "Validation failed";
+    return NextResponse.json({ error: msg }, { status: 400 });
+  }
+
+  const data = parsed.data;
+  const slug = data.slug || (await generateUniqueSlug(data.businessName));
+
+  const existing = await db.vendorProfile.findUnique({ where: { slug } });
+  if (existing) {
+    return NextResponse.json(
+      { error: `Slug "${slug}" is already taken.` },
+      { status: 400 }
+    );
+  }
+
+  const galleryUrls =
+    data.galleryUrls ??
+    (data.galleryUrlsText
+      ? data.galleryUrlsText
+          .split("\n")
+          .map((s) => s.trim())
+          .filter((s) => s.startsWith("http"))
+      : []);
+
+  const vendor = await db.vendorProfile.create({
+    data: {
+      businessName: data.businessName,
+      slug,
+      description: toOptional(data.description),
+      imageUrl: toOptional(data.imageUrl),
+      websiteUrl: toOptional(data.websiteUrl),
+      facebookUrl: toOptional(data.facebookUrl),
+      instagramUrl: toOptional(data.instagramUrl),
+      contactEmail: toOptional(data.contactEmail),
+      contactPhone: toOptional(data.contactPhone),
+      galleryUrls,
+      specialties: toOptional(data.specialties),
+      userId: data.userId ?? null,
+      contactVisible: data.contactVisible ?? true,
+      socialLinksVisible: data.socialLinksVisible ?? true,
+    },
+  });
+
+  return NextResponse.json(vendor, { status: 201 });
+}

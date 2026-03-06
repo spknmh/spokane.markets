@@ -34,6 +34,14 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
       role,
       has_vendor_profile: hasVendorProfile,
     } as Record<string, unknown>);
+
+    if (user && typeof sessionStorage !== "undefined") {
+      const loginMethod = sessionStorage.getItem("login_method");
+      if (loginMethod === "oauth") {
+        sessionStorage.removeItem("login_method");
+        gtag("event", "login_success", { method: "oauth" } as Record<string, unknown>);
+      }
+    }
   }, [session.data]);
 
   if (!MEASUREMENT_ID) return <>{children}</>;

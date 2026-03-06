@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useOptimistic, useTransition } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Lock, Star } from "lucide-react";
 import { AuthRequiredModal } from "@/components/auth-required-modal";
@@ -86,6 +87,7 @@ export function AttendanceToggle({
         return;
       }
 
+      trackEvent("rsvp_set", { status, event_id: eventId });
       router.refresh();
     });
   }

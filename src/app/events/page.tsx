@@ -13,11 +13,38 @@ import { SaveFilterDialog } from "@/components/save-filter-dialog";
 import { Pagination } from "@/components/pagination";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata: Metadata = {
-  title: `Events — ${SITE_NAME}`,
-  description:
-    "Browse upcoming markets, craft fairs, and community events in the Spokane area. Filter by date, neighborhood, and category.",
-};
+interface EventsPageProps {
+  searchParams: Promise<{
+    dateRange?: string;
+    neighborhood?: string;
+    category?: string;
+    feature?: string;
+    q?: string;
+    page?: string;
+    limit?: string;
+  }>;
+}
+
+export async function generateMetadata({ searchParams }: EventsPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
+  const hasFilters =
+    !!(params.neighborhood || params.category || params.feature || (params.q ?? "").trim());
+  const activeFilterCount = [
+    params.neighborhood,
+    params.category,
+    params.feature,
+  ].filter(Boolean).length;
+
+  const shouldNoIndex = page > 1 || (hasFilters && activeFilterCount >= 3);
+
+  return {
+    title: `Events — ${SITE_NAME}`,
+    description:
+      "Browse upcoming markets, craft fairs, and community events in the Spokane area. Filter by date, neighborhood, and category.",
+    ...(shouldNoIndex && { robots: { index: false, follow: true } }),
+  };
+}
 
 function getDateRange(filter: string): { gte: Date; lt: Date } {
   const now = new Date();
@@ -69,18 +96,6 @@ function getDateRange(filter: string): { gte: Date; lt: Date } {
 }
 
 const DEFAULT_LIMIT = 24;
-
-interface EventsPageProps {
-  searchParams: Promise<{
-    dateRange?: string;
-    neighborhood?: string;
-    category?: string;
-    feature?: string;
-    q?: string;
-    page?: string;
-    limit?: string;
-  }>;
-}
 
 export default async function EventsPage({ searchParams }: EventsPageProps) {
   const params = await searchParams;

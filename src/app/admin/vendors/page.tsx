@@ -2,7 +2,10 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DeleteButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
+import { deleteVendor } from "../actions";
 
 const DEFAULT_LIMIT = 25;
 
@@ -36,11 +39,16 @@ export default async function AdminVendorsPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Vendors</h1>
-        <p className="mt-1 text-muted-foreground">
-          View vendor profiles. Links open the public profile page.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Vendors</h1>
+          <p className="mt-1 text-muted-foreground">
+            Manage vendor profiles. Create, edit, or delete.
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/admin/vendors/new">Create Vendor</Link>
+        </Button>
       </div>
 
       <div className="rounded-lg border border-border overflow-hidden">
@@ -53,18 +61,19 @@ export default async function AdminVendorsPage({
               <th className="px-4 py-3 text-left font-medium">Claim</th>
               <th className="px-4 py-3 text-left font-medium">Events</th>
               <th className="px-4 py-3 text-left font-medium">Link</th>
+              <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
             {vendors.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                   No vendor profiles yet.
                 </td>
               </tr>
             ) : (
               vendors.map((v) => (
-                <tr key={v.id} className="border-t border-border">
+                <tr key={v.id} className="border-t border-border hover:bg-muted/30">
                   <td className="px-4 py-3 font-medium">{v.businessName}</td>
                   <td className="px-4 py-3 text-muted-foreground">{v.slug}</td>
                   <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">
@@ -95,6 +104,16 @@ export default async function AdminVendorsPage({
                     >
                       View
                     </Link>
+                  </td>
+                  <td className="px-4 py-3 text-right space-x-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/admin/vendors/${v.id}/edit`}>Edit</Link>
+                    </Button>
+                    <DeleteButton
+                      action={deleteVendor.bind(null, v.id)}
+                      title="Delete vendor"
+                      description={`Are you sure you want to delete "${v.businessName}"? This will remove the vendor profile and all associated data.`}
+                    />
                   </td>
                 </tr>
               ))

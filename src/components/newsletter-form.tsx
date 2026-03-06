@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { trackEvent } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { subscriberSchema, type SubscriberInput } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export function NewsletterForm() {
 
   async function onSubmit(data: SubscriberInput) {
     setSuccess(false);
+    trackEvent("newsletter_subscribe_start");
     const res = await fetch("/api/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -43,6 +45,7 @@ export function NewsletterForm() {
     const json = await res.json();
 
     if (!res.ok) {
+      trackEvent("api_error", { endpoint: "/api/subscribe", status: res.status });
       const msg =
         typeof json.error === "string"
           ? json.error
@@ -50,6 +53,7 @@ export function NewsletterForm() {
       throw new Error(msg);
     }
 
+    trackEvent("newsletter_subscribe_success");
     setSuccess(true);
   }
 
@@ -75,7 +79,11 @@ export function NewsletterForm() {
           Enter your email to receive weekly market updates.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form
+        onSubmit={handleSubmit(onSubmit, () =>
+          trackEvent("form_error", { form_id: "newsletter", reason: "validation" })
+        )}
+      >
         <CardContent className="space-y-4">
           <div className="absolute -left-[9999px] opacity-0" aria-hidden>
             <Label htmlFor="company">Company</Label>

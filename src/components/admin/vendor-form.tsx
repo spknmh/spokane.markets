@@ -1,13 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { trackEvent } from "@/lib/analytics";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  vendorProfileSchema,
-  type VendorProfileInput,
+  adminVendorProfileSchema,
+  type AdminVendorProfileInput,
 } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,11 +23,11 @@ import {
 } from "@/components/ui/card";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 
-interface VendorProfileFormProps {
-  initialData?: VendorProfileInput & { id?: string };
+interface AdminVendorFormProps {
+  initialData?: AdminVendorProfileInput & { id: string };
 }
 
-export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
+export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = React.useState<string | null>(null);
   const isEditing = !!initialData?.id;
@@ -39,8 +38,8 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<VendorProfileInput>({
-    resolver: zodResolver(vendorProfileSchema),
+  } = useForm<AdminVendorProfileInput>({
+    resolver: zodResolver(adminVendorProfileSchema),
     defaultValues: initialData ?? {
       businessName: "",
       slug: "",
@@ -53,22 +52,26 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
       contactPhone: "",
       galleryUrlsText: "",
       specialties: "",
+      userId: null,
+      contactVisible: true,
+      socialLinksVisible: true,
     },
   });
 
   const businessName = watch("businessName");
-  const previewSlug = isEditing && initialData?.slug
-    ? initialData.slug
-    : (slugify(businessName ?? "") || "your-business-name");
+  const slugValue = watch("slug");
+  const suggestedSlug = slugify(businessName ?? "") || "vendor";
 
-  async function onSubmit(data: VendorProfileInput) {
+  const handleSlugFromName = () => {
+    if (!slugValue && businessName) {
+      setValue("slug", suggestedSlug);
+    }
+  };
+
+  async function onSubmit(data: AdminVendorProfileInput) {
     setServerError(null);
 
     const payload: Record<string, unknown> = { ...data };
-    if (!isEditing) {
-      delete payload.slug;
-    }
-    // Parse gallery URLs from textarea (one per line)
     const text = (payload.galleryUrlsText as string) ?? "";
     payload.galleryUrls = text
       .split("\n")
@@ -76,24 +79,24 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
       .filter((s) => s.startsWith("http"));
     delete payload.galleryUrlsText;
 
+    const url = isEditing
+      ? `/api/admin/vendors/${initialData!.id}`
+      : "/api/admin/vendors";
     const method = isEditing ? "PUT" : "POST";
-    const res = await fetch("/api/vendor/profile", {
+
+    const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
-      trackEvent("api_error", { endpoint: "/api/vendor/profile", status: res.status });
       const body = await res.json().catch(() => ({}));
       setServerError(body.error ?? "Something went wrong");
       return;
     }
 
-    if (!isEditing) {
-      trackEvent("vendor_profile_publish");
-    }
-    router.push("/vendor/dashboard");
+    router.push("/admin/vendors");
     router.refresh();
   }
 
@@ -106,8 +109,8 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
           </CardTitle>
           <CardDescription>
             {isEditing
-              ? "Update your business information below."
-              : "Set up your vendor profile to list where you'll be selling next."}
+              ? "Update vendor profile. Slug changes affect the public URL."
+              : "Create a new vendor profile. Leave slug empty to auto-generate from business name."}
           </CardDescription>
         </CardHeader>
 
@@ -133,12 +136,43 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label>Your profile URL</Label>
-            <p className="rounded-md border border-border bg-muted/30 px-3 py-2 font-mono text-sm text-muted-foreground">
-              /vendors/{previewSlug}
-            </p>
+            <Label htmlFor="slug">Slug</Label>
+            <div className="flex gap-2">
+              <Input
+                id="slug"
+                placeholder={suggestedSlug}
+                {...register("slug")}
+                className="font-mono"
+              />
+              {!isEditing && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSlugFromName}
+                >
+                  From name
+                </Button>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Generated from your business name. This cannot be changed later.
+              URL path: /vendors/[slug]. Lowercase letters, numbers, hyphens only.
+              Leave empty to auto-generate.
+            </p>
+            {errors.slug && (
+              <p className="text-sm text-destructive">{errors.slug.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="userId">User ID (optional)</Label>
+            <Input
+              id="userId"
+              placeholder="cuid to link profile to a user"
+              {...register("userId")}
+            />
+            <p className="text-xs text-muted-foreground">
+              Link this profile to a user account. Leave empty for unclaimed.
             </p>
           </div>
 
@@ -146,7 +180,7 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              placeholder="Tell customers what you sell and what makes your products special..."
+              placeholder="Tell customers what you sell..."
               rows={4}
               {...register("description")}
             />
@@ -156,7 +190,7 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
             <Label htmlFor="specialties">Specialties</Label>
             <Textarea
               id="specialties"
-              placeholder="e.g. Organic vegetables, artisan bread, handmade soaps"
+              placeholder="e.g. Organic vegetables, artisan bread"
               rows={2}
               {...register("specialties")}
             />
@@ -171,10 +205,29 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
             aspectRatio="square"
           />
           {errors.imageUrl && (
-            <p className="text-sm text-destructive">
-              {errors.imageUrl.message}
-            </p>
+            <p className="text-sm text-destructive">{errors.imageUrl.message}</p>
           )}
+
+          <div className="flex flex-wrap gap-6">
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={watch("contactVisible") ?? true}
+                onChange={(e) => setValue("contactVisible", e.target.checked)}
+                className="rounded border-border"
+              />
+              <span className="text-sm">Contact info visible</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={watch("socialLinksVisible") ?? true}
+                onChange={(e) => setValue("socialLinksVisible", e.target.checked)}
+                className="rounded border-border"
+              />
+              <span className="text-sm">Social links visible</span>
+            </label>
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -185,9 +238,6 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
                 placeholder="contact@example.com"
                 {...register("contactEmail")}
               />
-              <p className="text-xs text-muted-foreground">
-                Optional. Shown on your public profile if you add it.
-              </p>
               {errors.contactEmail && (
                 <p className="text-sm text-destructive">
                   {errors.contactEmail.message}
@@ -215,13 +265,10 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
             <Label htmlFor="galleryUrlsText">Gallery Images</Label>
             <Textarea
               id="galleryUrlsText"
-              placeholder="One image URL per line:&#10;https://example.com/photo1.jpg&#10;https://example.com/photo2.jpg"
+              placeholder="One image URL per line"
               rows={3}
               {...register("galleryUrlsText")}
             />
-            <p className="text-xs text-muted-foreground">
-              Add image URLs, one per line. These will appear in a gallery on your profile.
-            </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
@@ -273,11 +320,7 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
         </CardContent>
 
         <CardFooter className="flex justify-between">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => router.back()}
-          >
+          <Button type="button" variant="ghost" onClick={() => router.back()}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>

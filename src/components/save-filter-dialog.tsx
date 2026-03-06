@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Session } from "next-auth";
+import { trackEvent } from "@/lib/analytics";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthRequiredModal } from "@/components/auth-required-modal";
@@ -73,10 +74,12 @@ export function SaveFilterDialog({ session, currentFilters, callbackUrl = "/even
       }
 
       if (!res.ok) {
+        trackEvent("api_error", { endpoint: "/api/filters", status: res.status });
         const body = await res.json();
         throw new Error(body.error?.message || "Failed to save filter");
       }
 
+      trackEvent("save_filter_success");
       setSuccess(true);
       setName("");
       setEmailAlerts(false);
@@ -96,6 +99,7 @@ export function SaveFilterDialog({ session, currentFilters, callbackUrl = "/even
       setAuthModalOpen(true);
       return;
     }
+    trackEvent("save_filter_click");
     setOpen(true);
   };
 

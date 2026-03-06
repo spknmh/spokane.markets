@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -44,6 +45,7 @@ export function SignUpForm() {
 
   async function onSubmit(data: SignUpInput) {
     setError(null);
+    trackEvent("signup_start", { role: data.role });
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -60,6 +62,7 @@ export function SignUpForm() {
     const json = await res.json();
 
     if (!res.ok) {
+      trackEvent("api_error", { endpoint: "/api/auth/register", status: res.status });
       if (typeof json.error === "string") {
         setError(json.error);
       } else if (json.error && typeof json.error === "object") {
@@ -72,6 +75,7 @@ export function SignUpForm() {
       return;
     }
 
+    trackEvent("signup_success", { role: data.role });
     router.push(
       `/auth/signin?verified=0&callbackUrl=${encodeURIComponent(callbackUrl)}`
     );
@@ -87,7 +91,11 @@ export function SignUpForm() {
             Create an account to get started
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form
+          onSubmit={handleSubmit(onSubmit, () =>
+            trackEvent("form_error", { form_id: "signup", reason: "validation" })
+          )}
+        >
           <CardContent className="space-y-4">
             {error && (
               <div

@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { trackEvent } from "@/lib/analytics";
 import { CalendarPlus } from "lucide-react";
 import { generateEventIcs } from "@/lib/ics";
 
@@ -32,6 +33,7 @@ export function AddToCalendar({
   eventPageUrl: string;
 }) {
   const downloadIcs = useCallback(() => {
+    trackEvent("add_to_calendar_click", { provider: "ics", event_id: event.id });
     const ics = generateEventIcs(event, venue, eventPageUrl);
     const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -71,12 +73,22 @@ export function AddToCalendar({
           Download (.ics)
         </Button>
         <Button variant="outline" size="sm" asChild>
-          <a href={googleUrl.toString()} target="_blank" rel="noopener noreferrer">
+          <a
+            href={googleUrl.toString()}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackEvent("add_to_calendar_click", { provider: "google", event_id: event.id })}
+          >
             Google Calendar
           </a>
         </Button>
         <Button variant="outline" size="sm" asChild>
-          <a href={outlookUrl.toString()} target="_blank" rel="noopener noreferrer">
+          <a
+            href={outlookUrl.toString()}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackEvent("add_to_calendar_click", { provider: "outlook", event_id: event.id })}
+          >
             Outlook
           </a>
         </Button>

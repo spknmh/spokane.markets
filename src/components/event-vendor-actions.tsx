@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { useRouter } from "next/navigation";
 import { Lock, CheckCircle2, Star, Send } from "lucide-react";
 import { AuthRequiredModal } from "@/components/auth-required-modal";
@@ -56,6 +57,7 @@ export function EventVendorActions({
         setError(data.error ?? "Something went wrong");
         return;
       }
+      trackEvent("vendor_intent_set", { status, event_id: eventId });
       router.refresh();
     });
   }
@@ -90,6 +92,7 @@ export function EventVendorActions({
         setError(data.error ?? "Something went wrong");
         return;
       }
+      trackEvent("vendor_roster_request", { event_id: eventId });
       router.refresh();
     });
   }

@@ -279,6 +279,18 @@ export const vendorProfileSchema = z.object({
 });
 export type VendorProfileInput = z.infer<typeof vendorProfileSchema>;
 
+/** Admin-only: extends vendorProfileSchema with slug, userId, visibility flags. */
+export const adminVendorProfileSchema = vendorProfileSchema.extend({
+  slug: z
+    .string()
+    .optional()
+    .refine((v) => !v || /^[a-z0-9-]+$/.test(v), "Slug must be lowercase letters, numbers, hyphens only"),
+  userId: z.string().optional().nullable(),
+  contactVisible: z.boolean().optional(),
+  socialLinksVisible: z.boolean().optional(),
+});
+export type AdminVendorProfileInput = z.infer<typeof adminVendorProfileSchema>;
+
 export const savedFilterSchema = z.object({
   name: z.string().min(1, "Filter name is required"),
   dateRange: z.string().optional(),

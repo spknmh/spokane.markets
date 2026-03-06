@@ -36,6 +36,13 @@ export async function deleteMarket(id: string) {
   revalidatePath("/admin/markets");
 }
 
+export async function deleteVendor(id: string) {
+  const session = await requireAdminAction();
+  await db.vendorProfile.delete({ where: { id } });
+  await logAudit(session.user.id, "DELETE_VENDOR", "VENDOR_PROFILE", id);
+  revalidatePath("/admin/vendors");
+}
+
 export async function deletePromotion(id: string) {
   const session = await requireAdminAction();
   await db.promotion.delete({ where: { id } });

@@ -19,6 +19,7 @@ import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
 import { ReportButton } from "@/components/report-button";
 import { TrackMarketView } from "@/components/track-content-view";
+import { ClaimMarketButton } from "@/components/claim-market-button";
 import type { Metadata } from "next";
 import type { VerificationStatus } from "@prisma/client";
 import { SITE_NAME } from "@/lib/constants";
@@ -89,8 +90,40 @@ export default async function MarketDetailPage({ params }: PageProps) {
   const fullAddress = `${market.venue.address}, ${market.venue.city}, ${market.venue.state} ${market.venue.zip}`;
   const directionsUrl = getDirectionsUrl(fullAddress);
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const marketUrl = `${baseUrl}/markets/${market.slug}`;
+  const marketImage =
+    market.imageUrl?.startsWith("http")
+      ? market.imageUrl
+      : market.imageUrl
+        ? `${baseUrl}${market.imageUrl.startsWith("/") ? "" : "/"}${market.imageUrl}`
+        : undefined;
+
+  const marketJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: market.name,
+    description: market.description ?? undefined,
+    url: marketUrl,
+    image: marketImage,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: market.venue.address,
+      addressLocality: market.venue.city,
+      addressRegion: market.venue.state,
+      postalCode: market.venue.zip,
+    },
+    ...(market.websiteUrl && { sameAs: [market.websiteUrl] }),
+    ...(market.contactEmail && { email: market.contactEmail }),
+    ...(market.contactPhone && { telephone: market.contactPhone }),
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(marketJsonLd) }}
+      />
       <TrackMarketView
         marketId={market.id}
         neighborhood={market.venue?.neighborhood ?? market.baseArea ?? undefined}
@@ -249,11 +282,11 @@ export default async function MarketDetailPage({ params }: PageProps) {
             )}
 
             {market.verificationStatus !== "VERIFIED" && (
-              <AuthGate session={session} callbackUrl={`/markets/${market.slug}/claim`}>
-                <Button asChild className="w-full">
-                  <Link href={`/markets/${market.slug}/claim`}>Claim This Market</Link>
-                </Button>
-              </AuthGate>
+              <ClaimMarketButton
+                marketId={market.id}
+                marketSlug={market.slug}
+                session={session}
+              />
             )}
           </div>
         </aside>

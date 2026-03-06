@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { trackEvent } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Session } from "next-auth";
 import {
@@ -56,6 +57,7 @@ export function SubmissionForm({ session }: SubmissionFormProps) {
   async function onSubmit(data: SubmissionInput | SubmissionInputAuthed) {
     setSuccess(false);
     setError(null);
+    trackEvent("submit_event_start");
     const payload = isAuthed ? data : (data as SubmissionInput);
     const res = await fetch("/api/submissions", {
       method: "POST",
@@ -66,6 +68,7 @@ export function SubmissionForm({ session }: SubmissionFormProps) {
     const json = await res.json();
 
     if (!res.ok) {
+      trackEvent("api_error", { endpoint: "/api/submissions", status: res.status });
       const msg =
         typeof json.error === "string"
           ? json.error
@@ -74,6 +77,7 @@ export function SubmissionForm({ session }: SubmissionFormProps) {
       return;
     }
 
+    trackEvent("submit_event_success");
     setSuccess(true);
   }
 
@@ -100,7 +104,11 @@ export function SubmissionForm({ session }: SubmissionFormProps) {
           Fill in the information about the event you&apos;d like to submit.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form
+        onSubmit={handleSubmit(onSubmit, () =>
+          trackEvent("form_error", { form_id: "submission", reason: "validation" })
+        )}
+      >
         <CardContent className="space-y-4">
           {/* Honeypot */}
           <div className="absolute -left-[9999px] opacity-0" aria-hidden>

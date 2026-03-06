@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { claimRequestSchema, type ClaimRequestInput } from "@/lib/validations";
@@ -37,10 +38,12 @@ export function ClaimForm({ marketId, marketName }: ClaimFormProps) {
       });
 
       if (!res.ok) {
+        trackEvent("api_error", { endpoint: "/api/markets/claim", status: res.status });
         const body = await res.json();
         throw new Error(body.error?.message ?? "Something went wrong");
       }
 
+      trackEvent("claim_market_success", { market_id: marketId });
       setSubmitted(true);
     } catch (err) {
       setServerError(

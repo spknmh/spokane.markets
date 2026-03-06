@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -51,11 +52,13 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
     });
 
     if (result?.error) {
+      trackEvent("api_error", { endpoint: "/api/auth/signin", status: 401 });
       setError("Invalid email or password. Please try again.");
       return;
     }
 
     if (result?.ok) {
+      trackEvent("login_success", { method: "credentials" });
       router.push(callbackUrl);
       router.refresh();
     }
@@ -70,7 +73,11 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form
+          onSubmit={handleSubmit(onSubmit, () =>
+            trackEvent("form_error", { form_id: "signin", reason: "validation" })
+          )}
+        >
           <CardContent className="space-y-4">
             {needsVerification && (
               <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-foreground">
@@ -138,7 +145,12 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => signIn("google", { callbackUrl })}
+                      onClick={() => {
+                        if (typeof window !== "undefined") {
+                          sessionStorage.setItem("login_method", "oauth");
+                        }
+                        signIn("google", { callbackUrl });
+                      }}
                       disabled={isSubmitting}
                     >
                       Google
@@ -148,7 +160,12 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => signIn("facebook", { callbackUrl })}
+                      onClick={() => {
+                        if (typeof window !== "undefined") {
+                          sessionStorage.setItem("login_method", "oauth");
+                        }
+                        signIn("facebook", { callbackUrl });
+                      }}
                       disabled={isSubmitting}
                     >
                       Facebook
