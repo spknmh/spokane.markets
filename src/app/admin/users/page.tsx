@@ -55,7 +55,7 @@ export default async function AdminUsersPage({
       orderBy: { createdAt: "desc" },
       include: {
         _count: {
-          select: { ownedMarkets: true, claimRequests: true },
+          select: { ownedMarkets: true, claimRequests: true, reviews: true },
         },
       },
       skip: (page - 1) * limit,
@@ -91,6 +91,7 @@ export default async function AdminUsersPage({
               <th className="text-left p-3 font-medium">Email</th>
               <th className="text-left p-3 font-medium">Role</th>
               <th className="text-left p-3 font-medium">Markets</th>
+              <th className="text-left p-3 font-medium">Reviews</th>
               <th className="text-left p-3 font-medium">Joined</th>
               <th className="w-20 p-3" aria-label="Actions" />
             </tr>
@@ -98,14 +99,21 @@ export default async function AdminUsersPage({
           <tbody className="divide-y divide-border">
             {users.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                <td colSpan={7} className="p-6 text-center text-muted-foreground">
                   No users found.
                 </td>
               </tr>
             ) : (
               users.map((user) => (
                 <tr key={user.id} className="hover:bg-muted/30">
-                  <td className="p-3 font-medium">{user.name ?? "—"}</td>
+                  <td className="p-3 font-medium">
+                    <Link
+                      href={`/admin/users/${user.id}`}
+                      className="text-primary hover:underline"
+                    >
+                      {user.name ?? user.email}
+                    </Link>
+                  </td>
                   <td className="p-3 text-muted-foreground">{user.email}</td>
                   <td className="p-3">
                     <UserRoleSelect
@@ -120,6 +128,18 @@ export default async function AdminUsersPage({
                         className="text-primary hover:underline"
                       >
                         {user._count.ownedMarkets}
+                      </Link>
+                    ) : (
+                      "0"
+                    )}
+                  </td>
+                  <td className="p-3 text-muted-foreground">
+                    {user._count.reviews > 0 ? (
+                      <Link
+                        href={`/admin/reviews?user=${user.id}`}
+                        className="text-primary hover:underline"
+                      >
+                        {user._count.reviews}
                       </Link>
                     ) : (
                       "0"

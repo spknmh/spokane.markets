@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { Camera } from "lucide-react";
+import { isBannerUnoptimized } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -82,7 +83,7 @@ export function ImageUploadWithUrl({
               alt="Preview"
               fill
               className="object-cover"
-              unoptimized={value.startsWith("/uploads/")}
+              unoptimized={isBannerUnoptimized(value)}
               sizes={aspectRatio === "banner" ? "320px" : "96px"}
             />
           ) : (

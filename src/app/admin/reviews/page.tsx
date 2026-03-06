@@ -25,16 +25,17 @@ const statusVariant: Record<ModerationStatus, "outline" | "default" | "destructi
 export default async function AdminReviewsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; limit?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; limit?: string; user?: string }>;
 }) {
   await requireAdmin();
 
   const params = await searchParams;
   const statusFilter = (params.status as ModerationStatus) || "PENDING";
+  const userId = params.user?.trim() || undefined;
   const page = Math.max(1, parseInt(params.page ?? "1", 10));
   const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
 
-  const where = { status: statusFilter };
+  const where = { status: statusFilter, ...(userId ? { userId } : {}) };
   const [total, reviews] = await Promise.all([
     db.review.count({ where }),
     db.review.findMany({
@@ -51,15 +52,37 @@ export default async function AdminReviewsPage({
   ]);
   const totalPages = Math.ceil(total / limit);
 
+  const userForFilter = userId
+    ? await db.user.findUnique({
+        where: { id: userId },
+        select: { name: true, email: true },
+      })
+    : null;
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Reviews</h1>
 
+      {userId && userForFilter && (
+        <p className="text-sm text-muted-foreground">
+          Filtering by user:{" "}
+          <Link href={`/admin/users/${userId}`} className="text-primary hover:underline">
+            {userForFilter.name || userForFilter.email}
+          </Link>
+          {" · "}
+          <Link href="/admin/reviews" className="text-primary hover:underline">
+            Clear filter
+          </Link>
+        </p>
+      )}
+
       <div className="flex gap-2 border-b border-border pb-2">
-        {STATUS_TABS.map((tab) => (
+        {STATUS_TABS.map((tab) => {
+          const tabHref = `/admin/reviews?status=${tab.value}&page=1${userId ? `&user=${userId}` : ""}`;
+          return (
           <Link
             key={tab.value}
-            href={`/admin/reviews?status=${tab.value}&page=1`}
+            href={tabHref}
             className={cn(
               "px-3 py-1.5 text-sm rounded-md transition-colors",
               statusFilter === tab.value
@@ -69,7 +92,8 @@ export default async function AdminReviewsPage({
           >
             {tab.label}
           </Link>
-        ))}
+          );
+        })}
       </div>
 
       <div className="space-y-4">
