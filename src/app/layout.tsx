@@ -60,7 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           id="umami"
           src={umamiScriptUrl}
           data-website-id={umamiWebsiteId}
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
         />
       )}
       {gtmId && (
