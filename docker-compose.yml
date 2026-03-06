@@ -16,6 +16,9 @@ services:
     build:
       context: .
       target: init
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
       secrets:
         - NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
     depends_on:
@@ -30,6 +33,9 @@ services:
     build:
       context: .
       target: runner
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
       secrets:
         - NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
     depends_on:

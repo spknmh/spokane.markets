@@ -84,7 +84,9 @@ In **Settings → Secrets and variables → Actions**, add:
 | `SERVER_HOST` | Server hostname or IP |
 | `SERVER_USER` | SSH username (e.g. `deploy` or `root`) |
 | `SERVER_SSH_KEY` | Private SSH key (full contents, including `-----BEGIN ...-----`) |
-| `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Same value as in `.env.local` — `openssl rand -base64 32`. Required for Server Actions to work across deployments. |
+| `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Same value as in `.env.local` — `openssl rand -base64 32`. Required for Server Actions. |
+| `NEXT_PUBLIC_APP_URL` | Same as `AUTH_URL` (e.g. `https://spokane.markets`). Required for client bundle. |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 measurement ID (e.g. `G-XXXXXXXXXX`). Optional; consent banner shows regardless. |
 
 Ensure the server allows SSH key auth for `SERVER_USER`.
 
@@ -108,11 +110,16 @@ Migrations and seed run automatically in the `init` container before `web` start
 
 ```bash
 # On your machine: build and push both images
-# NEXT_SERVER_ACTIONS_ENCRYPTION_KEY must match the value in .env.local on the server
-export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="your-base64-key-from-openssl-rand-base64-32"
+export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="your-base64-key"
+export NEXT_PUBLIC_APP_URL="https://spokane.markets"
+export NEXT_PUBLIC_GA_MEASUREMENT_ID="G-XXXXXXXXXX"  # optional
 docker build -t ghcr.io/redkeysh/spokane.markets:latest --target runner \
+  --build-arg NEXT_PUBLIC_APP_URL \
+  --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID \
   --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY .
 docker build -t ghcr.io/redkeysh/spokane.markets:init --target init \
+  --build-arg NEXT_PUBLIC_APP_URL \
+  --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID \
   --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY .
 docker push ghcr.io/redkeysh/spokane.markets:latest
 docker push ghcr.io/redkeysh/spokane.markets:init

@@ -16,6 +16,11 @@ COPY . .
 RUN mkdir -p public
 # prisma generate needs DATABASE_URL in config; placeholder suffices (no DB connection)
 ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
+# NEXT_PUBLIC_* are embedded in client bundle at build time (not secrets).
+ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID}
 # Server Actions need a stable encryption key at build time. Pass via secret mount (not ARG/ENV).
 # Build with: --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 RUN npx prisma generate
