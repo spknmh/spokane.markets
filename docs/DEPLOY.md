@@ -86,7 +86,7 @@ In **Settings → Secrets and variables → Actions**, add:
 | `SERVER_SSH_KEY` | Private SSH key (full contents, including `-----BEGIN ...-----`) |
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Same value as in `.env.local` — `openssl rand -base64 32`. Required for Server Actions. |
 | `NEXT_PUBLIC_APP_URL` | Same as `AUTH_URL` (e.g. `https://spokane.markets`). Required for client bundle. |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 measurement ID (e.g. `G-XXXXXXXXXX`). Optional; consent banner shows regardless. |
+| `NEXT_PUBLIC_GTM_ID` | Google Tag Manager container ID (e.g. `GTM-MCG6KBNR`). Optional; consent banner shows regardless. |
 
 Ensure the server allows SSH key auth for `SERVER_USER`.
 
@@ -112,14 +112,14 @@ Migrations and seed run automatically in the `init` container before `web` start
 # On your machine: build and push both images
 export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="your-base64-key"
 export NEXT_PUBLIC_APP_URL="https://spokane.markets"
-export NEXT_PUBLIC_GA_MEASUREMENT_ID="G-XXXXXXXXXX"  # optional
+export NEXT_PUBLIC_GTM_ID="GTM-MCG6KBNR"  # optional
 docker build -t ghcr.io/redkeysh/spokane.markets:latest --target runner \
   --build-arg NEXT_PUBLIC_APP_URL \
-  --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID \
+  --build-arg NEXT_PUBLIC_GTM_ID \
   --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY .
 docker build -t ghcr.io/redkeysh/spokane.markets:init --target init \
   --build-arg NEXT_PUBLIC_APP_URL \
-  --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID \
+  --build-arg NEXT_PUBLIC_GTM_ID \
   --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY .
 docker push ghcr.io/redkeysh/spokane.markets:latest
 docker push ghcr.io/redkeysh/spokane.markets:init

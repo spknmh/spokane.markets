@@ -3,25 +3,26 @@
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
-import { gtag } from "@/lib/analytics";
+import { pushDataLayer } from "@/lib/analytics";
 
-const MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const session = useSession();
 
   useEffect(() => {
-    if (!MEASUREMENT_ID || typeof window === "undefined") return;
-    gtag("event", "page_view", {
+    if (!GTM_ID || typeof window === "undefined") return;
+    pushDataLayer({
+      event: "page_view",
       page_path: pathname,
-      page_location: window.location.href,
+      page_location: `${window.location.origin}${pathname}`,
       page_title: document.title,
-    } as Record<string, unknown>);
+    });
   }, [pathname]);
 
   useEffect(() => {
-    if (!MEASUREMENT_ID || typeof window === "undefined") return;
+    if (!GTM_ID || typeof window === "undefined") return;
     const user = session.data?.user;
     const role = (user?.role as string)?.toLowerCase() ?? "consumer";
     const hasVendorProfile =
@@ -29,16 +30,17 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
         ? (user as { hasVendorProfile?: boolean }).hasVendorProfile
         : false;
 
-    gtag("set", "user_properties", {
+    pushDataLayer({
+      event: "user_properties",
       role,
       has_vendor_profile: hasVendorProfile,
-    } as Record<string, unknown>);
+    });
 
     if (user && typeof window !== "undefined" && typeof window.sessionStorage !== "undefined") {
       const loginMethod = sessionStorage.getItem("login_method");
       if (loginMethod === "oauth") {
         sessionStorage.removeItem("login_method");
-        gtag("event", "login_success", { method: "oauth" } as Record<string, unknown>);
+        pushDataLayer({ event: "login_success", method: "oauth" });
       }
     }
   }, [session.data]);
