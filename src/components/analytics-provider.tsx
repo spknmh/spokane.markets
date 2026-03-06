@@ -45,27 +45,29 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session.data]);
 
-  if (!MEASUREMENT_ID) return <>{children}</>;
-
   return (
     <>
-      <Script
-        id="ga-init"
-        strategy="beforeInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
+      {MEASUREMENT_ID && (
+        <>
+          <Script
+            id="ga-init"
+            strategy="beforeInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied' });
             gtag('config', '${MEASUREMENT_ID}', { debug_mode: ${GA_DEBUG} });
           `,
-        }}
-      />
-      <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`}
-        strategy="afterInteractive"
-      />
+            }}
+          />
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`}
+            strategy="afterInteractive"
+          />
+        </>
+      )}
       <ConsentBanner />
       {children}
     </>

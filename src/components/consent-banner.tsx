@@ -11,27 +11,39 @@ export function ConsentBanner() {
   const [show, setShow] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as "granted" | "denied" | null;
-    if (stored === "granted") {
-      updateAnalyticsConsent(true);
-      setShow(false);
-    } else if (stored === "denied") {
-      updateAnalyticsConsent(false);
-      setShow(false);
-    } else {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY) as "granted" | "denied" | null;
+      if (stored === "granted") {
+        updateAnalyticsConsent(true);
+        setShow(false);
+      } else if (stored === "denied") {
+        updateAnalyticsConsent(false);
+        setShow(false);
+      } else {
+        setShow(true);
+      }
+    } catch {
       setShow(true);
     }
   }, []);
 
   function handleAccept() {
     updateAnalyticsConsent(true);
-    localStorage.setItem(STORAGE_KEY, "granted");
+    try {
+      localStorage.setItem(STORAGE_KEY, "granted");
+    } catch {
+      /* ignore */
+    }
     setShow(false);
   }
 
   function handleDecline() {
     updateAnalyticsConsent(false);
-    localStorage.setItem(STORAGE_KEY, "denied");
+    try {
+      localStorage.setItem(STORAGE_KEY, "denied");
+    } catch {
+      /* ignore */
+    }
     setShow(false);
   }
 
