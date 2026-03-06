@@ -32,6 +32,8 @@ jobs:
           context: .
           target: runner
           push: true
+          build-args: |
+            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
           tags: |
             ${{ env.IMAGE }}
             ghcr.io/${{ github.repository }}:latest
@@ -42,6 +44,8 @@ jobs:
           context: .
           target: init
           push: true
+          build-args: |
+            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
           tags: |
             ${{ env.IMAGE_INIT }}
             ghcr.io/${{ github.repository }}:init
