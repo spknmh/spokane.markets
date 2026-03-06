@@ -15,6 +15,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     if (!MEASUREMENT_ID || typeof window === "undefined") return;
     gtag("event", "page_view", {
       page_path: pathname,
+      page_location: window.location.href,
       page_title: document.title,
     } as Record<string, unknown>);
   }, [pathname]);

@@ -58,19 +58,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <>
           <Script
             id="ga-gtag"
-            src={`https://www.googletagmanager.com/gtag/js?id=G-QNFZJVGHRX`}
-            strategy="beforeInteractive"
+            src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+            strategy="afterInteractive"
           />
           <Script
             id="ga-init"
-            strategy="beforeInteractive"
+            strategy="afterInteractive"
             dangerouslySetInnerHTML={{
               __html: `
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
                 gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied' });
-                gtag('config', '${gaId}'${gaDebug ? ", { debug_mode: true }" : ""});
+                gtag('config', '${gaId}', { send_page_view: false${gaDebug ? ", debug_mode: true" : ""} });
               `,
             }}
           />
