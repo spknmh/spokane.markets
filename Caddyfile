@@ -6,6 +6,10 @@
 }
 
 spokane.markets {
+	 @env_probe path_regexp env \.env(\.(swp|qa|dist|demo|ci|uat|backup|example|old|defaults|preview|sample|save|production|local|staging|test|dev|prod|bak|stage))?$
+	handle @env_probe {
+			respond 404
+	}
 	tls {
 		issuer acme {
 			disable_tlsalpn_challenge

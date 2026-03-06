@@ -19,8 +19,12 @@ ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholde
 # NEXT_PUBLIC_* are embedded in client bundle at build time (not secrets).
 ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
 ARG NEXT_PUBLIC_GTM_ID=
+ARG NEXT_PUBLIC_UMAMI_WEBSITE_ID=
+ARG NEXT_PUBLIC_UMAMI_SCRIPT_URL=
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_GTM_ID=${NEXT_PUBLIC_GTM_ID}
+ENV NEXT_PUBLIC_UMAMI_WEBSITE_ID=${NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+ENV NEXT_PUBLIC_UMAMI_SCRIPT_URL=${NEXT_PUBLIC_UMAMI_SCRIPT_URL}
 # Server Actions need a stable encryption key at build time. Pass via secret mount (not ARG/ENV).
 # Build with: --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 RUN npx prisma generate
