@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/auth";
+import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { Pagination } from "@/components/pagination";
 import { getBannerImages } from "@/lib/banner-images";
@@ -17,6 +19,12 @@ import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { VendorsSearch } from "@/components/vendors-search";
 
 const DEFAULT_LIMIT = 24;
+
+export const metadata: Metadata = {
+  title: `Vendors — ${SITE_NAME}`,
+  description:
+    "Browse local vendors at Spokane markets and craft fairs. Find artisans, food vendors, and small businesses.",
+};
 
 function truncate(str: string | null | undefined, len: number): string {
   if (!str) return "";

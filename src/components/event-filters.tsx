@@ -6,6 +6,7 @@ import { DATE_FILTERS, NEIGHBORHOODS } from "@/lib/constants";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { trackEvent } from "@/lib/analytics";
 
 type TagOption = { id: string; name: string; slug: string };
 type FeatureOption = { id: string; name: string; slug: string; icon: string | null };
@@ -39,6 +40,30 @@ export function EventFilters({ tags, features }: EventFiltersProps) {
       } else {
         params.delete(key);
       }
+
+      const dateRange = params.get("dateRange") ?? "";
+      const neighborhood = params.get("neighborhood") ?? "";
+      const category = params.get("category") ?? "";
+      const feature = params.get("feature") ?? "";
+      const query = params.get("q") ?? "";
+
+      if (key === "q") {
+        trackEvent("search_events", {
+          query_length: query.length,
+          has_date: !!(dateRange && dateRange !== "all"),
+          has_neighborhood: !!neighborhood,
+          has_category: !!category,
+          has_feature: !!feature,
+        });
+      } else {
+        const filterParams: Record<string, string> = {};
+        if (dateRange) filterParams.date_range = dateRange;
+        if (neighborhood) filterParams.neighborhood = neighborhood;
+        if (category) filterParams.category = category;
+        if (feature) filterParams.feature = feature;
+        trackEvent("filter_applied", filterParams);
+      }
+
       router.push(`${pathname}?${params.toString()}`);
     },
     [router, pathname, searchParams]

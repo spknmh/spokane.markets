@@ -18,6 +18,7 @@ import { MapPreview } from "@/components/map-preview";
 import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
 import { ReportButton } from "@/components/report-button";
+import { TrackMarketView } from "@/components/track-content-view";
 import type { Metadata } from "next";
 import type { VerificationStatus } from "@prisma/client";
 import { SITE_NAME } from "@/lib/constants";
@@ -42,9 +43,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     where: { slug },
   });
   if (!market) return { title: "Market Not Found" };
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const description = market.description ?? `Discover ${market.name} and upcoming events in the Spokane area.`;
   return {
     title: `${market.name} — ${SITE_NAME}`,
-    description: market.description ?? `Discover ${market.name} and upcoming events in the Spokane area.`,
+    description,
+    alternates: { canonical: `${baseUrl}/markets/${slug}` },
+    openGraph: {
+      title: market.name,
+      description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: market.name,
+      description,
+    },
   };
 }
 
@@ -78,6 +91,10 @@ export default async function MarketDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
+      <TrackMarketView
+        marketId={market.id}
+        neighborhood={market.venue?.neighborhood ?? market.baseArea ?? undefined}
+      />
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
         {/* Main content */}
         <div className="min-w-0 flex-1">

@@ -17,6 +17,7 @@ import {
 import { EventCard } from "@/components/event-card";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { ReportButton } from "@/components/report-button";
+import { TrackVendorView } from "@/components/track-content-view";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -53,11 +54,21 @@ export async function generateMetadata({
     return { title: "Vendor Not Found" };
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const description = vendor.description ?? `${vendor.businessName} — a local vendor on ${SITE_NAME}.`;
   return {
     title: `${vendor.businessName} | ${SITE_NAME}`,
-    description:
-      vendor.description ??
-      `${vendor.businessName} — a local vendor on ${SITE_NAME}.`,
+    description,
+    alternates: { canonical: `${baseUrl}/vendors/${slug}` },
+    openGraph: {
+      title: vendor.businessName,
+      description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: vendor.businessName,
+      description,
+    },
   };
 }
 
@@ -90,8 +101,13 @@ export default async function VendorProfilePage({ params }: PageProps) {
     )
     .map((ve) => ve.event);
 
+  const firstSpecialty = vendor.specialties?.split(",")[0]?.trim();
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
+      <TrackVendorView
+        vendorId={vendor.id}
+        category={firstSpecialty ? firstSpecialty.toLowerCase().replace(/\s+/g, "-") : undefined}
+      />
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
         {/* Main content */}
         <div className="min-w-0 flex-1">

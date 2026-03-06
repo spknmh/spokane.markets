@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { db } from "@/lib/db";
+import { SITE_NAME } from "@/lib/constants";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +16,12 @@ import { CheckCircle2, Calendar } from "lucide-react";
 import { formatNeighborhoodLabel } from "@/lib/utils";
 import type { VerificationStatus } from "@prisma/client";
 import { MarketsSearch } from "@/components/markets-search";
+
+export const metadata: Metadata = {
+  title: `Markets — ${SITE_NAME}`,
+  description:
+    "Discover farmers markets, craft fairs, and community markets in the Spokane area. Find locations, schedules, and vendor information.",
+};
 
 function truncate(str: string | null | undefined, len: number): string {
   if (!str) return "";

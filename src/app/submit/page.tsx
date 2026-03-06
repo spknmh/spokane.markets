@@ -1,8 +1,16 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { SubmissionForm } from "@/components/submission-form";
 import { requireAuth } from "@/lib/auth-utils";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
+import { SITE_NAME } from "@/lib/constants";
+
+export const metadata: Metadata = {
+  title: `Submit an Event — ${SITE_NAME}`,
+  description:
+    "Submit a market, craft fair, or community event for inclusion in the Spokane Markets calendar. We review submissions within a few business days.",
+};
 
 export default async function SubmitPage() {
   const [session, banners] = await Promise.all([requireAuth("/submit"), getBannerImages()]);

@@ -20,6 +20,7 @@ import { ReportButton } from "@/components/report-button";
 import { OfficialVendorRoster } from "@/components/official-vendor-roster";
 import { SelfReportedVendorList } from "@/components/self-reported-vendor-list";
 import { EventVendorActions } from "@/components/event-vendor-actions";
+import { TrackEventView } from "@/components/track-content-view";
 import { getParticipationConfig } from "@/lib/participation-config";
 import { SITE_NAME } from "@/lib/constants";
 
@@ -66,15 +67,23 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
 
   if (!event) return { title: "Event Not Found" };
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   return {
     title: `${event.title} — ${(await import("@/lib/constants")).SITE_NAME}`,
     description:
       event.description?.slice(0, 160) ??
       `${event.title} at ${event.venue.name}. Find details, directions, and more on ${SITE_NAME}.`,
+    alternates: { canonical: `${baseUrl}/events/${slug}` },
     openGraph: {
       title: event.title,
       description: event.description?.slice(0, 160) ?? undefined,
       images: event.imageUrl ? [{ url: event.imageUrl }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: event.title,
+      description: event.description?.slice(0, 160) ?? undefined,
+      images: event.imageUrl ? [event.imageUrl] : undefined,
     },
   };
 }
@@ -128,8 +137,51 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
     .map((i) => i.vendorProfile)
     .filter((v) => !officialIds.has(v.id));
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const eventUrl = `${baseUrl}/events/${event.slug}`;
+  const eventImage = event.imageUrl
+    ? event.imageUrl.startsWith("http")
+      ? event.imageUrl
+      : `${baseUrl}${event.imageUrl.startsWith("/") ? "" : "/"}${event.imageUrl}`
+    : undefined;
+
+  const eventJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: event.title,
+    description: event.description ?? undefined,
+    startDate: event.startDate.toISOString(),
+    endDate: event.endDate.toISOString(),
+    url: eventUrl,
+    image: eventImage,
+    location: {
+      "@type": "Place",
+      name: event.venue.name,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: event.venue.address,
+        addressLocality: event.venue.city,
+        addressRegion: event.venue.state,
+        postalCode: event.venue.zip,
+      },
+    },
+    organizer: {
+      "@type": "Organization",
+      name: event.market?.name ?? event.venue.name,
+    },
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+      />
+      <TrackEventView
+        eventId={event.id}
+        category={event.tags[0]?.slug}
+        neighborhood={event.venue.neighborhood ?? undefined}
+      />
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
         {/* Main content */}
         <div className="min-w-0 flex-1">
