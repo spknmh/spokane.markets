@@ -31,3 +31,16 @@ export function trackEvent(
   if (!measurementId) return;
   gtag("event", eventName, { ...params, send_to: measurementId } as Record<string, unknown>);
 }
+
+/** Update GA4 consent. Call after user accepts or declines analytics cookies. */
+export function updateAnalyticsConsent(granted: boolean): void {
+  if (typeof window === "undefined" || !window.gtag) return;
+  (window.gtag as (cmd: string, action: string, config: Record<string, string>) => void)(
+    "consent",
+    "update",
+    {
+      analytics_storage: granted ? "granted" : "denied",
+      ad_storage: "denied",
+    }
+  );
+}

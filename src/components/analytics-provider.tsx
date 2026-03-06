@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { gtag } from "@/lib/analytics";
+import { ConsentBanner } from "@/components/consent-banner";
 
 const MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const GA_DEBUG = process.env.NEXT_PUBLIC_GA_DEBUG === "1";
@@ -65,6 +66,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
         src={`https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`}
         strategy="afterInteractive"
       />
+      <ConsentBanner />
       {children}
     </>
   );
