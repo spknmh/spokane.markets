@@ -5,7 +5,7 @@ import { ConditionalChrome } from "@/components/conditional-chrome";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Providers } from "@/components/providers";
-import { AnalyticsProvider } from "@/components/analytics-provider";
+import { AnalyticsLoader } from "@/components/analytics-loader";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
 import { SITE_NAME } from "@/lib/constants";
 import { getSiteTheme } from "@/lib/site-theme";
@@ -59,14 +59,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Skip to main content
         </a>
         <Providers>
-          <AnalyticsProvider>
+          <AnalyticsLoader>
           <ConditionalChrome
             nav={<Navbar />}
             footer={<Footer />}
           >
             <main id="main" className="min-h-screen">{children}</main>
           </ConditionalChrome>
-          </AnalyticsProvider>
+          </AnalyticsLoader>
         </Providers>
       </body>
     </html>

@@ -35,7 +35,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
       has_vendor_profile: hasVendorProfile,
     } as Record<string, unknown>);
 
-    if (user && typeof sessionStorage !== "undefined") {
+    if (user && typeof window !== "undefined" && typeof window.sessionStorage !== "undefined") {
       const loginMethod = sessionStorage.getItem("login_method");
       if (loginMethod === "oauth") {
         sessionStorage.removeItem("login_method");

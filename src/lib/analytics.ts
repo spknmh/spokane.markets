@@ -19,9 +19,8 @@ export function gtag(
   targetId: string,
   config?: Record<string, unknown>
 ): void {
-  if (typeof window !== "undefined" && window.gtag) {
-    window.gtag(command, targetId, config);
-  }
+  if (typeof window === "undefined" || !window.gtag) return;
+  window.gtag(command, targetId, config);
 }
 
 export function trackEvent(
