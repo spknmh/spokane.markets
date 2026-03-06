@@ -41,7 +41,7 @@ A practical guide for getting the website running and understanding how markets,
 **In plain terms:**
 
 - **Venue** = *the place* (e.g. "Riverfront Park at 507 N Howard St")
-- **Market** = *the recurring event or brand* (e.g. "Spokane Saturday Market" that runs Saturdays May–October) — **with a required primary venue**
+- **Market** = *the recurring event or brand* (e.g. "Spokane Saturday Market" that runs Saturdays May–October)  **with a required primary venue**
 
 Every market has a venue (location) attached. The market profile page shows that location. Events linked to a market can override the venue when the market moves (e.g. summer at Riverfront, winter at Convention Center).
 
