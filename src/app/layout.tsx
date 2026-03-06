@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 import { ConditionalChrome } from "@/components/conditional-chrome";
@@ -23,6 +24,8 @@ const inter = Inter({
 });
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+const gaDebug = process.env.NEXT_PUBLIC_GA_DEBUG === "1";
 
 /** Skip static prerender at build time; DB is unavailable in Docker build. */
 export const dynamic = "force-dynamic";
@@ -51,6 +54,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" suppressHydrationWarning>
+      {gaId && (
+        <>
+          <Script
+            id="ga-gtag"
+            src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+            strategy="beforeInteractive"
+          />
+          <Script
+            id="ga-init"
+            strategy="beforeInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied' });
+                gtag('config', '${gaId}'${gaDebug ? ", { debug_mode: true }" : ""});
+              `,
+            }}
+          />
+        </>
+      )}
       <body
         className={`${inter.className} ${inter.variable} ${fraunces.variable}`}
         data-theme={themeAttr}
