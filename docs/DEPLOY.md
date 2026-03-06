@@ -111,9 +111,9 @@ Migrations and seed run automatically in the `init` container before `web` start
 # NEXT_SERVER_ACTIONS_ENCRYPTION_KEY must match the value in .env.local on the server
 export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="your-base64-key-from-openssl-rand-base64-32"
 docker build -t ghcr.io/redkeysh/spokane.markets:latest --target runner \
-  --build-arg NEXT_SERVER_ACTIONS_ENCRYPTION_KEY .
+  --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY .
 docker build -t ghcr.io/redkeysh/spokane.markets:init --target init \
-  --build-arg NEXT_SERVER_ACTIONS_ENCRYPTION_KEY .
+  --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY .
 docker push ghcr.io/redkeysh/spokane.markets:latest
 docker push ghcr.io/redkeysh/spokane.markets:init
 
@@ -196,4 +196,4 @@ Note: The web image is standalone and may not include tsx. Use the init image in
 | **TLS cert error** (`remote error: tls: internal error`) | Caddyfile uses `disable_tlsalpn_challenge` to force HTTP-01. Ensure ports 80 and 443 are open (`ufw status`), DNS points to server IP, and no proxy/load balancer terminates TLS before Caddy. If behind Cloudflare or similar, use DNS-01 challenge instead. |
 | **Build `npm ci` ECONNRESET** | Transient network failure. Retry the build. The Dockerfile sets `fetch-retries`, `fetch-retry-mintimeout`, and `fetch-retry-maxtimeout` to harden against this. If it persists: `docker build --network host -t ... .` or check proxy/firewall. |
 | **Cron not running** | Check `docker compose logs cron`. Ensure init image has crond (Alpine). If missing, use host crontab (see §8). |
-| **Failed to find Server Action** | Set `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` (generate: `openssl rand -base64 32`) in: (1) `.env.local` on server, (2) GitHub Secrets for CI builds. Rebuild images so the key is embedded at build time. Clear browser cache after deploy. |
+| **Failed to find Server Action** | Set `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` (generate: `openssl rand -base64 32`) in: (1) `.env.local` on server, (2) GitHub Secrets for CI builds. Rebuild images so the key is embedded at build time. For local `docker compose build`, ensure the key is in `.env` (Compose loads it) or exported. Clear browser cache after deploy. |

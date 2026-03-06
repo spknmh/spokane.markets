@@ -16,12 +16,11 @@ COPY . .
 RUN mkdir -p public
 # prisma generate needs DATABASE_URL in config; placeholder suffices (no DB connection)
 ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
-# Server Actions need a stable encryption key at build time. Pass via build-arg.
-# Generate: openssl rand -base64 32
-ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
-ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
+# Server Actions need a stable encryption key at build time. Pass via secret mount (not ARG/ENV).
+# Build with: --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 RUN npx prisma generate
-RUN npm run build
+RUN --mount=type=secret,id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY \
+    npm run build
 
 # ── runner ────────────────────────────────────────────────────────────
 # Minimal app image: Next.js standalone only. No prisma/node_modules.

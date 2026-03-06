@@ -16,8 +16,8 @@ services:
     build:
       context: .
       target: init
-      args:
-        NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
+      secrets:
+        - NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
     depends_on:
       db:
         condition: service_healthy
@@ -30,8 +30,8 @@ services:
     build:
       context: .
       target: runner
-      args:
-        NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
+      secrets:
+        - NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
     depends_on:
       init:
         condition: service_completed_successfully
@@ -56,6 +56,10 @@ services:
       - caddy_data:/data
       - caddy_config:/config
       - ./uploads:/srv/uploads:ro
+
+secrets:
+  NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:
+    environment: "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY"
 
 volumes:
   pgdata:
