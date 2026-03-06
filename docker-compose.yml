@@ -54,6 +54,9 @@ services:
       - 8.8.8.8
     depends_on:
       - web
+    networks:
+      - default
+      - webapp
     ports:
       - "8080:80"
       - "8443:443"
@@ -66,6 +69,10 @@ services:
 secrets:
   NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:
     environment: "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY"
+
+networks:
+  webapp:
+    name: webapp
 
 volumes:
   pgdata:

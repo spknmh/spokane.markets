@@ -23,3 +23,14 @@ spokane.markets {
 		reverse_proxy web:3000
 	}
 }
+
+analytics.spokane.markets {
+	tls {
+		issuer acme {
+			disable_tlsalpn_challenge
+		}
+	}
+
+	encode zstd gzip
+	reverse_proxy umami:3000
+}
