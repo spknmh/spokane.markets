@@ -65,7 +65,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           data-website-id={umamiWebsiteId}
           data-domains={umamiDomain}
           data-do-not-track="true"
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
         />
       )}
       {gtmId && (

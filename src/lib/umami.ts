@@ -1,10 +1,7 @@
 /**
- * Umami custom event tracking. Calls window.umami.track() when Umami is loaded.
+ * Umami custom event tracking. Tries (1) window.umami.track(), (2) trackEvent(),
+ * then (3) direct POST to /api/send when the script API is unavailable.
  * Used by lib/analytics.ts for dual-send (GTM + Umami).
- *
- * Uses the payload-function form of track() to explicitly include event data in the
- * request payload. The two-arg form umami.track(name, data) can fail to include
- * the data field in some Umami versions/scripts.
  */
 
 declare global {
@@ -15,13 +12,52 @@ declare global {
           | string
           | ((props: Record<string, unknown>) => Record<string, unknown>)
       ) => void;
-      /** Legacy API (Umami v1); some custom scripts use this instead of track */
       trackEvent?: (eventName: string, data?: Record<string, unknown>) => void;
     };
   }
 }
 
 const MAX_EVENT_NAME_LENGTH = 50;
+
+function getUmamiApiHost(): string | null {
+  const url = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL;
+  if (!url) return null;
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+function sendToUmamiApi(
+  eventName: string,
+  data?: Record<string, string | number | boolean>
+): void {
+  const websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+  const host = getUmamiApiHost();
+  if (!websiteId || !host || typeof fetch !== "function") return;
+
+  const payload = {
+    hostname: window.location.hostname,
+    language: navigator.language,
+    referrer: document.referrer || "",
+    screen: `${window.screen.width}x${window.screen.height}`,
+    title: document.title,
+    url: window.location.pathname + window.location.search,
+    website: websiteId,
+    name: eventName,
+    ...(data && Object.keys(data).length > 0 ? { data } : {}),
+  };
+
+  fetch(`${host}/api/send`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ payload, type: "event" }),
+    keepalive: true,
+  }).catch(() => {
+    /* fire-and-forget */
+  });
+}
 
 export function trackUmami(
   eventName: string,
@@ -58,7 +94,7 @@ export function trackUmami(
     }
   } else if (typeof trackEvent === "function") {
     trackEvent(safeName, data);
-  } else if (process.env.NODE_ENV === "development") {
-    console.warn("[Umami] track/trackEvent not available; script may not be loaded yet");
+  } else {
+    sendToUmamiApi(safeName, data);
   }
 }
