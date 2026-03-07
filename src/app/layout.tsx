@@ -56,7 +56,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const themeAttr = theme === "cedar" ? undefined : theme;
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-umami={umamiWebsiteId ? "enabled" : "disabled"}>
       {umamiWebsiteId && (
         <Script
           id="umami"
