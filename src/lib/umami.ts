@@ -1,7 +1,7 @@
 /**
- * Umami custom event tracking. Tries (1) window.umami.track(), (2) trackEvent(),
- * then (3) direct POST to /api/send when the script API is unavailable.
- * Used by lib/analytics.ts for dual-send (GTM + Umami).
+ * Umami custom event tracking. Uses window.umami.track() when the script is loaded.
+ * No direct API fallback — the script manages session continuity; direct fetch would
+ * create a new session per request and inflate counts.
  */
 
 declare global {
@@ -18,46 +18,6 @@ declare global {
 }
 
 const MAX_EVENT_NAME_LENGTH = 50;
-
-function getUmamiApiHost(): string | null {
-  const url = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL;
-  if (!url) return null;
-  try {
-    return new URL(url).origin;
-  } catch {
-    return null;
-  }
-}
-
-function sendToUmamiApi(
-  eventName: string,
-  data?: Record<string, string | number | boolean>
-): void {
-  const websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
-  const host = getUmamiApiHost();
-  if (!websiteId || !host || typeof fetch !== "function") return;
-
-  const payload = {
-    hostname: window.location.hostname,
-    language: navigator.language,
-    referrer: document.referrer || "",
-    screen: `${window.screen.width}x${window.screen.height}`,
-    title: document.title,
-    url: window.location.pathname + window.location.search,
-    website: websiteId,
-    name: eventName,
-    ...(data && Object.keys(data).length > 0 ? { data } : {}),
-  };
-
-  fetch(`${host}/api/send`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ payload, type: "event" }),
-    keepalive: true,
-  }).catch(() => {
-    /* fire-and-forget */
-  });
-}
 
 export function trackUmami(
   eventName: string,
@@ -94,7 +54,18 @@ export function trackUmami(
     }
   } else if (typeof trackEvent === "function") {
     trackEvent(safeName, data);
-  } else {
-    sendToUmamiApi(safeName, data);
+  }
+}
+
+/**
+ * Track a pageview. Call on route change for SPA navigation.
+ */
+export function trackUmamiPageview(): void {
+  if (typeof window === "undefined") return;
+  if (!process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID) return;
+
+  const track = window.umami?.track;
+  if (typeof track === "function") {
+    track();
   }
 }

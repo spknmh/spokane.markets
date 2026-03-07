@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { pushDataLayer } from "@/lib/analytics";
+import { trackUmamiPageview } from "@/lib/umami";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
@@ -12,13 +13,16 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const session = useSession();
 
   useEffect(() => {
-    if (!GTM_ID || typeof window === "undefined") return;
-    pushDataLayer({
-      event: "page_view",
-      page_path: pathname,
-      page_location: `${window.location.origin}${pathname}`,
-      page_title: document.title,
-    });
+    if (typeof window === "undefined") return;
+    if (GTM_ID) {
+      pushDataLayer({
+        event: "page_view",
+        page_path: pathname,
+        page_location: `${window.location.origin}${pathname}`,
+        page_title: document.title,
+      });
+    }
+    trackUmamiPageview();
   }, [pathname]);
 
   useEffect(() => {
