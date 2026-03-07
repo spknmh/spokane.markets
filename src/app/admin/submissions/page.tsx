@@ -35,7 +35,7 @@ export default async function AdminSubmissionsPage({
   const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
 
   const where = { status: statusFilter };
-  const [total, submissions] = await Promise.all([
+  const [total, submissions, markets, tags, features] = await Promise.all([
     db.submission.count({ where }),
     db.submission.findMany({
       where,
@@ -43,8 +43,14 @@ export default async function AdminSubmissionsPage({
       skip: (page - 1) * limit,
       take: limit,
     }),
+    db.market.findMany({ select: { id: true, name: true } }),
+    db.tag.findMany({ select: { id: true, name: true } }),
+    db.feature.findMany({ select: { id: true, name: true } }),
   ]);
   const totalPages = Math.ceil(total / limit);
+  const marketMap = new Map(markets.map((m) => [m.id, m.name]));
+  const tagMap = new Map(tags.map((t) => [t.id, t.name]));
+  const featureMap = new Map(features.map((f) => [f.id, f.name]));
 
   return (
     <div className="space-y-6">
@@ -85,9 +91,22 @@ export default async function AdminSubmissionsPage({
                     Submitted by {sub.submitterName} ({sub.submitterEmail})
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {sub.eventDate} at {sub.eventTime} &middot;{" "}
-                    {sub.venueName}, {sub.venueAddress}
+                    {sub.eventDate}
+                    {sub.allDay ? " (all day)" : ` at ${sub.eventTime}`}
+                    {sub.endDate && sub.endDate !== sub.eventDate && ` – ${sub.endDate}`}
+                    {sub.endTime && !sub.allDay && sub.endTime !== sub.eventTime && ` at ${sub.endTime}`}
+                    {sub.timezone && ` (${sub.timezone})`}
+                    {" · "}
+                    {sub.venueName}
+                    {[sub.venueAddress, [sub.venueCity, sub.venueState, sub.venueZip].filter(Boolean).join(", ")]
+                      .filter(Boolean)
+                      .join(", ")}
                   </p>
+                  {sub.marketId && marketMap.has(sub.marketId) && (
+                    <p className="text-sm text-muted-foreground">
+                      Market: {marketMap.get(sub.marketId)}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={statusVariant[sub.status]}>
@@ -99,8 +118,25 @@ export default async function AdminSubmissionsPage({
                 </div>
               </div>
 
+              {sub.imageUrl && (
+                <p className="text-sm">
+                  <a href={sub.imageUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                    Event image
+                  </a>
+                </p>
+              )}
               {sub.eventDescription && (
                 <p className="text-sm">{sub.eventDescription}</p>
+              )}
+              {(sub.tagIds?.length ?? 0) > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Tags: {sub.tagIds!.map((id) => tagMap.get(id) ?? id).join(", ")}
+                </p>
+              )}
+              {(sub.featureIds?.length ?? 0) > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Features: {sub.featureIds!.map((id) => featureMap.get(id) ?? id).join(", ")}
+                </p>
               )}
               {sub.notes && (
                 <p className="text-sm text-muted-foreground">

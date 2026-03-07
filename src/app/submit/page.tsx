@@ -5,6 +5,7 @@ import { requireAuth } from "@/lib/auth-utils";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { SITE_NAME } from "@/lib/constants";
+import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: `Submit an Event — ${SITE_NAME}`,
@@ -13,7 +14,13 @@ export const metadata: Metadata = {
 };
 
 export default async function SubmitPage() {
-  const [session, banners] = await Promise.all([requireAuth("/submit"), getBannerImages()]);
+  const [session, banners, markets, tags, features] = await Promise.all([
+    requireAuth("/submit"),
+    getBannerImages(),
+    db.market.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    db.tag.findMany({ select: { id: true, name: true, slug: true }, orderBy: { name: "asc" } }),
+    db.feature.findMany({ select: { id: true, name: true, slug: true }, orderBy: { name: "asc" } }),
+  ]);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
@@ -35,7 +42,7 @@ export default async function SubmitPage() {
           Submissions are typically reviewed within a few business days.
         </p>
       </div>
-      <SubmissionForm session={session} />
+      <SubmissionForm session={session} markets={markets} tags={tags} features={features} />
     </div>
   );
 }

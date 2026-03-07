@@ -11,10 +11,13 @@ import {
   type SubmissionInput,
   type SubmissionInputAuthed,
 } from "@/lib/validations";
+import type { Resolver } from "react-hook-form";
+import { US_TIMEZONES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import {
   Card,
   CardHeader,
@@ -25,9 +28,17 @@ import {
 
 interface SubmissionFormProps {
   session: Session | null;
+  markets?: { id: string; name: string }[];
+  tags?: { id: string; name: string; slug: string }[];
+  features?: { id: string; name: string; slug: string }[];
 }
 
-export function SubmissionForm({ session }: SubmissionFormProps) {
+export function SubmissionForm({
+  session,
+  markets = [],
+  tags = [],
+  features = [],
+}: SubmissionFormProps) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,23 +47,55 @@ export function SubmissionForm({ session }: SubmissionFormProps) {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<SubmissionInput | SubmissionInputAuthed>({
-    resolver: zodResolver(isAuthed ? submissionSchemaAuthed : submissionSchema),
+    resolver: zodResolver(
+      isAuthed ? submissionSchemaAuthed : submissionSchema
+    ) as Resolver<SubmissionInput | SubmissionInputAuthed>,
     defaultValues: {
       ...(isAuthed ? {} : { submitterName: "", submitterEmail: "" }),
       eventTitle: "",
       eventDescription: "",
       eventDate: "",
       eventTime: "",
+      endDate: "",
+      endTime: "",
+      allDay: false,
+      timezone: "",
+      imageUrl: "",
       venueName: "",
       venueAddress: "",
+      venueCity: "",
+      venueState: "",
+      venueZip: "",
+      marketId: "",
+      tagIds: [],
+      featureIds: [],
       facebookUrl: "",
       websiteUrl: "",
       notes: "",
       company: "",
     },
   });
+
+  const watchAllDay = watch("allDay");
+  const watchTagIds = (watch("tagIds") ?? []) as string[];
+  const watchFeatureIds = (watch("featureIds") ?? []) as string[];
+
+  const toggleArrayItem = (
+    field: "tagIds" | "featureIds",
+    current: string[],
+    id: string
+  ) => {
+    setValue(
+      field,
+      current.includes(id)
+        ? current.filter((v) => v !== id)
+        : [...current, id]
+    );
+  };
 
   async function onSubmit(data: SubmissionInput | SubmissionInputAuthed) {
     setSuccess(false);
@@ -188,34 +231,85 @@ export function SubmissionForm({ session }: SubmissionFormProps) {
             )}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="eventDate">Event date</Label>
-              <Input
-                id="eventDate"
-                type="date"
-                {...register("eventDate")}
-              />
-              {errors.eventDate && (
-                <p className="text-sm text-destructive">
-                  {errors.eventDate.message}
-                </p>
-              )}
+          <div className="space-y-4">
+            <Label>Schedule</Label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="eventDate">Start date</Label>
+                <Input id="eventDate" type="date" {...register("eventDate")} />
+                {errors.eventDate && (
+                  <p className="text-sm text-destructive">
+                    {errors.eventDate.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endDate">End date (optional)</Label>
+                <Input id="endDate" type="date" {...register("endDate")} />
+              </div>
             </div>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" {...register("allDay")} />
+              <span className="text-sm">All day event</span>
+            </label>
+            {!watchAllDay && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="eventTime">Start time</Label>
+                  <Input id="eventTime" type="time" {...register("eventTime")} />
+                  {errors.eventTime && (
+                    <p className="text-sm text-destructive">
+                      {errors.eventTime.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endTime">End time (optional)</Label>
+                  <Input id="endTime" type="time" {...register("endTime")} />
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
-              <Label htmlFor="eventTime">Event time</Label>
-              <Input
-                id="eventTime"
-                type="time"
-                {...register("eventTime")}
-              />
-              {errors.eventTime && (
-                <p className="text-sm text-destructive">
-                  {errors.eventTime.message}
-                </p>
-              )}
+              <Label htmlFor="timezone">Timezone (optional)</Label>
+              <Select id="timezone" {...register("timezone")}>
+                <option value="">Use browser time</option>
+                {US_TIMEZONES.map((tz) => (
+                  <option key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </option>
+                ))}
+              </Select>
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="imageUrl">Image URL (optional)</Label>
+            <Input
+              id="imageUrl"
+              type="url"
+              placeholder="https://..."
+              {...register("imageUrl")}
+            />
+            {errors.imageUrl && (
+              <p className="text-sm text-destructive">
+                {errors.imageUrl.message}
+              </p>
+            )}
+          </div>
+
+          {markets.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="marketId">Market (optional)</Label>
+              <Select id="marketId" {...register("marketId")}>
+                <option value="">None</option>
+                {markets.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="venueName">Venue name</Label>
@@ -237,7 +331,7 @@ export function SubmissionForm({ session }: SubmissionFormProps) {
             <Input
               id="venueAddress"
               type="text"
-              placeholder="123 Main St, Spokane, WA"
+              placeholder="123 Main St"
               {...register("venueAddress")}
             />
             {errors.venueAddress && (
@@ -246,6 +340,84 @@ export function SubmissionForm({ session }: SubmissionFormProps) {
               </p>
             )}
           </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="venueCity">City (optional)</Label>
+              <Input
+                id="venueCity"
+                type="text"
+                placeholder="Spokane"
+                {...register("venueCity")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="venueState">State (optional)</Label>
+              <Input
+                id="venueState"
+                type="text"
+                placeholder="WA"
+                {...register("venueState")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="venueZip">ZIP (optional)</Label>
+              <Input
+                id="venueZip"
+                type="text"
+                placeholder="99201"
+                {...register("venueZip")}
+              />
+            </div>
+          </div>
+
+          {tags.length > 0 && (
+            <div className="space-y-2">
+              <Label>Event type (optional)</Label>
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <label
+                    key={tag.id}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-sm cursor-pointer has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary"
+                  >
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={watchTagIds.includes(tag.id)}
+                      onChange={() =>
+                        toggleArrayItem("tagIds", watchTagIds, tag.id)
+                      }
+                    />
+                    {tag.name}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {features.length > 0 && (
+            <div className="space-y-2">
+              <Label>Features / amenities (optional)</Label>
+              <div className="flex flex-wrap gap-2">
+                {features.map((feature) => (
+                  <label
+                    key={feature.id}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-sm cursor-pointer has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary"
+                  >
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={watchFeatureIds.includes(feature.id)}
+                      onChange={() =>
+                        toggleArrayItem("featureIds", watchFeatureIds, feature.id)
+                      }
+                    />
+                    {feature.name}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">

@@ -1,0 +1,12 @@
+-- AlterTable
+ALTER TABLE "submissions" ADD COLUMN "endDate" TEXT,
+ADD COLUMN "endTime" TEXT,
+ADD COLUMN "allDay" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN "timezone" TEXT,
+ADD COLUMN "imageUrl" TEXT,
+ADD COLUMN "venueCity" TEXT,
+ADD COLUMN "venueState" TEXT,
+ADD COLUMN "venueZip" TEXT,
+ADD COLUMN "marketId" TEXT,
+ADD COLUMN "tagIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
+ADD COLUMN "featureIds" TEXT[] DEFAULT ARRAY[]::TEXT[];

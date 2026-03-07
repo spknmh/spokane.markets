@@ -73,7 +73,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             src={umamiScriptUrl}
             data-website-id={umamiWebsiteId}
             data-domains={umamiDomains}
-            data-auto-track="false"
           />
         )}
       </head>

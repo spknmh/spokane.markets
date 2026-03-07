@@ -468,8 +468,19 @@ model Submission {
   eventDescription String?          @db.Text
   eventDate        String
   eventTime        String
+  endDate          String?
+  endTime          String?
+  allDay           Boolean          @default(false)
+  timezone         String?
+  imageUrl         String?
   venueName        String
   venueAddress     String
+  venueCity        String?
+  venueState       String?
+  venueZip         String?
+  marketId         String?
+  tagIds           String[]         @default([])
+  featureIds       String[]        @default([])
   facebookUrl      String?
   websiteUrl       String?
   notes            String?          @db.Text

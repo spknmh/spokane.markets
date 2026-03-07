@@ -13,15 +13,26 @@ export const imageUrlSchema = z
     "Must be a valid image URL or upload path"
   );
 
-export const submissionSchema = z.object({
+const submissionSchemaBase = z.object({
   submitterName: z.string().min(1, "Name is required"),
   submitterEmail: z.string().email("Valid email is required"),
   eventTitle: z.string().min(1, "Event title is required"),
   eventDescription: z.string().optional(),
   eventDate: z.string().min(1, "Event date is required"),
-  eventTime: z.string().min(1, "Event time is required"),
+  eventTime: z.string().optional(),
+  endDate: z.string().optional(),
+  endTime: z.string().optional(),
+  allDay: z.boolean().default(false),
+  timezone: z.string().optional().or(z.literal("")),
+  imageUrl: imageUrlSchema.optional().or(z.literal("")),
   venueName: z.string().min(1, "Venue name is required"),
   venueAddress: z.string().min(1, "Venue address is required"),
+  venueCity: z.string().optional().or(z.literal("")),
+  venueState: z.string().optional().or(z.literal("")),
+  venueZip: z.string().optional().or(z.literal("")),
+  marketId: z.string().optional().or(z.literal("")),
+  tagIds: z.array(z.string()).optional().default([]),
+  featureIds: z.array(z.string()).optional().default([]),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   websiteUrl: z.string().url().optional().or(z.literal("")),
   notes: z.string().optional(),
@@ -29,11 +40,25 @@ export const submissionSchema = z.object({
   company: z.string().max(0).optional(),
 });
 
+const submissionTimeRefine = (
+  data: { allDay?: boolean; eventTime?: string } &
+    Record<string, unknown>
+) =>
+  data.allDay === true ||
+  (typeof data.eventTime === "string" && data.eventTime.trim().length > 0);
+
+export const submissionSchema = submissionSchemaBase.refine(
+  submissionTimeRefine,
+  { message: "Event time is required when not all day", path: ["eventTime"] }
+);
+
 /** Schema for authenticated submissions (submitter from session) */
-export const submissionSchemaAuthed = submissionSchema.omit({
-  submitterName: true,
-  submitterEmail: true,
-});
+export const submissionSchemaAuthed = submissionSchemaBase
+  .omit({ submitterName: true, submitterEmail: true })
+  .refine(
+    submissionTimeRefine,
+    { message: "Event time is required when not all day", path: ["eventTime"] }
+  );
 
 export type SubmissionInput = z.infer<typeof submissionSchema>;
 export type SubmissionInputAuthed = z.infer<typeof submissionSchemaAuthed>;
