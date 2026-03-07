@@ -66,16 +66,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" suppressHydrationWarning data-umami={umamiWebsiteId ? "enabled" : "disabled"}>
-      {umamiWebsiteId && (
-        <Script
-          id="umami"
-          src={umamiScriptUrl}
-          data-website-id={umamiWebsiteId}
-          data-domains={umamiDomains}
-          data-auto-track="false"
-          strategy="beforeInteractive"
-        />
-      )}
+      <head>
+        {umamiWebsiteId && (
+          <script
+            defer
+            src={umamiScriptUrl}
+            data-website-id={umamiWebsiteId}
+            data-domains={umamiDomains}
+            data-auto-track="false"
+          />
+        )}
+      </head>
       {gtmId && (
         <>
           <Script
