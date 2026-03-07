@@ -10,11 +10,13 @@
 declare global {
   interface Window {
     umami?: {
-      track: (
+      track?: (
         eventNameOrPayload:
           | string
           | ((props: Record<string, unknown>) => Record<string, unknown>)
       ) => void;
+      /** Legacy API (Umami v1); some custom scripts use this instead of track */
+      trackEvent?: (eventName: string, data?: Record<string, unknown>) => void;
     };
   }
 }
@@ -39,15 +41,24 @@ export function trackUmami(
     safeName = eventName.slice(0, MAX_EVENT_NAME_LENGTH);
   }
 
-  const hasData = data && Object.keys(data).length > 0;
+  const umami = window.umami;
+  const track = umami?.track;
+  const trackEvent = umami?.trackEvent;
 
-  if (hasData) {
-    window.umami?.track((props) => ({
-      ...props,
-      name: safeName,
-      data,
-    }));
-  } else {
-    window.umami?.track(safeName);
+  if (typeof track === "function") {
+    const hasData = data && Object.keys(data).length > 0;
+    if (hasData) {
+      track((props: Record<string, unknown>) => ({
+        ...props,
+        name: safeName,
+        data,
+      }));
+    } else {
+      track(safeName);
+    }
+  } else if (typeof trackEvent === "function") {
+    trackEvent(safeName, data);
+  } else if (process.env.NODE_ENV === "development") {
+    console.warn("[Umami] track/trackEvent not available; script may not be loaded yet");
   }
 }
