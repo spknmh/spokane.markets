@@ -8,7 +8,7 @@ declare global {
   interface Window {
     umami?: {
       track?: (
-        eventNameOrPayload:
+        eventNameOrPayload?:
           | string
           | ((props: Record<string, unknown>) => Record<string, unknown>)
       ) => void;
