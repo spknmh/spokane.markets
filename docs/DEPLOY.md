@@ -94,7 +94,7 @@ Ensure the server allows SSH key auth for `SERVER_USER`.
 
 ### Option A: Via GitHub Actions (recommended)
 
-1. Push to `main`. The workflow builds both images (web + init), pushes to GHCR, and deploys.
+1. Push to `main`. The workflow builds both images (web & init), pushes to GHCR, and deploys.
 2. If the server has no image yet, the first run may fail on `docker pull`. Run once manually:
 
 ```bash
