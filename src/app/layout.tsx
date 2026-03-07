@@ -34,10 +34,10 @@ const umamiDomains =
     : umamiDomain);
 const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
 const umamiWebsiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
-/** Must match Umami server TRACKER_SCRIPT_NAME (e.g. a-smh → /a-smh.js) or use /script.js */
+/** Must match Umami server: default /script.js or set TRACKER_SCRIPT_NAME and NEXT_PUBLIC_UMAMI_SCRIPT_URL */
 const umamiScriptUrl =
   process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ||
-  "https://analytics.spokane.markets/a-smh.js";
+  "https://analytics.spokane.markets/script.js";
 
 /** Skip static prerender at build time; DB is unavailable in Docker build. */
 export const dynamic = "force-dynamic";
@@ -73,6 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           data-website-id={umamiWebsiteId}
           data-domains={umamiDomains}
           data-do-not-track="true"
+          data-auto-track="false"
           strategy="beforeInteractive"
         />
       )}

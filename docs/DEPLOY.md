@@ -148,6 +148,21 @@ docker compose run --rm init npx prisma db seed
 
 **Admin operations:** See [docs/ADMIN-GUIDE.md](docs/ADMIN-GUIDE.md) for markets vs venues, events, vendors, and workflows.
 
+### Analytics (Umami) verification
+
+When Umami is enabled (`NEXT_PUBLIC_UMAMI_WEBSITE_ID` set at build), run this checklist after deploy:
+
+| Check | How to verify |
+|-------|----------------|
+| Script load | DevTools → Network: request to script URL (e.g. `https://analytics.spokane.markets/script.js`) returns **200** |
+| `window.umami` | DevTools → Console: `window.umami` is an object, `typeof window.umami.track === "function"` |
+| Route change pageview | Navigate to another route (e.g. `/` → `/events`); Network shows a POST to the Umami collect endpoint (e.g. `/api/send`) |
+| Custom event | Trigger an action (e.g. accept consent, newsletter subscribe); Network shows POST to same collect endpoint |
+| No double pageview | Umami dashboard: initial load shows one pageview for the landing page |
+| Adblock | If the script is blocked by an adblocker, tracking will not run; document as expected. |
+
+Debug page: visit `/debug/analytics` to inspect Umami script state, `trackReady`, and `data-domains` vs current hostname.
+
 ## 6. Image Reference
 
 `docker-compose.prod.yml` uses:

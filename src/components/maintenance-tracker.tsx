@@ -26,7 +26,6 @@ export function MaintenanceTracker({ links }: MaintenanceTrackerProps) {
   const handleLinkClick = (link: MaintenanceLink) => {
     trackEvent("maintenance_link_click", {
       link_label: link.label,
-      link_url: link.url,
     });
   };
 
@@ -54,7 +53,6 @@ export function MaintenanceTracker({ links }: MaintenanceTrackerProps) {
             onClick={() =>
               trackEvent("maintenance_link_click", {
                 link_label: "Admin login",
-                link_url: "/auth/signin",
               })
             }
           >

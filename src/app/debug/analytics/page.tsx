@@ -25,7 +25,7 @@ export default function AnalyticsDebugPage() {
       type: typeof umami,
       keys: umami && typeof umami === "object" ? Object.keys(umami) : [],
       track: umami && typeof umami === "object" && "track" in umami ? typeof (umami as { track?: unknown }).track : "n/a",
-      trackEvent: umami && typeof umami === "object" && "trackEvent" in umami ? typeof (umami as { trackEvent?: unknown }).trackEvent : "n/a",
+      trackReady: typeof (umami && typeof umami === "object" && "track" in umami ? (umami as { track?: unknown }).track : null) === "function",
     });
     setGtmState({
       dataLayerExists: !!dataLayer,
@@ -61,7 +61,7 @@ export default function AnalyticsDebugPage() {
           {JSON.stringify(umamiState, null, 2)}
         </pre>
         <p className="text-xs text-muted-foreground">
-          If <code>track</code> is not &quot;function&quot;, the script may not have loaded yet or uses a different API.
+          Umami v2 exposes only <code>track</code>. If <code>trackReady</code> is false, the script may not have loaded yet.
           Check that <code>data-domains</code> includes your current hostname ({typeof window !== "undefined" ? window.location.hostname : "—"}).
         </p>
       </section>

@@ -45,7 +45,7 @@ export function EventsEmptyStateTracker({
       if (feature) filterSummary.push(`feature:${feature}`);
 
       trackEvent("search_zero_results", {
-        query,
+        query_length: query.trim().length,
         filter_summary: filterSummary.join(",") || undefined,
       });
     } else {

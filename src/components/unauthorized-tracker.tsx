@@ -11,9 +11,15 @@ export function UnauthorizedTracker() {
   usePageDuration("unauthorized_duration", { minSeconds: 1 });
 
   useEffect(() => {
-    const referrer =
-      typeof document !== "undefined" ? document.referrer : undefined;
-    trackEvent("unauthorized_view", referrer ? { referrer } : undefined);
+    let referrerHost: string | undefined;
+    if (typeof document !== "undefined" && document.referrer) {
+      try {
+        referrerHost = new URL(document.referrer).hostname;
+      } catch {
+        referrerHost = "external";
+      }
+    }
+    trackEvent("unauthorized_view", referrerHost ? { referrer_host: referrerHost } : undefined);
   }, []);
 
   return (
