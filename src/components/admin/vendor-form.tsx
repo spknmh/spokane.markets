@@ -22,9 +22,16 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
+import {
+  UserSearchSelect,
+  type UserOption,
+} from "@/components/admin/user-search-select";
 
 interface AdminVendorFormProps {
-  initialData?: AdminVendorProfileInput & { id: string };
+  initialData?: AdminVendorProfileInput & {
+    id: string;
+    user?: UserOption | null;
+  };
 }
 
 export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
@@ -165,15 +172,14 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="userId">User ID (optional)</Label>
-            <Input
-              id="userId"
-              placeholder="cuid to link profile to a user"
-              {...register("userId")}
+            <Label>Official vendor (user account)</Label>
+            <UserSearchSelect
+              value={watch("userId") ?? null}
+              onChange={(id) => setValue("userId", id)}
+              allowVendorId={initialData?.id}
+              initialUser={initialData?.user ?? null}
+              placeholder="Search by name or email..."
             />
-            <p className="text-xs text-muted-foreground">
-              Link this profile to a user account. Leave empty for unclaimed.
-            </p>
           </div>
 
           <div className="space-y-2">

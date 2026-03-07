@@ -11,7 +11,10 @@ export default async function EditVendorPage({
   await requireAdmin();
   const { id } = await params;
 
-  const vendor = await db.vendorProfile.findUnique({ where: { id } });
+  const vendor = await db.vendorProfile.findUnique({
+    where: { id },
+    include: { user: { select: { id: true, name: true, email: true } } },
+  });
   if (!vendor) notFound();
 
   const initialData = {
@@ -28,6 +31,9 @@ export default async function EditVendorPage({
     galleryUrlsText: vendor.galleryUrls?.join("\n") ?? "",
     specialties: vendor.specialties ?? "",
     userId: vendor.userId ?? null,
+    user: vendor.user
+      ? { id: vendor.user.id, name: vendor.user.name, email: vendor.user.email }
+      : null,
     contactVisible: vendor.contactVisible,
     socialLinksVisible: vendor.socialLinksVisible,
   };
