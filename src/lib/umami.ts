@@ -11,11 +11,25 @@ declare global {
   }
 }
 
+const MAX_EVENT_NAME_LENGTH = 50;
+
 export function trackUmami(
   eventName: string,
   data?: Record<string, string | number | boolean>
 ): void {
-  if (typeof window === "undefined" || !window.umami) return;
+  if (typeof window === "undefined") return;
   if (!process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID) return;
-  window.umami.track(eventName, data);
+
+  let safeName = eventName;
+  if (eventName.length > MAX_EVENT_NAME_LENGTH) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        `Umami event name too long (${eventName.length}). Truncating:`,
+        eventName
+      );
+    }
+    safeName = eventName.slice(0, MAX_EVENT_NAME_LENGTH);
+  }
+
+  window.umami?.track(safeName, data);
 }

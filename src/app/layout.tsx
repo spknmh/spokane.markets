@@ -26,6 +26,7 @@ const inter = Inter({
 });
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const umamiDomain = new URL(baseUrl).hostname;
 const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
 const umamiWebsiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
 const umamiScriptUrl = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL || "https://analytics.spokane.markets/a-smh.js";
@@ -62,7 +63,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           id="umami"
           src={umamiScriptUrl}
           data-website-id={umamiWebsiteId}
-          strategy="beforeInteractive"
+          data-domains={umamiDomain}
+          data-do-not-track="true"
+          strategy="afterInteractive"
         />
       )}
       {gtmId && (
