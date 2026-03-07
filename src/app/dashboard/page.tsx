@@ -16,14 +16,21 @@ import { ProfileForm } from "@/components/profile-form";
 import { DashboardHeaderCard } from "@/components/dashboard-header-card";
 import { evaluateAndGrantBadges } from "@/lib/badges";
 import { SITE_NAME } from "@/lib/constants";
+import { PendingVerificationModal } from "@/components/pending-verification-modal";
 
 export const metadata = {
   title: `My Account — ${SITE_NAME}`,
   description: "Your saved filters, event RSVPs, favorite vendors, and account settings.",
 };
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams: Promise<{ pendingVerification?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const session = await auth();
+  const params = await searchParams;
+  const showPendingVerification = params.pendingVerification === "1";
   if (!session?.user) {
     redirect("/auth/signin");
   }
@@ -68,6 +75,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <PendingVerificationModal
+        emailVerified={user.emailVerified}
+        showPendingVerification={showPendingVerification}
+      />
       <h1 className="text-3xl font-bold tracking-tight">My Account</h1>
       <p className="mt-1 text-muted-foreground">
         Your saved filters, event RSVPs, and favorite vendors

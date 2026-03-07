@@ -32,11 +32,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const { email, password } = parsed.data;
         const user = await db.user.findUnique({
           where: { email },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+            role: true,
+            hashedPassword: true,
+            emailVerified: true,
+            createdAt: true,
+          },
         });
         if (!user?.hashedPassword) return null;
 
         const valid = await compare(password, user.hashedPassword);
         if (!valid) return null;
+
+        const justSignedUp =
+          user.createdAt &&
+          Date.now() - user.createdAt.getTime() < 5 * 60 * 1000;
+        if (!user.emailVerified && !justSignedUp) {
+          throw new Error("EmailNotVerified");
+        }
 
         return {
           id: user.id,

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { trackEvent } from "@/lib/analytics";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUpSchema, SIGNUP_ROLES, type SignUpInput } from "@/lib/validations";
@@ -76,10 +77,23 @@ export function SignUpForm() {
     }
 
     trackEvent("signup_success", { role: data.role });
-    router.push(
-      `/auth/signin?verified=0&callbackUrl=${encodeURIComponent(callbackUrl)}`
-    );
-    router.refresh();
+
+    const signInResult = await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+      callbackUrl: "/dashboard",
+    });
+
+    if (signInResult?.ok) {
+      router.push("/dashboard?pendingVerification=1");
+      router.refresh();
+    } else {
+      router.push(
+        `/auth/signin?verified=0&callbackUrl=${encodeURIComponent(callbackUrl)}`
+      );
+      router.refresh();
+    }
   }
 
   return (

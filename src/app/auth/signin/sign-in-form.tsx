@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { signInSchema, type SignInInput } from "@/lib/validations";
+import { getSignInErrorMessage } from "@/lib/auth-errors";
 import { isValidCallbackUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +54,7 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
 
     if (result?.error) {
       trackEvent("api_error", { endpoint: "/api/auth/signin", status: 401 });
-      setError("Invalid email or password. Please try again.");
+      setError(getSignInErrorMessage(result.error));
       return;
     }
 
