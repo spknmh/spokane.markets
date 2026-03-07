@@ -21,10 +21,21 @@ jobs:
 
       - name: Validate secrets
         run: |
-          if [ -z "${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}" ]; then
-            echo "::error::NEXT_SERVER_ACTIONS_ENCRYPTION_KEY secret is not set. Add it in Settings → Secrets and variables → Actions."
+          missing=""
+          [ -z "${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}" ] && missing="$missing NEXT_SERVER_ACTIONS_ENCRYPTION_KEY"
+          [ -z "${{ secrets.NEXT_PUBLIC_APP_URL }}" ] && missing="$missing NEXT_PUBLIC_APP_URL"
+          if [ -n "$missing" ]; then
+            echo "::error::Required secrets not set:$missing"
+            echo "Add them in Settings → Secrets and variables → Actions."
             exit 1
           fi
+          # Optional analytics — warn if missing (build will proceed with empty values)
+          [ -z "${{ secrets.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}" ] && echo "::warning::NEXT_PUBLIC_UMAMI_WEBSITE_ID not set — Umami will be disabled in the client bundle"
+          [ -z "${{ secrets.NEXT_PUBLIC_GTM_ID }}" ] && echo "::notice::NEXT_PUBLIC_GTM_ID not set — GTM will be disabled"
+          echo "Build args status:"
+          echo "  NEXT_PUBLIC_UMAMI_WEBSITE_ID: $([ -n \"${{ secrets.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}\" ] && echo 'set' || echo 'NOT SET')"
+          echo "  NEXT_PUBLIC_UMAMI_SCRIPT_URL: $([ -n \"${{ secrets.NEXT_PUBLIC_UMAMI_SCRIPT_URL }}\" ] && echo 'set' || echo 'NOT SET')"
+          echo "  NEXT_PUBLIC_GTM_ID: $([ -n \"${{ secrets.NEXT_PUBLIC_GTM_ID }}\" ] && echo 'set' || echo 'NOT SET')"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
