@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
-import { getDirectionsUrl } from "@/lib/utils";
+import { getDirectionsUrl, formatTime12hr } from "@/lib/utils";
 import { EventTimeLabel } from "@/components/event-time-label";
 import { MapPreview } from "@/components/map-preview";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ import { EventVendorActions } from "@/components/event-vendor-actions";
 import { TrackEventView } from "@/components/track-content-view";
 import { getParticipationConfig } from "@/lib/participation-config";
 import { SITE_NAME } from "@/lib/constants";
+import { Globe, Facebook } from "lucide-react";
 
 interface EventDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -229,15 +230,27 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             <div className="mt-6 flex flex-wrap gap-3">
               {event.websiteUrl && (
                 <Button variant="outline" size="sm" asChild>
-                  <a href={event.websiteUrl} target="_blank" rel="noopener noreferrer">
-                    Website ↗
+                  <a
+                    href={event.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5"
+                  >
+                    <Globe className="h-4 w-4" />
+                    Website
                   </a>
                 </Button>
               )}
               {event.facebookUrl && (
                 <Button variant="outline" size="sm" asChild>
-                  <a href={event.facebookUrl} target="_blank" rel="noopener noreferrer">
-                    Facebook ↗
+                  <a
+                    href={event.facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5"
+                  >
+                    <Facebook className="h-4 w-4" />
+                    Facebook
                   </a>
                 </Button>
               )}
@@ -266,11 +279,11 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 />
               </p>
               {event.scheduleDays && event.scheduleDays.length > 1 && (
-                <div className="mt-3 space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Schedule
-                  </p>
-                  <ul className="space-y-1.5 text-sm">
+                <details className="mt-3 rounded-lg border border-border bg-background">
+                  <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:bg-muted/50">
+                    Schedule ({event.scheduleDays.length} days)
+                  </summary>
+                  <ul className="space-y-1.5 border-t border-border px-3 py-2 text-sm">
                     {event.scheduleDays.map((d) => (
                       <li
                         key={d.id}
@@ -286,12 +299,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                         <span className="text-muted-foreground">
                           {d.allDay
                             ? "All day"
-                            : `${d.startTime} – ${d.endTime}`}
+                            : `${formatTime12hr(d.startTime)} – ${formatTime12hr(d.endTime)}`}
                         </span>
                       </li>
                     ))}
                   </ul>
-                </div>
+                </details>
               )}
             </div>
 

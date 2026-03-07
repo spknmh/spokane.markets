@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
 import { updateSubmissionStatus } from "../actions";
-import { formatDate, cn } from "@/lib/utils";
+import { formatDate, formatTime12hr, cn } from "@/lib/utils";
 import Link from "next/link";
 import type { ModerationStatus } from "@prisma/client";
 
@@ -92,9 +92,9 @@ export default async function AdminSubmissionsPage({
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {sub.eventDate}
-                    {sub.allDay ? " (all day)" : ` at ${sub.eventTime}`}
+                    {sub.allDay ? " (all day)" : ` at ${formatTime12hr(sub.eventTime)}`}
                     {sub.endDate && sub.endDate !== sub.eventDate && ` – ${sub.endDate}`}
-                    {sub.endTime && !sub.allDay && sub.endTime !== sub.eventTime && ` at ${sub.endTime}`}
+                    {sub.endTime && !sub.allDay && sub.endTime !== sub.eventTime && ` at ${formatTime12hr(sub.endTime)}`}
                     {sub.timezone && ` (${sub.timezone})`}
                     {" · "}
                     {sub.venueName}

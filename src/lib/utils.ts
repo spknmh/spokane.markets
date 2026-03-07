@@ -62,6 +62,25 @@ export function formatDateShort(date: Date): string {
   }).format(new Date(date));
 }
 
+/** Pacific timezone for schedule display. */
+const PST = "America/Los_Angeles";
+
+/** Format HH:mm (24hr) to 12hr format in PST (e.g. "17:00" → "5:00 PM"). */
+export function formatTime12hr(
+  hhmm: string,
+  timeZone: string = PST
+): string {
+  if (!hhmm || !/^\d{2}:\d{2}$/.test(hhmm)) return hhmm;
+  const [h, m] = hhmm.split(":").map(Number);
+  const d = new Date(2000, 0, 1, h, m);
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone,
+  }).format(d);
+}
+
 /** True if start and end are on different calendar days. */
 export function isMultiDayEvent(start: Date, end: Date): boolean {
   const s = new Date(start);
@@ -77,15 +96,37 @@ export function formatDateRange(start: Date, end: Date): string {
   const startTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
+    timeZone: PST,
   }).format(new Date(start));
   const endTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
+    timeZone: PST,
   }).format(new Date(end));
+  const dateOpts = { timeZone: PST };
   if (isMultiDayEvent(start, end)) {
-    return `${formatDate(start)} – ${formatDateShort(end)} · ${startTime} – ${endTime}`;
+    const startDateStr = new Intl.DateTimeFormat("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      ...dateOpts,
+    }).format(new Date(start));
+    const endDateStr = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      ...dateOpts,
+    }).format(new Date(end));
+    return `${startDateStr} – ${endDateStr} · ${startTime} – ${endTime}`;
   }
-  return `${formatDate(start)} · ${startTime} – ${endTime}`;
+  const dateStr = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    ...dateOpts,
+  }).format(new Date(start));
+  return `${dateStr} · ${startTime} – ${endTime}`;
 }
 
 /**
@@ -110,11 +151,13 @@ export function formatDateRangeInTimezone(
   const startTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
     ...tzOpts,
   }).format(new Date(start));
   const endTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
     ...tzOpts,
   }).format(new Date(end));
   return `${dateStr} · ${startTime} – ${endTime}`;
@@ -179,10 +222,14 @@ export function formatEventTime(
   const startTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
+    timeZone: PST,
   }).format(s);
   const endTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
+    timeZone: PST,
   }).format(e);
   if (!sameDay) {
     return `${dateStr} – ${endDateStr} · ${startTime} – ${endTime}`;
