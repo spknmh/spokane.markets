@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/card";
 import { EventCard } from "@/components/event-card";
 import { VendorPipelineBoard } from "@/components/vendor-pipeline-board";
+import { VendorProfileProgress } from "@/components/vendor-profile-progress";
 import { ExternalLink, Heart } from "lucide-react";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
+import { computeVendorProfileCompletion } from "@/lib/vendor-profile";
 
 export default async function VendorDashboardPage() {
   const session = await requireAuth();
@@ -125,6 +127,12 @@ export default async function VendorDashboardPage() {
   );
 
   const favoritedCount = profile._count.favoriteVendors;
+  const profileComplete = !!(
+    profile.businessName &&
+    profile.description &&
+    profile.contactEmail
+  );
+  const profileCompletionPercent = computeVendorProfileCompletion(profile);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -154,6 +162,12 @@ export default async function VendorDashboardPage() {
           name: ub.badge.name,
           icon: ub.badge.icon,
         }))}
+      />
+
+      <VendorProfileProgress
+        percent={profileCompletionPercent}
+        profileComplete={profileComplete}
+        className="mt-6"
       />
 
       <Card className="mt-8">

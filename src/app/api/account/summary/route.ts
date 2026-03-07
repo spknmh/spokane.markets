@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { computeVendorProfileCompletion } from "@/lib/vendor-profile";
 
 export async function GET() {
   const session = await auth();
@@ -29,6 +30,7 @@ export async function GET() {
     };
     vendor?: {
       profileComplete: boolean;
+      profileCompletionPercent: number;
       upcomingEventsCount: number;
       favoritedCount: number;
       reviewsCount: number;
@@ -94,8 +96,13 @@ export async function GET() {
       vendorProfile?.contactEmail
     );
 
+    const profileCompletionPercent = vendorProfile
+      ? computeVendorProfileCompletion(vendorProfile)
+      : 0;
+
     response.vendor = {
       profileComplete,
+      profileCompletionPercent,
       upcomingEventsCount: vendorProfile?.vendorEvents.length ?? 0,
       favoritedCount: vendorProfile?._count.favoriteVendors ?? 0,
       reviewsCount: 0,

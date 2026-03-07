@@ -78,20 +78,28 @@ export function SignUpForm() {
 
     trackEvent("signup_success", { role: data.role });
 
+    const vendorRedirect =
+      data.role === "VENDOR" ? "/vendor/dashboard" : "/dashboard";
     const signInResult = await signIn("credentials", {
       email: data.email,
       password: data.password,
       redirect: false,
-      callbackUrl: "/dashboard",
+      callbackUrl: vendorRedirect,
     });
 
     if (signInResult?.ok) {
-      router.push("/dashboard?pendingVerification=1");
+      if (data.role === "VENDOR") {
+        router.push("/vendor/dashboard");
+      } else {
+        router.push("/dashboard?pendingVerification=1");
+      }
       router.refresh();
     } else {
-      router.push(
-        `/auth/signin?verified=0&callbackUrl=${encodeURIComponent(callbackUrl)}`
-      );
+      const signinCallback =
+        data.role === "VENDOR"
+          ? encodeURIComponent("/vendor/dashboard")
+          : encodeURIComponent(callbackUrl);
+      router.push(`/auth/signin?verified=0&callbackUrl=${signinCallback}`);
       router.refresh();
     }
   }

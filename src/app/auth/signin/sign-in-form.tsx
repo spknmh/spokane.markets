@@ -31,6 +31,7 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
   const searchParams = useSearchParams();
   const rawCallbackUrl = searchParams.get("callbackUrl") ?? "/";
   const callbackUrl = isValidCallbackUrl(rawCallbackUrl) ? rawCallbackUrl : "/";
+  const redirectUrl = `/auth/redirect?next=${encodeURIComponent(callbackUrl)}`;
   const needsVerification = searchParams.get("verified") === "0";
   const [error, setError] = useState<string | null>(null);
 
@@ -150,7 +151,7 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
                         if (typeof window !== "undefined") {
                           sessionStorage.setItem("login_method", "oauth");
                         }
-                        signIn("google", { callbackUrl });
+                        signIn("google", { callbackUrl: redirectUrl });
                       }}
                       disabled={isSubmitting}
                     >
@@ -165,7 +166,7 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
                         if (typeof window !== "undefined") {
                           sessionStorage.setItem("login_method", "oauth");
                         }
-                        signIn("facebook", { callbackUrl });
+                        signIn("facebook", { callbackUrl: redirectUrl });
                       }}
                       disabled={isSubmitting}
                     >
