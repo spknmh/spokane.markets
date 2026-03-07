@@ -2,10 +2,13 @@
  * Umami custom event tracking. Uses window.umami.track() when the script is loaded.
  * Queues events when script is not yet ready; flushes when umami appears (poll up to 5s).
  * When the script never loads (e.g. Sec-GPC, ad blockers), falls back to direct POST
- * to /api/send so events still reach Umami. Session continuity is best-effort in that case.
+ * to /api/send so events still reach Umami. Session continuity via distinct ID in payload.
  */
 
 const DEFAULT_SCRIPT_URL = "https://analytics.spokane.markets/script.js";
+const DISTINCT_ID_MAX_LENGTH = 50;
+
+let distinctId: string | null = null;
 
 function getUmamiApiHost(): string | null {
   const url =
@@ -17,6 +20,28 @@ function getUmamiApiHost(): string | null {
   }
 }
 
+function getOrCreateVisitorId(): string {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return "";
+  }
+  const key = "umami_visitor_id";
+  let id = localStorage.getItem(key);
+  if (!id && typeof crypto !== "undefined" && crypto.randomUUID) {
+    id = crypto.randomUUID();
+    localStorage.setItem(key, id);
+  }
+  return id ?? "";
+}
+
+function getPayloadId(): string {
+  if (distinctId) {
+    return distinctId.length > DISTINCT_ID_MAX_LENGTH
+      ? distinctId.slice(0, DISTINCT_ID_MAX_LENGTH)
+      : distinctId;
+  }
+  return getOrCreateVisitorId();
+}
+
 function sendToUmamiApi(
   eventName: string,
   data?: Record<string, string | number | boolean>
@@ -25,7 +50,7 @@ function sendToUmamiApi(
   const host = getUmamiApiHost();
   if (!websiteId || !host || typeof fetch !== "function") return;
 
-  const payload = {
+  const payload: Record<string, unknown> = {
     hostname: window.location.hostname,
     language: navigator.language,
     referrer: document.referrer || "",
@@ -36,6 +61,8 @@ function sendToUmamiApi(
     name: eventName,
     ...(data && Object.keys(data).length > 0 ? { data } : {}),
   };
+  const id = getPayloadId();
+  if (id) payload.id = id;
 
   fetch(`${host}/api/send`, {
     method: "POST",
@@ -51,7 +78,7 @@ function sendPageviewToApi(url: string): void {
   const websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
   const host = getUmamiApiHost();
   if (!websiteId || !host || typeof fetch !== "function") return;
-  const payload = {
+  const payload: Record<string, unknown> = {
     hostname: window.location.hostname,
     language: navigator.language,
     referrer: document.referrer || "",
@@ -61,6 +88,9 @@ function sendPageviewToApi(url: string): void {
     website: websiteId,
     name: "pageview",
   };
+  const id = getPayloadId();
+  if (id) payload.id = id;
+
   fetch(`${host}/api/send`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -89,7 +119,30 @@ declare global {
           | ((props: Record<string, unknown>) => Record<string, unknown>),
         data?: Record<string, unknown>
       ) => void;
+      identify?: (id: string, data?: Record<string, unknown>) => void;
     };
+  }
+}
+
+/**
+ * Set distinct ID for Umami session. Call when user logs in; pass null on logout.
+ * Script path: calls umami.identify(). API fallback: stores for payload id.
+ */
+export function identifyUmami(
+  userId: string | null,
+  data?: Record<string, unknown>
+): void {
+  distinctId = userId;
+
+  if (typeof window === "undefined") return;
+
+  const identify = window.umami?.identify;
+  if (typeof identify === "function" && userId) {
+    const safeId =
+      userId.length > DISTINCT_ID_MAX_LENGTH
+        ? userId.slice(0, DISTINCT_ID_MAX_LENGTH)
+        : userId;
+    identify(safeId, data);
   }
 }
 

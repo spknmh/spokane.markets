@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { pushDataLayer } from "@/lib/analytics";
-import { trackUmamiPageview } from "@/lib/umami";
+import { identifyUmami, trackUmamiPageview } from "@/lib/umami";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 const UMAMI_PAGEVIEW_DEBOUNCE_MS = 150;
@@ -32,8 +32,16 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
-    if (!GTM_ID || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
+
     const user = session.data?.user;
+    if (user?.id) {
+      identifyUmami(user.id, { role: (user.role as string) ?? undefined });
+    } else {
+      identifyUmami(null);
+    }
+
+    if (!GTM_ID) return;
     const role = (user?.role as string)?.toLowerCase() ?? "consumer";
     const hasVendorProfile =
       !!user && "hasVendorProfile" in user
