@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       contactPhone: toOptional(data.contactPhone),
       galleryUrls,
       specialties: toOptional(data.specialties),
-      userId: data.userId ?? null,
+      userId: data.userId?.trim() || null,
       contactVisible: data.contactVisible ?? true,
       socialLinksVisible: data.socialLinksVisible ?? true,
     },

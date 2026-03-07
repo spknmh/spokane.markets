@@ -99,7 +99,7 @@ export async function PUT(
       contactPhone: toOptional(data.contactPhone),
       ...(Array.isArray(galleryUrls) && { galleryUrls }),
       specialties: toOptional(data.specialties),
-      userId: data.userId ?? null,
+      userId: data.userId?.trim() || null,
       contactVisible: data.contactVisible ?? true,
       socialLinksVisible: data.socialLinksVisible ?? true,
     },
