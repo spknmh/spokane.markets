@@ -34,10 +34,10 @@ const umamiDomains =
     : umamiDomain);
 const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
 const umamiWebsiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
-/** Must match Umami server: default /script.js or set TRACKER_SCRIPT_NAME and NEXT_PUBLIC_UMAMI_SCRIPT_URL */
+/** Must match Umami server TRACKER_SCRIPT_NAME (e.g. a-smh → /a-smh.js) or use /script.js */
 const umamiScriptUrl =
   process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ||
-  "https://analytics.spokane.markets/script.js";
+  "https://analytics.spokane.markets/a-smh.js";
 
 /** Skip static prerender at build time; DB is unavailable in Docker build. */
 export const dynamic = "force-dynamic";
