@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AuthRequiredModal } from "@/components/auth-required-modal";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ReviewForm } from "@/components/review-form";
+import { isValidCallbackUrl } from "@/lib/utils";
 
 interface WriteReviewButtonProps {
   eventId?: string;
@@ -25,38 +26,39 @@ export function WriteReviewButton({
   eventId,
   marketId,
   isLoggedIn,
-  callbackUrl,
+  callbackUrl = "/",
 }: WriteReviewButtonProps) {
   const [open, setOpen] = useState(false);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
   const router = useRouter();
 
-  function handleClick() {
-    if (!isLoggedIn) {
-      setAuthModalOpen(true);
-      return;
-    }
-    setOpen(true);
+  const safeCallbackUrl = isValidCallbackUrl(callbackUrl) ? callbackUrl : "/";
+  const signInHref = `/auth/signin?callbackUrl=${encodeURIComponent(safeCallbackUrl)}`;
+
+  if (!isLoggedIn) {
+    return (
+      <Button
+        size="sm"
+        asChild
+        className="min-h-[44px] min-w-[44px]"
+        title="Sign in to write a review"
+      >
+        <Link href={signInHref}>
+          <Lock className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
+          Write a Review
+        </Link>
+      </Button>
+    );
   }
 
   return (
     <>
       <Button
         size="sm"
-        onClick={handleClick}
+        onClick={() => setOpen(true)}
         className="min-h-[44px] min-w-[44px]"
-        title={!isLoggedIn ? "Sign in to write a review" : undefined}
       >
-        {!isLoggedIn && <Lock className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />}
         Write a Review
       </Button>
-      <AuthRequiredModal
-        open={authModalOpen}
-        onOpenChange={setAuthModalOpen}
-        title="Sign in to write a review"
-        description="Create an account or sign in to share your experience."
-        callbackUrl={callbackUrl}
-      />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>

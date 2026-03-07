@@ -119,7 +119,21 @@ function MobileNav({
             aria-hidden
             onClick={() => setOpen(false)}
           />
-          <div className="fixed right-0 top-16 z-50 flex h-[calc(100vh-4rem)] w-64 flex-col gap-4 border-l border-border bg-nav p-4 shadow-lg">
+          <div className="fixed right-0 top-16 z-50 flex h-[calc(100vh-4rem)] w-64 flex-col gap-4 overflow-y-auto border-l border-border bg-nav p-4 shadow-lg">
+            {!session && (
+              <div className="flex flex-col gap-2 pb-2 border-b border-border">
+                <Button asChild variant="outline" size="sm" className="w-full">
+                  <Link href="/auth/signin" onClick={() => setOpen(false)}>
+                    Sign In
+                  </Link>
+                </Button>
+                <Button asChild size="sm" className="w-full">
+                  <Link href="/auth/signup" onClick={() => setOpen(false)}>
+                    Sign Up
+                  </Link>
+                </Button>
+              </div>
+            )}
             {navLinks.map((link) => {
               const Icon = "icon" in link ? link.icon : null;
               const linkEl = (
@@ -158,23 +172,8 @@ function MobileNav({
               )}
               <ThemeToggle />
               {session ? (
-                <>
-                  <UserMenu session={session} />
-                </>
-              ) : (
-                <>
-                  <Button asChild variant="outline" size="sm" className="w-full">
-                    <Link href="/auth/signin" onClick={() => setOpen(false)}>
-                      Sign In
-                    </Link>
-                  </Button>
-                  <Button asChild size="sm" className="w-full">
-                    <Link href="/auth/signup" onClick={() => setOpen(false)}>
-                      Sign Up
-                    </Link>
-                  </Button>
-                </>
-              )}
+                <UserMenu session={session} />
+              ) : null}
             </div>
           </div>
         </>
