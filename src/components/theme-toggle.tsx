@@ -5,7 +5,12 @@ import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  /** Show "Dark Mode" / "Light Mode" label next to icon (e.g. for mobile nav) */
+  showLabel?: boolean;
+}
+
+export function ThemeToggle({ showLabel = false }: ThemeToggleProps) {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -22,20 +27,22 @@ export function ThemeToggle() {
   }
 
   const isDark = resolvedTheme === "dark";
+  const label = isDark ? "Light Mode" : "Dark Mode";
 
   return (
     <Button
       variant="ghost"
-      size="icon"
+      size={showLabel ? "sm" : "icon"}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="h-9 w-9"
+      className={showLabel ? "h-auto w-full justify-start gap-2" : "h-9 w-9"}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
       {isDark ? (
-        <Sun className="h-4 w-4" aria-hidden />
+        <Sun className="h-4 w-4 shrink-0" aria-hidden />
       ) : (
-        <Moon className="h-4 w-4" aria-hidden />
+        <Moon className="h-4 w-4 shrink-0" aria-hidden />
       )}
+      {showLabel && <span>{label}</span>}
     </Button>
   );
 }
