@@ -12,6 +12,7 @@ import { EventFilters } from "@/components/event-filters";
 import { SaveFilterDialog } from "@/components/save-filter-dialog";
 import { Pagination } from "@/components/pagination";
 import { Badge } from "@/components/ui/badge";
+import { EventsEmptyStateTracker } from "@/components/events-empty-state-tracker";
 
 interface EventsPageProps {
   searchParams: Promise<{
@@ -252,6 +253,14 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
           </div>
 
           <div className="mt-8">
+            <EventsEmptyStateTracker
+              eventCount={totalCount}
+              query={query}
+              dateRange={dateRange}
+              neighborhood={neighborhood}
+              category={category}
+              feature={feature}
+            />
             <p className="mb-4 text-sm text-muted-foreground">
               {totalCount} {totalCount === 1 ? "event" : "events"} found
             </p>

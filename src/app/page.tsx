@@ -14,6 +14,7 @@ import {
   getPlanAheadRange,
 } from "@/lib/date-ranges";
 import { SITE_NAME } from "@/lib/constants";
+import { HomeScrollDepth } from "@/components/home-scroll-depth";
 
 export default async function HomePage() {
   const session = await auth();
@@ -77,6 +78,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <HomeScrollDepth />
       {/* Hero with community imagery */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">

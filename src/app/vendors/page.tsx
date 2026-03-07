@@ -180,6 +180,7 @@ export default async function VendorsPage({
                       vendor.facebookUrl ||
                       vendor.instagramUrl) && (
                       <VendorSocialLinks
+                        vendorId={vendor.slug}
                         websiteUrl={vendor.websiteUrl}
                         facebookUrl={vendor.facebookUrl}
                         instagramUrl={vendor.instagramUrl}

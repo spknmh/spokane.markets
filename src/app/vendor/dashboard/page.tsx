@@ -185,6 +185,7 @@ export default async function VendorDashboardPage() {
             </p>
           )}
           <VendorSocialLinks
+            vendorId={profile.slug}
             websiteUrl={profile.websiteUrl}
             facebookUrl={profile.facebookUrl}
             instagramUrl={profile.instagramUrl}

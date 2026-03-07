@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+import { trackEvent } from "@/lib/analytics";
+
 export default function GlobalError({
   error,
   reset,
@@ -7,6 +10,10 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    trackEvent("error_view");
+  }, [error]);
+
   return (
     <html lang="en">
       <body>
@@ -16,7 +23,10 @@ export default function GlobalError({
             A critical error occurred. Please try again.
           </p>
           <button
-            onClick={reset}
+            onClick={() => {
+              trackEvent("error_try_again_click");
+              reset();
+            }}
             className="mt-6 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Try again

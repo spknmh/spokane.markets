@@ -210,6 +210,7 @@ export default async function VendorProfilePage({ params }: PageProps) {
             />
             {vendor.socialLinksVisible !== false && (
               <VendorSocialLinks
+                vendorId={vendor.slug}
                 websiteUrl={vendor.websiteUrl}
                 facebookUrl={vendor.facebookUrl}
                 instagramUrl={vendor.instagramUrl}

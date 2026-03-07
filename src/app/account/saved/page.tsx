@@ -282,6 +282,7 @@ export default async function AccountSavedPage({
                         </p>
                       )}
                       <VendorSocialLinks
+                        vendorId={fav.vendorProfile.slug}
                         websiteUrl={fav.vendorProfile.websiteUrl}
                         facebookUrl={fav.vendorProfile.facebookUrl}
                         instagramUrl={fav.vendorProfile.instagramUrl}

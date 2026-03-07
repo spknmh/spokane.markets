@@ -1,10 +1,8 @@
 /**
- * Google Tag Manager (GTM) analytics helpers. Events are pushed to dataLayer;
- * GTM forwards them to GA4 and other tags configured in the GTM container.
- *
- * Safe usage: all functions guard with `typeof window !== "undefined" && window.dataLayer`.
- * Analytics loads only when NEXT_PUBLIC_GTM_ID is set.
+ * Analytics helpers. Events are sent to GTM (dataLayer) and/or Umami based on env config.
+ * GTM: NEXT_PUBLIC_GTM_ID. Umami: NEXT_PUBLIC_UMAMI_WEBSITE_ID.
  */
+import { trackUmami } from "./umami";
 
 declare global {
   interface Window {
@@ -27,8 +25,19 @@ export function trackEvent(
   eventName: string,
   params?: Record<string, string | number | boolean | undefined>
 ): void {
-  if (!process.env.NEXT_PUBLIC_GTM_ID) return;
-  pushToDataLayer({ event: eventName, ...params } as Record<string, unknown>);
+  if (process.env.NEXT_PUBLIC_GTM_ID) {
+    pushToDataLayer({ event: eventName, ...params } as Record<string, unknown>);
+  }
+  if (process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID) {
+    const cleanParams = params
+      ? (Object.fromEntries(
+          Object.entries(params).filter(
+            ([, v]) => v !== undefined && v !== null
+          )
+        ) as Record<string, string | number | boolean>)
+      : undefined;
+    trackUmami(eventName, cleanParams);
+  }
 }
 
 /**

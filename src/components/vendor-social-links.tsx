@@ -1,11 +1,14 @@
 "use client";
 
 import { Globe, Facebook, Instagram } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 interface VendorSocialLinksProps {
   websiteUrl?: string | null;
   facebookUrl?: string | null;
   instagramUrl?: string | null;
+  /** Vendor ID (slug or DB id) for analytics */
+  vendorId?: string;
   /** Icon-only links (e.g. on cards); use stopPropagation when inside a parent Link */
   iconOnly?: boolean;
   /** Stop click propagation (e.g. when inside a card Link) */
@@ -17,6 +20,7 @@ export function VendorSocialLinks({
   websiteUrl,
   facebookUrl,
   instagramUrl,
+  vendorId,
   iconOnly = false,
   stopPropagation = false,
   className = "",
@@ -30,8 +34,11 @@ export function VendorSocialLinks({
 
   const iconSize = iconOnly ? "h-4 w-4" : "h-4 w-4";
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent, platform: "website" | "facebook" | "instagram") => {
     if (stopPropagation) e.stopPropagation();
+    if (vendorId) {
+      trackEvent("vendor_external_click", { vendor_id: vendorId, platform });
+    }
   };
 
   return (
@@ -42,7 +49,7 @@ export function VendorSocialLinks({
           target="_blank"
           rel="noopener noreferrer"
           className={linkClass}
-          onClick={handleClick}
+          onClick={(e) => handleClick(e, "website")}
           aria-label="Website"
         >
           <Globe className={iconSize} />
@@ -55,7 +62,7 @@ export function VendorSocialLinks({
           target="_blank"
           rel="noopener noreferrer"
           className={linkClass}
-          onClick={handleClick}
+          onClick={(e) => handleClick(e, "facebook")}
           aria-label="Facebook"
         >
           <Facebook className={iconSize} />
@@ -68,7 +75,7 @@ export function VendorSocialLinks({
           target="_blank"
           rel="noopener noreferrer"
           className={linkClass}
-          onClick={handleClick}
+          onClick={(e) => handleClick(e, "instagram")}
           aria-label="Instagram"
         >
           <Instagram className={iconSize} />

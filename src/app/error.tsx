@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { trackEvent } from "@/lib/analytics";
+import { usePageDuration } from "@/hooks/use-page-duration";
 
 export default function Error({
   error,
@@ -11,8 +13,11 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  usePageDuration("error_duration", { minSeconds: 1 });
+
   useEffect(() => {
     console.error("Application error:", error);
+    trackEvent("error_view");
   }, [error]);
 
   return (
@@ -22,9 +27,18 @@ export default function Error({
         We encountered an unexpected error. Please try again.
       </p>
       <div className="mt-6 flex gap-4">
-        <Button onClick={reset}>Try again</Button>
+        <Button
+          onClick={() => {
+            trackEvent("error_try_again_click");
+            reset();
+          }}
+        >
+          Try again
+        </Button>
         <Button variant="outline" asChild>
-          <Link href="/">Go home</Link>
+          <Link href="/" onClick={() => trackEvent("error_go_home_click")}>
+            Go home
+          </Link>
         </Button>
       </div>
     </div>

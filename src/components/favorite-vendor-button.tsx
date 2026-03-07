@@ -7,6 +7,7 @@ import { Heart, Lock } from "lucide-react";
 import { AuthRequiredModal } from "@/components/auth-required-modal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 interface FavoriteVendorButtonProps {
   slug: string;
@@ -50,6 +51,7 @@ export function FavoriteVendorButton({
       setAuthModalOpen(true);
       return;
     }
+    const previouslyFavorited = optimistic.favorited;
     startTransition(async () => {
       setOptimistic("toggle");
       const res = await fetch(`/api/vendors/${slug}/favorite`, {
@@ -58,6 +60,11 @@ export function FavoriteVendorButton({
       if (res.status === 401) {
         setAuthModalOpen(true);
         return;
+      }
+      if (res.ok) {
+        trackEvent(previouslyFavorited ? "vendor_unfavorite" : "vendor_favorite", {
+          vendor_id: slug,
+        });
       }
       router.refresh();
     });

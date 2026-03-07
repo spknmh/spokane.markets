@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { updateAnalyticsConsent } from "@/lib/analytics";
+import { updateAnalyticsConsent, trackEvent } from "@/lib/analytics";
 
 const STORAGE_KEY = "cookie_consent";
 
@@ -28,6 +28,7 @@ export function ConsentBanner() {
   }, []);
 
   function handleAccept() {
+    trackEvent("consent_accept");
     updateAnalyticsConsent(true);
     try {
       localStorage.setItem(STORAGE_KEY, "granted");
@@ -38,6 +39,7 @@ export function ConsentBanner() {
   }
 
   function handleDecline() {
+    trackEvent("consent_decline");
     updateAnalyticsConsent(false);
     try {
       localStorage.setItem(STORAGE_KEY, "denied");

@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-/** Hides Navbar and Footer when the user is in the admin area. */
+/** Hides Navbar and Footer in admin area and maintenance landing page. */
 export function ConditionalChrome({
   children,
   nav,
@@ -14,8 +14,9 @@ export function ConditionalChrome({
 }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
+  const isMaintenance = pathname === "/maintenance";
 
-  if (isAdmin) {
+  if (isAdmin || isMaintenance) {
     return <>{children}</>;
   }
 

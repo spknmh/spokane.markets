@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { useScrollDepth } from "@/hooks/use-scroll-depth";
 
 interface TrackEventViewProps {
   eventId: string;
@@ -20,6 +21,8 @@ interface TrackVendorViewProps {
 }
 
 export function TrackEventView({ eventId, category, neighborhood }: TrackEventViewProps) {
+  useScrollDepth("scroll_depth");
+
   useEffect(() => {
     trackEvent("event_view", {
       event_id: eventId,
@@ -31,6 +34,8 @@ export function TrackEventView({ eventId, category, neighborhood }: TrackEventVi
 }
 
 export function TrackMarketView({ marketId, neighborhood }: TrackMarketViewProps) {
+  useScrollDepth("scroll_depth");
+
   useEffect(() => {
     trackEvent("market_view", {
       market_id: marketId,
@@ -41,6 +46,8 @@ export function TrackMarketView({ marketId, neighborhood }: TrackMarketViewProps
 }
 
 export function TrackVendorView({ vendorId, category }: TrackVendorViewProps) {
+  useScrollDepth("scroll_depth");
+
   useEffect(() => {
     trackEvent("vendor_view", {
       vendor_id: vendorId,
