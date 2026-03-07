@@ -31,10 +31,10 @@ const umamiDomains =
   process.env.NEXT_PUBLIC_UMAMI_DOMAINS ??
   (baseUrl.includes("localhost")
     ? [umamiDomain, "localhost"].filter((d, i, a) => a.indexOf(d) === i).join(",")
-    : umamiDomain);
+    : [umamiDomain, `www.${umamiDomain}`].filter((d, i, a) => a.indexOf(d) === i).join(","));
 const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
 const umamiWebsiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
-/** Must match Umami server TRACKER_SCRIPT_NAME (e.g. a-smh → /a-smh.js) or use /script.js */
+/** Must match Umami server: script.js (default) or TRACKER_SCRIPT_NAME e.g. a-smh.js. Set NEXT_PUBLIC_UMAMI_SCRIPT_URL to override. */
 const umamiScriptUrl =
   process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ||
   "https://analytics.spokane.markets/a-smh.js";
@@ -72,7 +72,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           src={umamiScriptUrl}
           data-website-id={umamiWebsiteId}
           data-domains={umamiDomains}
-          data-do-not-track="true"
           data-auto-track="false"
           strategy="beforeInteractive"
         />
