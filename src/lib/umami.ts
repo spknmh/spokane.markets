@@ -1,12 +1,20 @@
 /**
  * Umami custom event tracking. Calls window.umami.track() when Umami is loaded.
  * Used by lib/analytics.ts for dual-send (GTM + Umami).
+ *
+ * Uses the payload-function form of track() to explicitly include event data in the
+ * request payload. The two-arg form umami.track(name, data) can fail to include
+ * the data field in some Umami versions/scripts.
  */
 
 declare global {
   interface Window {
     umami?: {
-      track: (eventName: string, data?: Record<string, string | number | boolean>) => void;
+      track: (
+        eventNameOrPayload:
+          | string
+          | ((props: Record<string, unknown>) => Record<string, unknown>)
+      ) => void;
     };
   }
 }
@@ -31,5 +39,15 @@ export function trackUmami(
     safeName = eventName.slice(0, MAX_EVENT_NAME_LENGTH);
   }
 
-  window.umami?.track(safeName, data);
+  const hasData = data && Object.keys(data).length > 0;
+
+  if (hasData) {
+    window.umami?.track((props) => ({
+      ...props,
+      name: safeName,
+      data,
+    }));
+  } else {
+    window.umami?.track(safeName);
+  }
 }
