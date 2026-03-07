@@ -15,12 +15,14 @@ const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-heading",
   display: "swap",
+  preload: false,
 });
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
+  preload: false,
 });
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
