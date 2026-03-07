@@ -41,8 +41,13 @@ function flushQueue(): void {
     if (item.type === "pageview") {
       track();
     } else {
-      if (item.data && Object.keys(item.data).length > 0) {
-        track(item.name, item.data);
+      const hasData = item.data && Object.keys(item.data).length > 0;
+      if (hasData) {
+        track((props: Record<string, unknown>) => ({
+          ...props,
+          name: item.name,
+          data: item.data,
+        }));
       } else {
         track(item.name);
       }
@@ -107,8 +112,13 @@ export function trackUmami(
   const track = window.umami?.track;
 
   if (typeof track === "function") {
-    if (data && Object.keys(data).length > 0) {
-      track(safeName, data);
+    const hasData = data && Object.keys(data).length > 0;
+    if (hasData) {
+      track((props: Record<string, unknown>) => ({
+        ...props,
+        name: safeName,
+        data,
+      }));
     } else {
       track(safeName);
     }
