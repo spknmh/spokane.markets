@@ -14,7 +14,7 @@ import type { Session } from "next-auth";
 function getNavLinks(session: Session | null) {
   const base = [
     { href: "/", label: "Home", icon: Home },
-    { href: "/events", label: "Events" },
+    { href: "/events", label: "Discover Local" },
     { href: "/markets", label: "Markets" },
     { href: "/vendors", label: "Vendors" },
     { href: "/submit", label: "Submit Event" },

@@ -1,9 +1,65 @@
 /**
  * Umami custom event tracking. Uses window.umami.track() when the script is loaded.
  * Queues events when script is not yet ready; flushes when umami appears (poll up to 5s).
- * No direct API fallback — the script manages session continuity; direct fetch would
- * create a new session per request and inflate counts.
+ * When the script never loads (e.g. Sec-GPC, ad blockers), falls back to direct POST
+ * to /api/send so events still reach Umami. Session continuity is best-effort in that case.
  */
+
+const DEFAULT_SCRIPT_URL = "https://analytics.spokane.markets/script.js";
+
+function getUmamiApiHost(): string | null {
+  const url =
+    process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL || DEFAULT_SCRIPT_URL;
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+function sendToUmamiApi(
+  eventName: string,
+  data?: Record<string, string | number | boolean>
+): void {
+  const websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+  const host = getUmamiApiHost();
+  if (!websiteId || !host || typeof fetch !== "function") return;
+
+  const payload = {
+    hostname: window.location.hostname,
+    language: navigator.language,
+    referrer: document.referrer || "",
+    screen: `${window.screen.width}x${window.screen.height}`,
+    title: document.title,
+    url: window.location.pathname + window.location.search,
+    website: websiteId,
+    name: eventName,
+    ...(data && Object.keys(data).length > 0 ? { data } : {}),
+  };
+
+  fetch(`${host}/api/send`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ payload, type: "event" }),
+    keepalive: true,
+  }).catch(() => {
+    /* fire-and-forget */
+  });
+}
+
+function sendPageviewToApi(): void {
+  sendToUmamiApi("pageview");
+}
+
+function flushQueueViaApi(): void {
+  for (const item of queue) {
+    if (item.type === "pageview") {
+      sendPageviewToApi();
+    } else {
+      sendToUmamiApi(item.name, item.data);
+    }
+  }
+}
 
 declare global {
   interface Window {
@@ -74,19 +130,18 @@ function startPoll(): void {
         clearInterval(pollTimer);
         pollTimer = null;
       }
-      if (
-        process.env.NODE_ENV === "development" &&
-        !timeoutWarned &&
-        queue.length > 0
-      ) {
-        timeoutWarned = true;
-        console.warn(
-          "[Umami] Script did not load within 5s;",
-          queue.length,
-          "events dropped"
-        );
+      if (queue.length > 0) {
+        if (process.env.NODE_ENV === "development" && !timeoutWarned) {
+          timeoutWarned = true;
+          console.warn(
+            "[Umami] Script did not load within 5s; flushing",
+            queue.length,
+            "events via API fallback"
+          );
+        }
+        flushQueueViaApi();
+        queue.length = 0;
       }
-      queue.length = 0;
     }
   }, POLL_INTERVAL_MS);
 }

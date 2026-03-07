@@ -31,7 +31,7 @@ export function SiteLogo() {
           )}
         </span>
         <span className="hidden text-[11px] font-medium uppercase tracking-wider text-muted-foreground sm:block">
-          Discover local
+          & Vendors
         </span>
       </div>
     </Link>
