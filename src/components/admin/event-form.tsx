@@ -14,6 +14,7 @@ import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { ScheduleRecurringGenerator } from "@/components/schedule-recurring-generator";
 
 type ScheduleDay = {
   date: string;
@@ -96,7 +97,7 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
         },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control,
     name: "scheduleDays",
   });
@@ -211,6 +212,7 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
         <p className="text-xs text-muted-foreground">
           Add one or more days. Default is one day, all day. Uncheck All day to set times.
         </p>
+        <ScheduleRecurringGenerator onGenerate={(days) => replace(days)} />
         {fields.map((field, i) => (
           <div
             key={field.id}
