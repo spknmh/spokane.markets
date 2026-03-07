@@ -61,6 +61,7 @@ export function OrganizerEventForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const today = new Date().toISOString().slice(0, 10);
   const defaultSchedule =
     initialData?.scheduleDays?.length
       ? initialData.scheduleDays
@@ -68,7 +69,7 @@ export function OrganizerEventForm({
         ? [toScheduleDay(new Date(initialData.startDate), new Date(initialData.endDate))]
         : [
             {
-              date: new Date().toISOString().slice(0, 10),
+              date: today,
               allDay: true as const,
             },
           ];
@@ -88,8 +89,8 @@ export function OrganizerEventForm({
           title: "",
           slug: "",
           description: "",
-          startDate: "",
-          endDate: "",
+          startDate: `${today}T00:00:00`,
+          endDate: `${today}T23:59:00`,
           timezone: "",
           venueId: "",
           marketId: "",
@@ -120,6 +121,19 @@ export function OrganizerEventForm({
       if (market?.venueId) setValue("venueId", market.venueId);
     }
   }, [watchMarketId, watchVenueId, markets, setValue]);
+
+  const watchScheduleDays = watch("scheduleDays");
+  useEffect(() => {
+    const days = watchScheduleDays ?? [];
+    if (days.length) {
+      const first = days[0];
+      const last = days[days.length - 1];
+      const firstStart = first.allDay ? "00:00" : (first.startTime ?? "00:00");
+      const lastEnd = last.allDay ? "23:59" : (last.endTime ?? "23:59");
+      setValue("startDate", `${first.date}T${firstStart}:00`);
+      setValue("endDate", `${last.date}T${lastEnd}:00`);
+    }
+  }, [watchScheduleDays, setValue]);
 
   const autoSlug = () => {
     setValue("slug", slugify(watchTitle));
@@ -179,7 +193,10 @@ export function OrganizerEventForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl space-y-6">
+    <form
+      onSubmit={handleSubmit(onSubmit, () => setError("Please fix the errors below."))}
+      className="max-w-2xl space-y-6"
+    >
       {error && (
         <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
           {error}
