@@ -47,14 +47,32 @@ function sendToUmamiApi(
   });
 }
 
-function sendPageviewToApi(): void {
-  sendToUmamiApi("pageview");
+function sendPageviewToApi(url: string): void {
+  const websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+  const host = getUmamiApiHost();
+  if (!websiteId || !host || typeof fetch !== "function") return;
+  const payload = {
+    hostname: window.location.hostname,
+    language: navigator.language,
+    referrer: document.referrer || "",
+    screen: `${window.screen.width}x${window.screen.height}`,
+    title: document.title,
+    url,
+    website: websiteId,
+    name: "pageview",
+  };
+  fetch(`${host}/api/send`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ payload, type: "event" }),
+    keepalive: true,
+  }).catch(() => {});
 }
 
 function flushQueueViaApi(): void {
   for (const item of queue) {
     if (item.type === "pageview") {
-      sendPageviewToApi();
+      sendPageviewToApi(item.url);
     } else {
       sendToUmamiApi(item.name, item.data);
     }
@@ -80,7 +98,7 @@ const POLL_INTERVAL_MS = 100;
 const POLL_TIMEOUT_MS = 5000;
 
 type QueuedItem =
-  | { type: "pageview" }
+  | { type: "pageview"; url: string }
   | { type: "event"; name: string; data?: Record<string, string | number | boolean> };
 
 const queue: QueuedItem[] = [];
@@ -95,7 +113,11 @@ function flushQueue(): void {
     const item = queue.shift();
     if (!item) continue;
     if (item.type === "pageview") {
-      track();
+      track((props: Record<string, unknown>) => ({
+        ...props,
+        url: item.url,
+        title: document.title,
+      }));
     } else {
       const hasData = item.data && Object.keys(item.data).length > 0;
       if (hasData) {
@@ -185,17 +207,24 @@ export function trackUmami(
 
 /**
  * Track a pageview. Call on route change for SPA navigation.
+ * Pass url explicitly so Umami records the correct path for journey/funnel reports.
  */
-export function trackUmamiPageview(): void {
+export function trackUmamiPageview(url?: string): void {
   if (typeof window === "undefined") return;
   if (!process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID) return;
+
+  const path = url ?? window.location.pathname + window.location.search;
 
   const track = window.umami?.track;
 
   if (typeof track === "function") {
-    track();
+    track((props: Record<string, unknown>) => ({
+      ...props,
+      url: path,
+      title: document.title,
+    }));
   } else {
-    queue.push({ type: "pageview" });
+    queue.push({ type: "pageview", url: path });
     startPoll();
   }
 }

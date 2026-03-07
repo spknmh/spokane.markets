@@ -25,7 +25,8 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     }
 
     const timer = setTimeout(() => {
-      trackUmamiPageview();
+      const url = pathname + (typeof window !== "undefined" ? window.location.search : "");
+      trackUmamiPageview(url);
     }, UMAMI_PAGEVIEW_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [pathname]);
