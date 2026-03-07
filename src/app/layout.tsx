@@ -27,9 +27,17 @@ const inter = Inter({
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const umamiDomain = new URL(baseUrl).hostname;
+const umamiDomains =
+  process.env.NEXT_PUBLIC_UMAMI_DOMAINS ??
+  (baseUrl.includes("localhost")
+    ? [umamiDomain, "localhost"].filter((d, i, a) => a.indexOf(d) === i).join(",")
+    : umamiDomain);
 const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
 const umamiWebsiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
-const umamiScriptUrl = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL || "https://analytics.spokane.markets/a-smh.js";
+/** Must match Umami server TRACKER_SCRIPT_NAME (e.g. a-smh → /a-smh.js) or use /script.js */
+const umamiScriptUrl =
+  process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ||
+  "https://analytics.spokane.markets/a-smh.js";
 
 /** Skip static prerender at build time; DB is unavailable in Docker build. */
 export const dynamic = "force-dynamic";
@@ -63,7 +71,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           id="umami"
           src={umamiScriptUrl}
           data-website-id={umamiWebsiteId}
-          data-domains={umamiDomain}
+          data-domains={umamiDomains}
           data-do-not-track="true"
           strategy="beforeInteractive"
         />

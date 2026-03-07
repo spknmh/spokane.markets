@@ -2,15 +2,17 @@
 
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { pushDataLayer } from "@/lib/analytics";
 import { trackUmamiPageview } from "@/lib/umami";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
+const UMAMI_PAGEVIEW_DEBOUNCE_MS = 150;
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const session = useSession();
+  const isFirstMount = useRef(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -22,7 +24,16 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
         page_title: document.title,
       });
     }
-    trackUmamiPageview();
+
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      trackUmamiPageview();
+    }, UMAMI_PAGEVIEW_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   useEffect(() => {
