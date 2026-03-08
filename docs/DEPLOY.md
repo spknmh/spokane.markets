@@ -85,7 +85,7 @@ In **Settings → Secrets and variables → Actions**, add:
 | `SERVER_USER` | SSH username (e.g. `deploy` or `root`) |
 | `SERVER_SSH_KEY` | Private SSH key (full contents, including `-----BEGIN ...-----`) |
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Same value as in `.env.local` — `openssl rand -base64 32`. Required for Server Actions. |
-| `NEXT_PUBLIC_APP_URL` | Same as `AUTH_URL` (e.g. `https://spokane.markets`). Required for client bundle. |
+| `NEXT_PUBLIC_APP_URL` | Same as `AUTH_URL` (e.g. `https://spokane.markets`). Required for client bundle |
 | `NEXT_PUBLIC_GTM_ID` | Google Tag Manager container ID (e.g. `GTM-MCG6KBNR`). Optional; consent banner shows regardless. |
 
 Ensure the server allows SSH key auth for `SERVER_USER`.
