@@ -118,6 +118,7 @@ npm run db:up
 npx prisma migrate deploy
 
 # Seed (admin user, tags, features, sample data)
+# Sample data (venues, markets, events) is only added on first run; subsequent runs skip it.
 npx prisma db seed
 ```
 
@@ -205,6 +206,10 @@ Used for filtering events and markets. Defined in `src/lib/constants.ts` (NEIGHB
 ### Tags & features
 
 Seeded in `prisma/seed.ts`. Tags: Farmers Market, Craft Fair, Art Fair, etc. Features: Indoor, Outdoor, Dog-Friendly, etc. Add more via direct DB or extend the seed.
+
+### Seed idempotency
+
+The seed is idempotent: sample data (venues, markets, events) is only added on the **first** run. Subsequent runs (e.g. on Docker init) skip sample data and only update admin, tags, features, badges. To re-seed sample data, delete the marker: `DELETE FROM seed_marker WHERE id = 'sample_data_v1';` then run `npx prisma db seed`.
 
 ---
 

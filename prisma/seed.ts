@@ -7,7 +7,32 @@ const adapter = new PrismaPg({
 });
 const prisma = new PrismaClient({ adapter });
 
+const SEED_MARKER_ID = "sample_data_v1";
+
+async function hasSampleDataBeenSeeded(): Promise<boolean> {
+  try {
+    const result = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM seed_marker WHERE id = ${SEED_MARKER_ID} LIMIT 1
+    `;
+    return result.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+async function markSampleDataSeeded(): Promise<void> {
+  await prisma.$executeRaw`
+    INSERT INTO seed_marker (id, ran_at) VALUES (${SEED_MARKER_ID}, NOW())
+    ON CONFLICT (id) DO NOTHING
+  `;
+}
+
 async function main() {
+  const skipSampleData = await hasSampleDataBeenSeeded();
+  if (skipSampleData) {
+    console.log("Sample data already seeded; skipping venues, markets, events.");
+  }
+
   // 1. Admin user
   const hashedPassword = await bcrypt.hash("admin123", 10);
   await prisma.user.upsert({
@@ -54,14 +79,15 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // Fetch tags and features for event connections
+  // Fetch tags and features for event connections (needed for sample events)
   const tags = await prisma.tag.findMany();
   const features = await prisma.feature.findMany();
   const tagBySlug = Object.fromEntries(tags.map((t) => [t.slug, t]));
   const featureBySlug = Object.fromEntries(features.map((f) => [f.slug, f]));
 
-  // 4. Venues (get-or-create pattern; Venue has no unique field)
-  const venueData = [
+  if (!skipSampleData) {
+    // 4. Venues (get-or-create pattern; Venue has no unique field)
+    const venueData = [
     {
       name: "Riverfront Park",
       address: "507 N Howard St",
@@ -275,6 +301,9 @@ async function main() {
         features: { set: e.featureSlugs.map((s) => ({ id: featureBySlug[s]!.id })) },
       },
     });
+  }
+
+    await markSampleDataSeeded();
   }
 
   // 7. Subscribers
