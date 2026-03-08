@@ -12,7 +12,6 @@ import {
   type SubmissionInputAuthed,
 } from "@/lib/validations";
 import type { Resolver } from "react-hook-form";
-import { US_TIMEZONES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -269,17 +268,6 @@ export function SubmissionForm({
                 </div>
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="timezone">Timezone (optional)</Label>
-              <Select id="timezone" {...register("timezone")}>
-                <option value="">Use browser time</option>
-                {US_TIMEZONES.map((tz) => (
-                  <option key={tz.value} value={tz.value}>
-                    {tz.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
           </div>
 
           <div className="space-y-2">

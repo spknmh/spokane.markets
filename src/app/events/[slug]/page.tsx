@@ -275,7 +275,6 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 <EventTimeLabel
                   startDate={event.startDate}
                   endDate={event.endDate}
-                  timezone={event.timezone}
                 />
               </p>
               {event.scheduleDays && event.scheduleDays.length > 1 && (

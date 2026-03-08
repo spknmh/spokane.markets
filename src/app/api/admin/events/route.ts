@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { eventSchema } from "@/lib/validations";
+import { parseDateTimeInTimezone } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -23,6 +24,8 @@ export async function POST(request: Request) {
 
   const { tagIds, featureIds, scheduleDays, ...data } = parsed.data;
 
+  const tz = "America/Los_Angeles";
+
   let startDate = new Date(data.startDate);
   let endDate = new Date(data.endDate);
 
@@ -33,8 +36,8 @@ export async function POST(request: Request) {
     const firstEnd = first.allDay ? "23:59" : (first.endTime ?? "23:59");
     const lastStart = last.allDay ? "00:00" : (last.startTime ?? "00:00");
     const lastEnd = last.allDay ? "23:59" : (last.endTime ?? "23:59");
-    startDate = new Date(`${first.date}T${firstStart}:00`);
-    endDate = new Date(`${last.date}T${lastEnd}:00`);
+    startDate = parseDateTimeInTimezone(first.date, firstStart, tz);
+    endDate = parseDateTimeInTimezone(last.date, lastEnd, tz);
   }
 
   const event = await db.event.create({
@@ -44,7 +47,7 @@ export async function POST(request: Request) {
       description: data.description || null,
       startDate,
       endDate,
-      timezone: data.timezone || null,
+      timezone: null,
       venueId: data.venueId,
       marketId: data.marketId || null,
       imageUrl: data.imageUrl || null,

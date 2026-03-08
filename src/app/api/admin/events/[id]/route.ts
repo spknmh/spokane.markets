@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { eventSchema } from "@/lib/validations";
+import { parseDateTimeInTimezone } from "@/lib/utils";
 import { createNotification } from "@/lib/notifications";
 import { NextResponse } from "next/server";
 
@@ -35,6 +36,8 @@ export async function PUT(
 
   const { tagIds, featureIds, scheduleDays, ...data } = parsed.data;
 
+  const tz = "America/Los_Angeles";
+
   let startDate = new Date(data.startDate);
   let endDate = new Date(data.endDate);
 
@@ -43,8 +46,8 @@ export async function PUT(
     const last = scheduleDays[scheduleDays.length - 1];
     const firstStart = first.allDay ? "00:00" : (first.startTime ?? "00:00");
     const lastEnd = last.allDay ? "23:59" : (last.endTime ?? "23:59");
-    startDate = new Date(`${first.date}T${firstStart}:00`);
-    endDate = new Date(`${last.date}T${lastEnd}:00`);
+    startDate = parseDateTimeInTimezone(first.date, firstStart, tz);
+    endDate = parseDateTimeInTimezone(last.date, lastEnd, tz);
   }
 
   const existing = await db.event.findUnique({
@@ -60,7 +63,7 @@ export async function PUT(
       description: data.description || null,
       startDate,
       endDate,
-      timezone: data.timezone || null,
+      timezone: null,
       venueId: data.venueId,
       marketId: data.marketId || null,
       imageUrl: data.imageUrl || null,

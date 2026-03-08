@@ -26,13 +26,5 @@ export const DATE_FILTERS = [
   { label: "All Upcoming", value: "all" },
 ] as const;
 
-/** US timezones for event scheduling (curated list). */
-export const US_TIMEZONES = [
-  { label: "Pacific (Spokane)", value: "America/Los_Angeles" },
-  { label: "Mountain", value: "America/Denver" },
-  { label: "Central", value: "America/Chicago" },
-  { label: "Eastern", value: "America/New_York" },
-] as const;
-
 export type NeighborhoodValue = (typeof NEIGHBORHOODS)[number]["value"];
 export type DateFilterValue = (typeof DATE_FILTERS)[number]["value"];

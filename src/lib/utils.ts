@@ -62,23 +62,38 @@ export function formatDateShort(date: Date): string {
   }).format(new Date(date));
 }
 
-/** Pacific timezone for schedule display. */
+/** Pacific timezone for Spokane area. */
 const PST = "America/Los_Angeles";
 
-/** Format HH:mm (24hr) to 12hr format in PST (e.g. "17:00" → "5:00 PM"). */
-export function formatTime12hr(
-  hhmm: string,
+/** Parse date (YYYY-MM-DD) + time (HH:mm) as a moment in the given timezone.
+ * Returns a Date (UTC). Use when server may be in a different TZ than the event. */
+export function parseDateTimeInTimezone(
+  dateStr: string,
+  timeStr: string,
   timeZone: string = PST
-): string {
+): Date {
+  const iso = `${dateStr}T${timeStr}:00`;
+  const refDate = new Date(`${dateStr}T12:00:00Z`);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    timeZoneName: "shortOffset",
+  }).formatToParts(refDate);
+  const tzPart = parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+  const match = tzPart.match(/GMT([+-])(\d+)(?::(\d+))?/);
+  const offset = match
+    ? `${match[1]}${match[2].padStart(2, "0")}:${(match[3] ?? "00").padStart(2, "0")}`
+    : "-08:00";
+  return new Date(`${iso}${offset}`);
+}
+
+/** Format HH:mm (24hr) to 12hr format (e.g. "17:00" → "5:00 PM").
+ * Treats input as literal time in event timezone — no Date conversion to avoid server TZ issues. */
+export function formatTime12hr(hhmm: string): string {
   if (!hhmm || !/^\d{2}:\d{2}$/.test(hhmm)) return hhmm;
   const [h, m] = hhmm.split(":").map(Number);
-  const d = new Date(2000, 0, 1, h, m);
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-    timeZone,
-  }).format(d);
+  const hour12 = h % 12 || 12;
+  const period = h >= 12 ? "PM" : "AM";
+  return `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
 }
 
 /** True if start and end are on different calendar days. */

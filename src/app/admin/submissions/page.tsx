@@ -95,7 +95,6 @@ export default async function AdminSubmissionsPage({
                     {sub.allDay ? " (all day)" : ` at ${formatTime12hr(sub.eventTime)}`}
                     {sub.endDate && sub.endDate !== sub.eventDate && ` – ${sub.endDate}`}
                     {sub.endTime && !sub.allDay && sub.endTime !== sub.eventTime && ` at ${formatTime12hr(sub.endTime)}`}
-                    {sub.timezone && ` (${sub.timezone})`}
                     {" · "}
                     {sub.venueName}
                     {[sub.venueAddress, [sub.venueCity, sub.venueState, sub.venueZip].filter(Boolean).join(", ")]
