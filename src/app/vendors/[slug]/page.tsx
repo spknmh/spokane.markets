@@ -35,6 +35,7 @@ async function getVendor(slug: string) {
               tags: true,
               features: true,
               _count: { select: { vendorEvents: true } },
+              scheduleDays: { orderBy: { date: "asc" } },
             },
           },
         },

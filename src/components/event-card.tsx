@@ -3,23 +3,57 @@ import type { Event, Venue, Tag, Feature } from "@prisma/client";
 import { EventTimeLabel } from "@/components/event-time-label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { isMultiDayEvent, formatDateShort } from "@/lib/utils";
+import { isMultiDayEvent, formatEventTimeFromSchedule } from "@/lib/utils";
+
+type ScheduleDay = { date: Date; startTime: string; endTime: string; allDay: boolean };
 
 type EventWithRelations = Event & {
   venue: Venue;
   tags: Tag[];
   features: Feature[];
   _count?: { vendorEvents: number };
+  scheduleDays?: ScheduleDay[];
 };
 
 interface EventCardProps {
   event: EventWithRelations;
 }
 
+const monthFormatUTC = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  timeZone: "UTC",
+});
+const dayFormatUTC = new Intl.DateTimeFormat("en-US", {
+  day: "numeric",
+  timeZone: "UTC",
+});
+const shortDateFormatUTC = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+
 export function EventCard({ event }: EventCardProps) {
-  const start = new Date(event.startDate);
-  const end = new Date(event.endDate);
-  const multiDay = isMultiDayEvent(start, end);
+  const scheduleDays = event.scheduleDays;
+  const start = scheduleDays?.length
+    ? new Date(scheduleDays[0].date)
+    : new Date(event.startDate);
+  const end = scheduleDays?.length
+    ? new Date(scheduleDays[scheduleDays.length - 1].date)
+    : new Date(event.endDate);
+  const multiDay = scheduleDays?.length
+    ? scheduleDays.length > 1
+    : isMultiDayEvent(new Date(event.startDate), new Date(event.endDate));
+
+  const timeDisplay = scheduleDays?.length ? (
+    formatEventTimeFromSchedule(scheduleDays, event.timezone)
+  ) : (
+    <EventTimeLabel
+      startDate={event.startDate}
+      endDate={event.endDate}
+      timezone={event.timezone}
+    />
+  );
 
   return (
     <Link href={`/events/${event.slug}`} className="group block">
@@ -27,10 +61,10 @@ export function EventCard({ event }: EventCardProps) {
         <CardContent className="flex gap-4 p-5">
           <div className="flex shrink-0 flex-col items-center justify-center self-start rounded-lg bg-primary px-3 py-2 text-center">
             <span className="text-xs font-bold uppercase tracking-wide text-primary-foreground">
-              {new Intl.DateTimeFormat("en-US", { month: "short" }).format(start)}
+              {monthFormatUTC.format(start)}
             </span>
             <span className="text-2xl font-bold text-primary-foreground">
-              {new Intl.DateTimeFormat("en-US", { day: "numeric" }).format(start)}
+              {dayFormatUTC.format(start)}
             </span>
             {multiDay && (
               <>
@@ -38,7 +72,7 @@ export function EventCard({ event }: EventCardProps) {
                   thru
                 </span>
                 <span className="text-xs font-bold text-primary-foreground">
-                  {formatDateShort(end)}
+                  {shortDateFormatUTC.format(end)}
                 </span>
               </>
             )}
@@ -49,13 +83,7 @@ export function EventCard({ event }: EventCardProps) {
               {event.title}
             </h3>
 
-            <p className="text-sm font-semibold text-foreground">
-              <EventTimeLabel
-                startDate={event.startDate}
-                endDate={event.endDate}
-                timezone={event.timezone}
-              />
-            </p>
+            <p className="text-sm font-semibold text-foreground">{timeDisplay}</p>
 
             <p className="line-clamp-2 text-sm font-medium text-foreground">
               {event.venue.name}

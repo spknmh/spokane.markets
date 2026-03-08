@@ -155,6 +155,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         tags: true,
         features: true,
         _count: { select: { vendorEvents: true } },
+        scheduleDays: { orderBy: { date: "asc" } },
       },
       orderBy: { startDate: "asc" },
       skip: (page - 1) * limit,
