@@ -10,7 +10,7 @@ export default async function NewsletterPage() {
       <div className="mb-8 overflow-hidden rounded-xl">
         <Image
           src={banners.marketCrowd}
-          alt=""
+          alt="Community at a farmers market"
           width={800}
           height={200}
           className="h-40 w-full object-cover"

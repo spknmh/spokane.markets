@@ -50,7 +50,7 @@ export function OfficialVendorRoster({
                 {v.imageUrl ? (
                   <img
                     src={v.imageUrl}
-                    alt=""
+                    alt={v.businessName}
                     className="h-10 w-10 shrink-0 rounded-full object-cover"
                   />
                 ) : (

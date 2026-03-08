@@ -22,7 +22,7 @@ export default async function AboutPage() {
       <div className="mb-8 overflow-hidden rounded-xl">
         <Image
           src={banners.produce}
-          alt=""
+          alt="Fresh produce at local Spokane markets"
           width={800}
           height={300}
           className="h-48 w-full object-cover"

@@ -56,6 +56,12 @@ export async function generateMetadata({
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const description = vendor.description ?? `${vendor.businessName} — a local vendor on ${SITE_NAME}.`;
+  const vendorImage =
+    vendor.imageUrl?.startsWith("http")
+      ? vendor.imageUrl
+      : vendor.imageUrl
+        ? `${baseUrl}${vendor.imageUrl.startsWith("/") ? "" : "/"}${vendor.imageUrl}`
+        : undefined;
   return {
     title: `${vendor.businessName} | ${SITE_NAME}`,
     description,
@@ -63,11 +69,13 @@ export async function generateMetadata({
     openGraph: {
       title: vendor.businessName,
       description,
+      images: vendorImage ? [{ url: vendorImage }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title: vendor.businessName,
       description,
+      images: vendorImage ? [{ url: vendorImage }] : undefined,
     },
   };
 }
@@ -102,8 +110,35 @@ export default async function VendorProfilePage({ params }: PageProps) {
     .map((ve) => ve.event);
 
   const firstSpecialty = vendor.specialties?.split(",")[0]?.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const vendorUrl = `${baseUrl}/vendors/${vendor.slug}`;
+  const vendorImage =
+    vendor.imageUrl?.startsWith("http")
+      ? vendor.imageUrl
+      : vendor.imageUrl
+        ? `${baseUrl}${vendor.imageUrl.startsWith("/") ? "" : "/"}${vendor.imageUrl}`
+        : undefined;
+  const sameAs = [vendor.websiteUrl, vendor.facebookUrl, vendor.instagramUrl].filter(
+    (u): u is string => !!u
+  );
+  const vendorJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: vendor.businessName,
+    description: vendor.description ?? undefined,
+    url: vendorUrl,
+    image: vendorImage,
+    ...(sameAs.length > 0 && { sameAs }),
+    ...(vendor.contactEmail && { email: vendor.contactEmail }),
+    ...(vendor.contactPhone && { telephone: vendor.contactPhone }),
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(vendorJsonLd) }}
+      />
       <TrackVendorView
         vendorId={vendor.id}
         category={firstSpecialty ? firstSpecialty.toLowerCase().replace(/\s+/g, "-") : undefined}

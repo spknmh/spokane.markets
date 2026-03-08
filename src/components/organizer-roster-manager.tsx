@@ -73,7 +73,7 @@ function VendorRow({
         {vendor.imageUrl ? (
           <img
             src={vendor.imageUrl}
-            alt=""
+            alt={vendor.businessName}
             className="h-10 w-10 shrink-0 rounded-full object-cover"
           />
         ) : (
@@ -414,7 +414,7 @@ export function OrganizerRosterManager({
                           {vendor.imageUrl ? (
                             <img
                               src={vendor.imageUrl}
-                              alt=""
+                              alt={vendor.businessName}
                               className="h-9 w-9 shrink-0 rounded-full object-cover"
                             />
                           ) : (

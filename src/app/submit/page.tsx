@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: `Submit an Event — ${SITE_NAME}`,
   description:
     "Submit a market, craft fair, or community event for inclusion in the Spokane Markets calendar. We review submissions within a few business days.",
+  robots: { index: false, follow: true },
 };
 
 export default async function SubmitPage() {
@@ -27,7 +28,7 @@ export default async function SubmitPage() {
       <div className="mb-8 overflow-hidden rounded-xl">
         <Image
           src={banners.craftStall}
-          alt=""
+          alt="Craft stall at a local market"
           width={800}
           height={200}
           className="h-40 w-full object-cover"

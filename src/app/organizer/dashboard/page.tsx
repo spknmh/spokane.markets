@@ -8,7 +8,7 @@ import { DashboardHeaderCard } from "@/components/dashboard-header-card";
 import { evaluateAndGrantBadges } from "@/lib/badges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDate, formatDateRange, formatRelativeTime } from "@/lib/utils";
+import { formatDate, formatDateRangeInTimezone, formatRelativeTime } from "@/lib/utils";
 import { getOrganizerQueuesSummary } from "@/lib/organizer/queues";
 import { Users, Clock } from "lucide-react";
 
@@ -375,7 +375,7 @@ export default async function OrganizerDashboardPage() {
                               </Badge>
                             </div>
                             <p className="mt-0.5 text-sm text-muted-foreground">
-                              {formatDateRange(event.startDate, event.endDate)} ·{" "}
+                              {formatDateRangeInTimezone(event.startDate, event.endDate, event.timezone)} ·{" "}
                               {event.venue.name}
                             </p>
                           </div>
@@ -438,7 +438,7 @@ export default async function OrganizerDashboardPage() {
                               </Badge>
                             </div>
                             <p className="mt-0.5 text-sm text-muted-foreground">
-                              {formatDateRange(event.startDate, event.endDate)} ·{" "}
+                              {formatDateRangeInTimezone(event.startDate, event.endDate, event.timezone)} ·{" "}
                               {event.venue.name}
                             </p>
                           </div>

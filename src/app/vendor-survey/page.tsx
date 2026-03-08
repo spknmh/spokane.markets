@@ -10,7 +10,7 @@ export default async function VendorSurveyPage() {
       <div className="mb-8 overflow-hidden rounded-xl">
         <Image
           src={banners.localVendor}
-          alt=""
+          alt="Local vendor at Spokane markets"
           width={800}
           height={200}
           className="h-40 w-full object-cover"

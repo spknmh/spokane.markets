@@ -13,7 +13,7 @@ export default async function AuthLayout({
       <div className="absolute inset-0 -z-10">
         <Image
           src={banners.community}
-          alt=""
+          alt="Spokane community markets"
           fill
           className="object-cover opacity-20"
           priority

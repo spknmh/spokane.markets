@@ -89,7 +89,7 @@ export default async function EventsMapPage({ searchParams }: MapPageProps) {
       <div className="relative -mx-4 mb-10 overflow-hidden rounded-xl sm:-mx-6 lg:-mx-8">
         <Image
           src={banners.marketCrowd}
-          alt=""
+          alt="Markets and events map"
           width={1200}
           height={400}
           className="h-52 w-full object-cover sm:h-64"

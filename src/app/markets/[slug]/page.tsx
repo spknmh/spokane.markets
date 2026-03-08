@@ -13,7 +13,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Calendar, CheckCircle2, ExternalLink, Facebook, Instagram, MapPin } from "lucide-react";
-import { formatDateRange, formatNeighborhoodLabel, getDirectionsUrl } from "@/lib/utils";
+import { formatDateRangeInTimezone, formatNeighborhoodLabel, getDirectionsUrl } from "@/lib/utils";
 import { MapPreview } from "@/components/map-preview";
 import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
@@ -46,6 +46,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!market) return { title: "Market Not Found" };
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const description = market.description ?? `Discover ${market.name} and upcoming events in the Spokane area.`;
+  const marketImage =
+    market.imageUrl?.startsWith("http")
+      ? market.imageUrl
+      : market.imageUrl
+        ? `${baseUrl}${market.imageUrl.startsWith("/") ? "" : "/"}${market.imageUrl}`
+        : undefined;
   return {
     title: `${market.name} — ${SITE_NAME}`,
     description,
@@ -53,11 +59,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: market.name,
       description,
+      images: marketImage ? [{ url: marketImage }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title: market.name,
       description,
+      images: marketImage ? [{ url: marketImage }] : undefined,
     },
   };
 }
@@ -158,7 +166,7 @@ export default async function MarketDetailPage({ params }: PageProps) {
                       <CardHeader>
                         <CardTitle className="line-clamp-2">{event.title}</CardTitle>
                         <CardDescription>
-                          {formatDateRange(event.startDate, event.endDate)}
+                          {formatDateRangeInTimezone(event.startDate, event.endDate, event.timezone)}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>

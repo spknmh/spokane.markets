@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/auth";
@@ -15,6 +16,12 @@ import {
 } from "@/lib/date-ranges";
 import { SITE_NAME } from "@/lib/constants";
 import { HomeScrollDepth } from "@/components/home-scroll-depth";
+
+export const metadata: Metadata = {
+  title: "Find Local Farmers Markets & Events This Weekend",
+  description:
+    "Discover farmers markets, craft fairs, and community events in Spokane. Browse this weekend's markets, plan ahead, and never miss a local event.",
+};
 
 export default async function HomePage() {
   const session = await auth();

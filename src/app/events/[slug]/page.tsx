@@ -69,6 +69,12 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
   if (!event) return { title: "Event Not Found" };
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const eventImage =
+    event.imageUrl?.startsWith("http")
+      ? event.imageUrl
+      : event.imageUrl
+        ? `${baseUrl}${event.imageUrl.startsWith("/") ? "" : "/"}${event.imageUrl}`
+        : undefined;
   return {
     title: `${event.title} — ${(await import("@/lib/constants")).SITE_NAME}`,
     description:
@@ -78,13 +84,13 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
     openGraph: {
       title: event.title,
       description: event.description?.slice(0, 160) ?? undefined,
-      images: event.imageUrl ? [{ url: event.imageUrl }] : undefined,
+      images: eventImage ? [{ url: eventImage }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title: event.title,
       description: event.description?.slice(0, 160) ?? undefined,
-      images: event.imageUrl ? [event.imageUrl] : undefined,
+      images: eventImage ? [{ url: eventImage }] : undefined,
     },
   };
 }
@@ -153,6 +159,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
     description: event.description ?? undefined,
     startDate: event.startDate.toISOString(),
     endDate: event.endDate.toISOString(),
+    eventStatus: "https://schema.org/EventScheduled",
     url: eventUrl,
     image: eventImage,
     location: {
@@ -204,7 +211,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             ) : (
               <Image
                 src={banners.events}
-                alt=""
+                alt={event.title}
                 width={800}
                 height={320}
                 className="h-64 w-full object-cover sm:h-80"
@@ -275,6 +282,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 <EventTimeLabel
                   startDate={event.startDate}
                   endDate={event.endDate}
+                  timezone={event.timezone}
                 />
               </p>
               {event.scheduleDays && event.scheduleDays.length > 1 && (
@@ -293,6 +301,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                             weekday: "short",
                             month: "short",
                             day: "numeric",
+                            timeZone: "UTC",
                           }).format(d.date)}
                         </span>
                         <span className="text-muted-foreground">

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import type { EventInput } from "@/lib/validations";
 import { EventForm } from "@/components/admin/event-form";
 import { notFound } from "next/navigation";
+import { formatForDateTimeLocal } from "@/lib/utils";
 
 export default async function EditEventPage({
   params,
@@ -25,10 +26,11 @@ export default async function EditEventPage({
 
   if (!event) notFound();
 
+  const tz = event.timezone || "America/Los_Angeles";
   const scheduleDays =
     event.scheduleDays?.length
       ? event.scheduleDays.map((d) => ({
-          date: d.date.toISOString().slice(0, 10),
+          date: formatForDateTimeLocal(d.date, tz).slice(0, 10),
           allDay: d.allDay,
           startTime: d.allDay ? undefined : d.startTime,
           endTime: d.allDay ? undefined : d.endTime,
@@ -40,8 +42,8 @@ export default async function EditEventPage({
     title: event.title,
     slug: event.slug,
     description: event.description ?? "",
-    startDate: event.startDate.toISOString().slice(0, 16),
-    endDate: event.endDate.toISOString().slice(0, 16),
+    startDate: formatForDateTimeLocal(event.startDate, tz),
+    endDate: formatForDateTimeLocal(event.endDate, tz),
     timezone: event.timezone ?? "",
     venueId: event.venueId,
     marketId: event.marketId ?? "",

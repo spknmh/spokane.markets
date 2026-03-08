@@ -2,7 +2,7 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatDateRange, cn } from "@/lib/utils";
+import { formatDateRangeInTimezone, cn } from "@/lib/utils";
 import { DeleteButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
 import { deleteEvent } from "../actions";
@@ -110,7 +110,7 @@ export default async function AdminEventsPage({
                 <tr key={event.id} className="hover:bg-muted/30">
                   <td className="p-3 font-medium">{event.title}</td>
                   <td className="p-3 text-muted-foreground">
-                    {formatDateRange(event.startDate, event.endDate)}
+                    {formatDateRangeInTimezone(event.startDate, event.endDate, event.timezone)}
                   </td>
                   <td className="p-3 text-muted-foreground">{event.venue.name}</td>
                   <td className="p-3">

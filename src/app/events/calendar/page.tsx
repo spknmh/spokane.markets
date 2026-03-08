@@ -9,10 +9,24 @@ import { isBannerUnoptimized } from "@/lib/utils";
 import { EventTimeLabel } from "@/components/event-time-label";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: `Events Calendar — ${SITE_NAME}`,
-  description: "Browse upcoming markets and events by date.",
-};
+interface CalendarMetadataProps {
+  searchParams: Promise<{ year?: string; month?: string }>;
+}
+
+export async function generateMetadata({ searchParams }: CalendarMetadataProps): Promise<Metadata> {
+  const params = await searchParams;
+  const now = new Date();
+  const year = parseInt(params.year ?? String(now.getFullYear()), 10) || now.getFullYear();
+  const month = Math.max(0, Math.min(11, parseInt(params.month ?? String(now.getMonth()), 10) || now.getMonth()));
+  const monthEnd = new Date(year, month + 1, 0, 23, 59, 59);
+  const isPastMonth = monthEnd < now;
+
+  return {
+    title: `Events Calendar — ${SITE_NAME}`,
+    description: "Browse upcoming markets and events by date.",
+    ...(isPastMonth && { robots: { index: false, follow: true } }),
+  };
+}
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -68,7 +82,7 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
       <div className="relative -mx-4 mb-10 overflow-hidden rounded-xl sm:-mx-6 lg:-mx-8">
         <Image
           src={banners.marketCrowd}
-          alt=""
+          alt="Markets and events calendar"
           width={1200}
           height={400}
           className="h-52 w-full object-cover sm:h-64"

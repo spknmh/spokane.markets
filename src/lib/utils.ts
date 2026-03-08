@@ -65,6 +65,54 @@ export function formatDateShort(date: Date): string {
 /** Pacific timezone for Spokane area. */
 const PST = "America/Los_Angeles";
 
+/** Get local date/time parts in a timezone. Use for heuristics instead of getHours/getDate. */
+function getPartsInTimezone(date: Date, timeZone: string): { year: number; month: number; date: number; hours: number; minutes: number } {
+  const d = new Date(date);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  }).formatToParts(d);
+  const get = (type: string) => parseInt(parts.find((p) => p.type === type)?.value ?? "0", 10);
+  return {
+    year: get("year"),
+    month: get("month") - 1,
+    date: get("day"),
+    hours: get("hour"),
+    minutes: get("minute"),
+  };
+}
+
+/** Format date in a specific timezone (weekday, month, day). */
+export function formatDateInTimezone(date: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone,
+  }).format(new Date(date));
+}
+
+/** Format a Date for datetime-local input in a specific timezone. Returns "YYYY-MM-DDTHH:mm". */
+export function formatForDateTimeLocal(date: Date, timeZone: string = PST): string {
+  const d = new Date(date);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+}
+
 /** Parse date (YYYY-MM-DD) + time (HH:mm) as a moment in the given timezone.
  * Returns a Date (UTC). Use when server may be in a different TZ than the event. */
 export function parseDateTimeInTimezone(
@@ -146,23 +194,22 @@ export function formatDateRange(start: Date, end: Date): string {
 
 /**
  * Format date range in a specific timezone when provided.
- * Falls back to formatDateRange (local/server time) when timezone is null.
+ * Handles multi-day events. Falls back to formatDateRange (PST) when timezone is null.
  */
 export function formatDateRangeInTimezone(
   start: Date,
   end: Date,
   timezone: string | null | undefined
 ): string {
-  if (!timezone) {
-    return formatDateRange(start, end);
-  }
-  const tzOpts = { timeZone: timezone };
-  const dateStr = new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    ...tzOpts,
-  }).format(new Date(start));
+  const tz = timezone || PST;
+  const tzOpts = { timeZone: tz };
+  const startParts = getPartsInTimezone(start, tz);
+  const endParts = getPartsInTimezone(end, tz);
+  const sameDay =
+    startParts.year === endParts.year &&
+    startParts.month === endParts.month &&
+    startParts.date === endParts.date;
+
   const startTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
@@ -175,11 +222,24 @@ export function formatDateRangeInTimezone(
     hour12: true,
     ...tzOpts,
   }).format(new Date(end));
+
+  if (!sameDay) {
+    const startDateStr = formatDateInTimezone(start, tz);
+    const endDateStr = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      ...tzOpts,
+    }).format(new Date(end));
+    return `${startDateStr} – ${endDateStr} · ${startTime} – ${endTime}`;
+  }
+
+  const dateStr = formatDateInTimezone(start, tz);
   return `${dateStr} · ${startTime} – ${endTime}`;
 }
 
 /**
  * Format event time with all-day and time-TBD heuristics.
+ * Uses event timezone (or PST) for all heuristics and display to avoid server TZ issues.
  * - All day: start 00:00 and end 23:59 same day, or end next day 00:00
  * - Time TBD: start and end both midnight on same calendar day
  * - Otherwise: date + time range
@@ -189,20 +249,21 @@ export function formatEventTime(
   end: Date,
   timezone?: string | null
 ): string {
-  const s = new Date(start);
-  const e = new Date(end);
+  const tz = timezone || PST;
+  const startParts = getPartsInTimezone(start, tz);
+  const endParts = getPartsInTimezone(end, tz);
 
-  const startHr = s.getHours();
-  const startMin = s.getMinutes();
-  const endHr = e.getHours();
-  const endMin = e.getMinutes();
+  const startHr = startParts.hours;
+  const startMin = startParts.minutes;
+  const endHr = endParts.hours;
+  const endMin = endParts.minutes;
 
   const sameDay =
-    s.getFullYear() === e.getFullYear() &&
-    s.getMonth() === e.getMonth() &&
-    s.getDate() === e.getDate();
+    startParts.year === endParts.year &&
+    startParts.month === endParts.month &&
+    startParts.date === endParts.date;
 
-  // Time TBD: both midnight, same day
+  // Time TBD: both midnight, same day (in event timezone)
   if (
     sameDay &&
     startHr === 0 &&
@@ -210,14 +271,14 @@ export function formatEventTime(
     endHr === 0 &&
     endMin === 0
   ) {
-    const dateStr = formatDate(s);
+    const dateStr = formatDateInTimezone(start, tz);
     return `${dateStr} · Time TBD`;
   }
 
   // All day: start midnight, end 23:59 same day OR end next day 00:00
-  const endDate = new Date(e.getFullYear(), e.getMonth(), e.getDate());
-  const startDate = new Date(s.getFullYear(), s.getMonth(), s.getDate());
-  const daysDiff = (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
+  const startDateNum = new Date(startParts.year, startParts.month, startParts.date).getTime();
+  const endDateNum = new Date(endParts.year, endParts.month, endParts.date).getTime();
+  const daysDiff = Math.round((endDateNum - startDateNum) / (24 * 60 * 60 * 1000));
   const endIsNextDayMidnight =
     !sameDay && endHr === 0 && endMin === 0 && daysDiff === 1;
   const endIs2359 = sameDay && endHr === 23 && endMin === 59;
@@ -227,32 +288,31 @@ export function formatEventTime(
     startMin === 0 &&
     (endIs2359 || endIsNextDayMidnight)
   ) {
-    const dateStr = formatDate(s);
+    const dateStr = formatDateInTimezone(start, tz);
     return `${dateStr} · All day`;
   }
 
-  // Multi-day: show date range + time range
-  const dateStr = formatDate(s);
-  const endDateStr = formatDate(e);
+  // Multi-day: show date range + time range (in event timezone)
+  const dateStr = formatDateInTimezone(start, tz);
+  const endDateStr = formatDateInTimezone(end, tz);
+  const tzOpts = { timeZone: tz };
   const startTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-    timeZone: PST,
-  }).format(s);
+    ...tzOpts,
+  }).format(new Date(start));
   const endTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-    timeZone: PST,
-  }).format(e);
+    ...tzOpts,
+  }).format(new Date(end));
   if (!sameDay) {
     return `${dateStr} – ${endDateStr} · ${startTime} – ${endTime}`;
   }
 
-  return timezone
-    ? formatDateRangeInTimezone(start, end, timezone)
-    : formatDateRange(start, end);
+  return formatDateRangeInTimezone(start, end, tz);
 }
 
 export function getDirectionsUrl(address: string): string {

@@ -42,9 +42,21 @@ const umamiScriptUrl =
 /** Skip static prerender at build time; DB is unavailable in Docker build. */
 export const dynamic = "force-dynamic";
 
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: baseUrl,
+  description:
+    "The best way to find markets, craft fairs, and vendor events in the Spokane area. Filter by date, neighborhood, and category.",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: `${SITE_NAME} — Discover Local Markets, Fairs & Events`,
+  title: {
+    default: `${SITE_NAME} — Discover Local Markets, Fairs & Events`,
+    template: `%s | ${SITE_NAME}`,
+  },
   description:
     "The best way to find markets, craft fairs, and vendor events in the Spokane area. Filter by date, neighborhood, and category.",
   openGraph: {
@@ -67,6 +79,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" suppressHydrationWarning data-umami={umamiWebsiteId ? "enabled" : "disabled"}>
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         {umamiWebsiteId && (
           <script
             defer
