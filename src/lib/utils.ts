@@ -328,6 +328,43 @@ export function isValidCallbackUrl(url: string | null | undefined): boolean {
   return url.startsWith("/") && !url.startsWith("//");
 }
 
+/**
+ * Format "When" summary from schedule days (source of truth for recurring events).
+ * Uses UTC for date-only fields to avoid timezone shift; times are stored as local HH:mm.
+ */
+export function formatEventTimeFromSchedule(
+  scheduleDays: { date: Date; startTime: string; endTime: string; allDay: boolean }[],
+  timezone?: string | null
+): string {
+  if (!scheduleDays.length) return "";
+  const tz = timezone || PST;
+  const first = scheduleDays[0];
+  const last = scheduleDays[scheduleDays.length - 1];
+  const dateFormat = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+  const firstDateStr = dateFormat.format(new Date(first.date));
+  const lastDateStr = dateFormat.format(new Date(last.date));
+  const dateRange =
+    scheduleDays.length === 1 ? firstDateStr : `${firstDateStr} – ${lastDateStr}`;
+  const allSameTime = scheduleDays.every(
+    (d) =>
+      d.startTime === first.startTime &&
+      d.endTime === first.endTime &&
+      d.allDay === first.allDay
+  );
+  if (allSameTime && first.allDay) {
+    return `${dateRange} · All day`;
+  }
+  if (allSameTime && !first.allDay) {
+    return `${dateRange} · ${formatTime12hr(first.startTime)} – ${formatTime12hr(first.endTime)}`;
+  }
+  return `${dateRange} · Various times`;
+}
+
 export function getCompletenessScore(event: Record<string, unknown>): { score: number; total: number } {
   const fields = ["title", "description", "startDate", "endDate", "imageUrl", "websiteUrl", "facebookUrl", "venueId", "marketId", "tags"];
   let filled = 0;

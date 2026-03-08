@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
-import { getDirectionsUrl, formatTime12hr } from "@/lib/utils";
+import { getDirectionsUrl, formatTime12hr, formatEventTimeFromSchedule } from "@/lib/utils";
 import { EventTimeLabel } from "@/components/event-time-label";
 import { MapPreview } from "@/components/map-preview";
 import { Badge } from "@/components/ui/badge";
@@ -279,11 +279,15 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             <div>
               <p className="text-sm font-medium text-muted-foreground">When</p>
               <p className="mt-0.5 text-lg font-semibold text-foreground">
-                <EventTimeLabel
-                  startDate={event.startDate}
-                  endDate={event.endDate}
-                  timezone={event.timezone}
-                />
+                {event.scheduleDays?.length ? (
+                  formatEventTimeFromSchedule(event.scheduleDays, event.timezone)
+                ) : (
+                  <EventTimeLabel
+                    startDate={event.startDate}
+                    endDate={event.endDate}
+                    timezone={event.timezone}
+                  />
+                )}
               </p>
               {event.scheduleDays && event.scheduleDays.length > 1 && (
                 <details className="mt-3 rounded-lg border border-border bg-background">
