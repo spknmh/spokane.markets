@@ -10,7 +10,7 @@ export function SiteLogo() {
     >
       <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/15">
         <Image
-          src="/store.png"
+          src="/market.png"
           alt=""
           width={40}
           height={40}
