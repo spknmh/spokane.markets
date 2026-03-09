@@ -1,12 +1,17 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { adminVendorProfileSchema } from "@/lib/validations";
-import { slugify } from "@/lib/utils";
+import { normalizeUrlToHttps, slugify } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
 function toOptional(value: string | undefined): string | undefined {
   if (value === undefined || value === "") return undefined;
   return value;
+}
+
+function toOptionalUrl(value: string | undefined): string | undefined {
+  if (value === undefined || value === "") return undefined;
+  return normalizeUrlToHttps(value);
 }
 
 async function generateUniqueSlug(base: string, excludeId?: string): Promise<string> {
@@ -92,14 +97,17 @@ export async function PUT(
       slug,
       description: toOptional(data.description),
       imageUrl: toOptional(data.imageUrl),
-      websiteUrl: toOptional(data.websiteUrl),
-      facebookUrl: toOptional(data.facebookUrl),
-      instagramUrl: toOptional(data.instagramUrl),
+      websiteUrl: toOptionalUrl(data.websiteUrl),
+      facebookUrl: toOptionalUrl(data.facebookUrl),
+      instagramUrl: toOptionalUrl(data.instagramUrl),
       contactEmail: toOptional(data.contactEmail),
       contactPhone: toOptional(data.contactPhone),
       ...(Array.isArray(galleryUrls) && { galleryUrls }),
       specialties: toOptional(data.specialties),
-      userId: data.userId?.trim() || null,
+      userId:
+        data.userId && typeof data.userId === "string" && data.userId.trim()
+          ? data.userId.trim()
+          : null,
       contactVisible: data.contactVisible ?? true,
       socialLinksVisible: data.socialLinksVisible ?? true,
     },

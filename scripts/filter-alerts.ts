@@ -16,7 +16,6 @@ const adapter = new PrismaPg({
 const db = new PrismaClient({ adapter });
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-const USE_NEW_MODELS = process.env.USE_NEW_MODELS === "true";
 
 function getDateRange(filter: string): { gte: Date; lt: Date } | null {
   const now = new Date();
@@ -124,43 +123,7 @@ async function main() {
     const filterResults: { filterName: string; events: { title: string; slug: string }[] }[] = [];
 
     for (const filter of userFilters) {
-      if (USE_NEW_MODELS) {
-        const where: Prisma.EventOccurrenceWhereInput = {
-          status: "PUBLISHED",
-          createdAt: { gte: oneDayAgo },
-        };
-
-        if (filter.dateRange) {
-          const range = getDateRange(filter.dateRange);
-          if (range) {
-            where.startDate = { gte: range.gte, lt: range.lt };
-          }
-        }
-
-        if (filter.neighborhoods.length > 0) {
-          where.location = { neighborhood: { in: filter.neighborhoods } };
-        }
-
-        if (filter.categories.length > 0) {
-          where.tags = { some: { slug: { in: filter.categories } } };
-        }
-
-        if (filter.features.length > 0) {
-          where.features = { some: { slug: { in: filter.features } } };
-        }
-
-        const events = await db.eventOccurrence.findMany({
-          where,
-          select: { title: true, slug: true },
-          orderBy: { startDate: "asc" },
-          take: 20,
-        });
-
-        if (events.length > 0) {
-          filterResults.push({ filterName: filter.name, events });
-        }
-      } else {
-        const where: Prisma.EventWhereInput = {
+      const where: Prisma.EventWhereInput = {
           status: "PUBLISHED",
           createdAt: { gte: oneDayAgo },
         };
@@ -184,16 +147,15 @@ async function main() {
           where.features = { some: { slug: { in: filter.features } } };
         }
 
-        const events = await db.event.findMany({
-          where,
-          select: { title: true, slug: true },
-          orderBy: { startDate: "asc" },
-          take: 20,
-        });
+      const events = await db.event.findMany({
+        where,
+        select: { title: true, slug: true },
+        orderBy: { startDate: "asc" },
+        take: 20,
+      });
 
-        if (events.length > 0) {
-          filterResults.push({ filterName: filter.name, events });
-        }
+      if (events.length > 0) {
+        filterResults.push({ filterName: filter.name, events });
       }
     }
 

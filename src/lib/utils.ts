@@ -62,6 +62,18 @@ export function formatPhoneInput(value: string): string {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
 }
 
+/**
+ * Normalizes a URL to https:// for use in links.
+ * Accepts: www.example.com, http://example.com, https://example.com, example.com
+ */
+export function normalizeUrlToHttps(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return trimmed;
+  if (trimmed.startsWith("https://")) return trimmed;
+  if (trimmed.startsWith("http://")) return "https://" + trimmed.slice(7);
+  return trimmed.startsWith("www.") ? "https://" + trimmed : "https://" + trimmed;
+}
+
 export function formatRelativeTime(date: Date): string {
   const rtf = new Intl.RelativeTimeFormat("en-US", { numeric: "auto" });
   const now = new Date();

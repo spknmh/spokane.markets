@@ -82,13 +82,6 @@ enum ParticipationMode {
   CAPACITY_LIMITED
 }
 
-/// Source of VendorAppearance: self-reported link, intent/application, or official roster
-enum VendorAppearanceSource {
-  SELF_REPORTED
-  INTENT
-  ROSTER
-}
-
 // ─── Auth Models (Auth.js / Prisma Adapter) ──────────────────────────
 
 model User {
@@ -106,19 +99,16 @@ model User {
   reviews                Review[]
   photos                 Photo[]
   ownedMarkets           Market[]                @relation("MarketOwner")
-  ownedMarketSeries      MarketSeries[]          @relation("MarketSeriesOwner")
   claimRequests          ClaimRequest[]          @relation("ClaimRequester")
   reviewedClaims         ClaimRequest[]          @relation("ClaimReviewer")
   reviewedSubmissions    Submission[]            @relation("SubmissionReviewer")
   vendorProfile          VendorProfile?
-  vendor                 Vendor?
   notifications          Notification[]
   vendorClaimRequests    VendorClaimRequest[]    @relation("VendorClaimRequester")
   vendorClaimReviews     VendorClaimRequest[]    @relation("VendorClaimReviewer")
   savedFilters           SavedFilter[]
   favoriteVendors        FavoriteVendor[]
   organizerEvents        Event[]                 @relation("OrganizerEvents")
-  organizerEventOccurrences EventOccurrence[]    @relation("OrganizerEventOccurrences")
   reports                Report[]
   auditLogs              AuditLog[]
   rosterApprovals        EventVendorRoster[]     @relation("RosterApprover")
@@ -388,7 +378,6 @@ model Tag {
   name             String            @unique
   slug             String            @unique
   events           Event[]           @relation("EventTags")
-  eventOccurrences EventOccurrence[] @relation("EventOccurrenceTags")
 
   @@map("tags")
 }
@@ -399,7 +388,6 @@ model Feature {
   slug             String            @unique
   icon             String?
   events           Event[]           @relation("EventFeatures")
-  eventOccurrences EventOccurrence[] @relation("EventOccurrenceFeatures")
 
   @@map("features")
 }
@@ -747,175 +735,6 @@ model FavoriteVendor {
 
   @@unique([userId, vendorProfileId])
   @@map("favorite_vendors")
-}
-
-// ─── New Refactored Models (MarketSeries, EventOccurrence, Location, Vendor, VendorAppearance) ───
-// Additive only; old tables (markets, events, venues, vendor_profiles, etc.) remain for dual-read.
-
-model Location {
-  id           String  @id @default(cuid())
-  name         String
-  address      String
-  city         String
-  state        String
-  zip          String
-  lat          Float
-  lng          Float
-  neighborhood String?
-  parkingNotes String?
-  legacyVenueId String? @unique // For dual-read mapping: venues.id
-
-  marketSeries      MarketSeries[]
-  eventOccurrences  EventOccurrence[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([neighborhood])
-  @@map("locations")
-}
-
-model MarketSeries {
-  id                       String             @id @default(cuid())
-  name                     String
-  slug                     String             @unique
-  locationId               String
-  description              String?            @db.Text
-  imageUrl                 String?
-  websiteUrl               String?
-  facebookUrl              String?
-  instagramUrl             String?
-  baseArea                 String?
-  verificationStatus       VerificationStatus  @default(UNVERIFIED)
-  ownerId                  String?
-  typicalSchedule          String?
-  contactEmail             String?
-  contactPhone             String?
-  participationMode        ParticipationMode  @default(OPEN)
-  vendorCapacity           Int?
-  publicIntentListEnabled  Boolean            @default(true)
-  publicIntentNamesEnabled Boolean            @default(true)
-  publicRosterEnabled      Boolean            @default(true)
-  rosterClaimRequired      Boolean            @default(false)
-  legacyMarketId           String?            @unique // For dual-read mapping: markets.id
-
-  owner            User?              @relation("MarketSeriesOwner", fields: [ownerId], references: [id], onDelete: SetNull)
-  location         Location           @relation(fields: [locationId], references: [id], onDelete: Restrict)
-  eventOccurrences EventOccurrence[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([slug])
-  @@index([locationId])
-  @@map("market_series")
-}
-
-model EventOccurrence {
-  id                       String             @id @default(cuid())
-  marketSeriesId           String?
-  locationId                String
-  title                     String
-  slug                      String             @unique
-  description               String?            @db.Text
-  startDate                 DateTime
-  endDate                   DateTime
-  timezone                  String?
-  imageUrl                  String?
-  status                    EventStatus        @default(DRAFT)
-  recurrenceGroupId         String?
-  websiteUrl                String?
-  facebookUrl               String?
-  participationMode         ParticipationMode?
-  vendorCapacity            Int?
-  publicIntentListEnabled   Boolean?
-  publicIntentNamesEnabled  Boolean?
-  publicRosterEnabled       Boolean?
-  submittedById             String?
-  legacyEventId             String?             @unique // For dual-read mapping: events.id
-
-  marketSeries  MarketSeries?         @relation(fields: [marketSeriesId], references: [id], onDelete: SetNull)
-  location      Location              @relation(fields: [locationId], references: [id], onDelete: Restrict)
-  submittedBy   User?                 @relation("OrganizerEventOccurrences", fields: [submittedById], references: [id], onDelete: SetNull)
-  tags          Tag[]                 @relation("EventOccurrenceTags")
-  features      Feature[]             @relation("EventOccurrenceFeatures")
-  scheduleDays  EventOccurrenceScheduleDay[]
-  vendorAppearances VendorAppearance[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([startDate])
-  @@index([status])
-  @@index([status, startDate])
-  @@index([slug])
-  @@map("event_occurrences")
-}
-
-model EventOccurrenceScheduleDay {
-  id        String   @id @default(cuid())
-  eventOccurrenceId String
-  date      DateTime @db.Date
-  startTime String
-  endTime   String
-  allDay    Boolean  @default(false)
-
-  eventOccurrence EventOccurrence @relation(fields: [eventOccurrenceId], references: [id], onDelete: Cascade)
-
-  @@unique([eventOccurrenceId, date])
-  @@index([eventOccurrenceId])
-  @@map("event_occurrence_schedule_days")
-}
-
-model Vendor {
-  id                    String   @id @default(cuid())
-  userId                String?  @unique
-  businessName          String
-  slug                  String   @unique
-  description           String?  @db.Text
-  imageUrl              String?
-  websiteUrl            String?
-  facebookUrl           String?
-  instagramUrl          String?
-  contactEmail          String?
-  contactPhone          String?
-  galleryUrls            String[] @default([])
-  specialties           String?
-  contactVisible        Boolean  @default(true)
-  socialLinksVisible    Boolean  @default(true)
-  legacyVendorProfileId  String?  @unique // For dual-read mapping: vendor_profiles.id
-
-  user               User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vendorAppearances  VendorAppearance[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([slug])
-  @@map("vendors")
-}
-
-model VendorAppearance {
-  id               String                 @id @default(cuid())
-  eventOccurrenceId String
-  vendorId         String
-  source           VendorAppearanceSource
-  status           String                 // VendorIntentStatus or RosterStatus as string
-  notes            String?                @db.Text
-  visibility       IntentVisibility       @default(PRIVATE)
-  approvedByUserId String?
-  approvedAt       DateTime?
-
-  eventOccurrence EventOccurrence @relation(fields: [eventOccurrenceId], references: [id], onDelete: Cascade)
-  vendor          Vendor          @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([eventOccurrenceId, vendorId, source])
-  @@index([eventOccurrenceId])
-  @@index([vendorId])
-  @@map("vendor_appearances")
 }
 
 // Site-wide config (banners, etc.) — admin-editable

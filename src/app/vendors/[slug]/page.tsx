@@ -3,7 +3,7 @@ import { Mail, Phone } from "lucide-react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SITE_NAME } from "@/lib/constants";
-import { formatPhoneNumber } from "@/lib/utils";
+import { formatPhoneNumber, normalizeUrlToHttps } from "@/lib/utils";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
@@ -121,9 +121,9 @@ export default async function VendorProfilePage({ params }: PageProps) {
       : vendor.imageUrl
         ? `${baseUrl}${vendor.imageUrl.startsWith("/") ? "" : "/"}${vendor.imageUrl}`
         : undefined;
-  const sameAs = [vendor.websiteUrl, vendor.facebookUrl, vendor.instagramUrl].filter(
-    (u): u is string => !!u
-  );
+  const sameAs = [vendor.websiteUrl, vendor.facebookUrl, vendor.instagramUrl]
+    .filter((u): u is string => !!u?.trim())
+    .map(normalizeUrlToHttps);
   const vendorJsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",

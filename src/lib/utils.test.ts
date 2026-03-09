@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { formatPhoneNumber, formatPhoneInput } from "./utils";
+import {
+  formatPhoneNumber,
+  formatPhoneInput,
+  normalizeUrlToHttps,
+} from "./utils";
 
 describe("formatPhoneNumber", () => {
   it("formats 10-digit US number as (XXX) XXX-XXXX", () => {
@@ -45,5 +49,28 @@ describe("formatPhoneInput", () => {
 
   it("strips non-digits before formatting", () => {
     expect(formatPhoneInput("509-555-1234")).toBe("(509) 555-1234");
+  });
+});
+
+describe("normalizeUrlToHttps", () => {
+  it("leaves https:// URLs unchanged", () => {
+    expect(normalizeUrlToHttps("https://example.com")).toBe("https://example.com");
+  });
+
+  it("converts http:// to https://", () => {
+    expect(normalizeUrlToHttps("http://example.com")).toBe("https://example.com");
+  });
+
+  it("adds https:// to www. URLs", () => {
+    expect(normalizeUrlToHttps("www.example.com")).toBe("https://www.example.com");
+  });
+
+  it("adds https:// to bare domains", () => {
+    expect(normalizeUrlToHttps("example.com")).toBe("https://example.com");
+  });
+
+  it("returns empty string for empty or whitespace input", () => {
+    expect(normalizeUrlToHttps("")).toBe("");
+    expect(normalizeUrlToHttps("   ")).toBe("");
   });
 });

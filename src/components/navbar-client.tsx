@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, X, Home, Bell, User } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { Menu, X, Home, Bell, User, Settings, LayoutDashboard, Store, Shield, LogOut } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { SiteLogo } from "@/components/site-logo";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,6 @@ function getNavLinks(session: Session | null) {
   const base = [
     { href: "/", label: "Home", icon: Home },
     { href: "/events", label: "Events" },
-    { href: "/markets", label: "Markets" },
     { href: "/vendors", label: "Vendors" },
     { href: "/submit", label: "Submit Event" },
   ];
@@ -154,33 +154,86 @@ function MobileNav({
                 <React.Fragment key={link.href}>{linkEl}</React.Fragment>
               );
             })}
-            {session && (
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
-                onClick={() => setOpen(false)}
-              >
-                <User className="h-4 w-4" aria-hidden />
-                My Account
-              </Link>
+            <div className="flex-1" aria-hidden />
+            {session ? (
+              <>
+                <div className="flex flex-col gap-4 border-t border-border pt-4">
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
+                    onClick={() => setOpen(false)}
+                  >
+                    <User className="h-4 w-4" aria-hidden />
+                    My Account
+                  </Link>
+                  <Link
+                    href="/account/settings"
+                    className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
+                    onClick={() => setOpen(false)}
+                  >
+                    <Settings className="h-4 w-4" aria-hidden />
+                    Account Settings
+                  </Link>
+                  {session.user?.role === "ADMIN" && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
+                      onClick={() => setOpen(false)}
+                    >
+                      <Shield className="h-4 w-4" aria-hidden />
+                      Admin
+                    </Link>
+                  )}
+                  {session.user?.role === "ORGANIZER" && (
+                    <Link
+                      href="/organizer/dashboard"
+                      className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
+                      onClick={() => setOpen(false)}
+                    >
+                      <LayoutDashboard className="h-4 w-4" aria-hidden />
+                      Organizer Dashboard
+                    </Link>
+                  )}
+                  {session.user?.role === "VENDOR" && (
+                    <Link
+                      href="/vendor/dashboard"
+                      className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
+                      onClick={() => setOpen(false)}
+                    >
+                      <Store className="h-4 w-4" aria-hidden />
+                      Vendor Dashboard
+                    </Link>
+                  )}
+                  <Link
+                    href="/notifications"
+                    className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
+                    onClick={() => setOpen(false)}
+                  >
+                    <Bell className="h-4 w-4" aria-hidden />
+                    Notifications
+                    {unreadCount > 0 && (
+                      <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                  <ThemeToggle showLabel />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      signOut();
+                    }}
+                    className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline text-left"
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden />
+                    Sign Out
+                  </button>
+                </div>
+              </>
+            ) : (
+              <ThemeToggle showLabel />
             )}
-            {session && (
-              <Link
-                href="/notifications"
-                className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
-                onClick={() => setOpen(false)}
-              >
-                <Bell className="h-4 w-4" />
-                Notifications
-                {unreadCount > 0 && (
-                  <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </Link>
-            )}
-            <ThemeToggle showLabel />
-            {session && <UserMenu session={session} />}
           </div>
         </>
       )}

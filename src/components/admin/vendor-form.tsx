@@ -281,8 +281,8 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
               <Label htmlFor="websiteUrl">Website</Label>
               <Input
                 id="websiteUrl"
-                type="url"
-                placeholder="https://..."
+                type="text"
+                placeholder="www.example.com or https://..."
                 {...register("websiteUrl")}
               />
               {errors.websiteUrl && (
@@ -311,8 +311,8 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
               <Label htmlFor="instagramUrl">Instagram</Label>
               <Input
                 id="instagramUrl"
-                type="url"
-                placeholder="https://instagram.com/..."
+                type="text"
+                placeholder="www.instagram.com/... or https://..."
                 {...register("instagramUrl")}
               />
               {errors.instagramUrl && (

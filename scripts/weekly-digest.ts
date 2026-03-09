@@ -9,34 +9,13 @@ const adapter = new PrismaPg({
 });
 const prisma = new PrismaClient({ adapter });
 
-const USE_NEW_MODELS = process.env.USE_NEW_MODELS === "true";
-
 type DigestEvent = { title: string; slug: string; startDate: Date; venue: { name: string; neighborhood: string | null } };
 
 async function getEventsForDigest(
   now: Date,
   nextWeek: Date,
-  areaFilter: { location?: { neighborhood: { in: string[] } }; venue?: { neighborhood: { in: string[] } } }
+  areaFilter: { venue?: { neighborhood: { in: string[] } } }
 ): Promise<DigestEvent[]> {
-  if (USE_NEW_MODELS) {
-    const events = await prisma.eventOccurrence.findMany({
-      where: {
-        status: "PUBLISHED",
-        startDate: { gte: now, lte: nextWeek },
-        ...areaFilter,
-      },
-      orderBy: { startDate: "asc" },
-      include: {
-        location: { select: { name: true, neighborhood: true } },
-      },
-    });
-    return events.map((e) => ({
-      title: e.title,
-      slug: e.slug,
-      startDate: e.startDate,
-      venue: { name: e.location.name, neighborhood: e.location.neighborhood },
-    }));
-  }
   const events = await prisma.event.findMany({
     where: {
       status: "PUBLISHED",
@@ -88,9 +67,7 @@ async function main() {
 
     const areaFilter =
       subscriber.areas.length > 0
-        ? USE_NEW_MODELS
-          ? { location: { neighborhood: { in: subscriber.areas } } }
-          : { venue: { neighborhood: { in: subscriber.areas } } }
+        ? { venue: { neighborhood: { in: subscriber.areas } } }
         : {};
 
     const events = await getEventsForDigest(now, nextWeek, areaFilter);

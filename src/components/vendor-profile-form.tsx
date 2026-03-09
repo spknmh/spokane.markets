@@ -228,8 +228,8 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
               <Label htmlFor="websiteUrl">Website</Label>
               <Input
                 id="websiteUrl"
-                type="url"
-                placeholder="https://..."
+                type="text"
+                placeholder="www.example.com or https://..."
                 {...register("websiteUrl")}
               />
               {errors.websiteUrl && (
@@ -243,8 +243,8 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
               <Label htmlFor="facebookUrl">Facebook</Label>
               <Input
                 id="facebookUrl"
-                type="url"
-                placeholder="https://facebook.com/..."
+                type="text"
+                placeholder="www.facebook.com/... or https://..."
                 {...register("facebookUrl")}
               />
               {errors.facebookUrl && (
@@ -258,8 +258,8 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
               <Label htmlFor="instagramUrl">Instagram</Label>
               <Input
                 id="instagramUrl"
-                type="url"
-                placeholder="https://instagram.com/..."
+                type="text"
+                placeholder="www.instagram.com/... or https://..."
                 {...register("instagramUrl")}
               />
               {errors.instagramUrl && (

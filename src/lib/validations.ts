@@ -13,6 +13,27 @@ export const imageUrlSchema = z
     "Must be a valid image URL or upload path"
   );
 
+/** Accepts www., http://, https://, or bare domain. Use for website/social URLs. */
+function isValidFlexibleUrl(v: string | undefined): boolean {
+  if (v == null || typeof v !== "string") return true;
+  const trimmed = v.trim();
+  if (!trimmed) return true;
+  try {
+    const withProtocol =
+      /^https?:\/\//i.test(trimmed) ? trimmed : "https://" + trimmed;
+    new URL(withProtocol);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export const flexibleUrlSchema = z
+  .string()
+  .optional()
+  .or(z.literal(""))
+  .refine(isValidFlexibleUrl, "Please enter a valid URL (e.g. www.example.com or https://example.com)");
+
 const submissionSchemaBase = z.object({
   submitterName: z.string().min(1, "Name is required"),
   submitterEmail: z.string().email("Valid email is required"),
@@ -292,9 +313,9 @@ export const vendorProfileSchema = z.object({
   slug: z.string().optional(),
   description: z.string().optional(),
   imageUrl: imageUrlSchema,
-  websiteUrl: z.string().url().optional().or(z.literal("")),
-  facebookUrl: z.string().url().optional().or(z.literal("")),
-  instagramUrl: z.string().url().optional().or(z.literal("")),
+  websiteUrl: flexibleUrlSchema,
+  facebookUrl: flexibleUrlSchema,
+  instagramUrl: flexibleUrlSchema,
   contactEmail: z.string().email().optional().or(z.literal("")),
   contactPhone: z.string().optional(),
   galleryUrls: z.array(z.string().url()).optional(),
@@ -310,7 +331,14 @@ export const adminVendorProfileSchema = vendorProfileSchema.extend({
     .string()
     .optional()
     .refine((v) => !v || /^[a-z0-9-]+$/.test(v), "Slug must be lowercase letters, numbers, hyphens only"),
-  userId: z.string().optional().nullable(),
+  userId: z
+    .string()
+    .optional()
+    .nullable()
+    .refine(
+      (v) => v === undefined || v === null || (typeof v === "string" && v.trim().length > 0),
+      "userId must be a non-empty string when provided"
+    ),
   contactVisible: z.boolean().optional(),
   socialLinksVisible: z.boolean().optional(),
 });

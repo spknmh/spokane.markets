@@ -2,6 +2,7 @@
 
 import { Globe, Facebook, Instagram } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import { normalizeUrlToHttps } from "@/lib/utils";
 
 interface VendorSocialLinksProps {
   websiteUrl?: string | null;
@@ -28,6 +29,9 @@ export function VendorSocialLinks({
   const hasLinks = websiteUrl || facebookUrl || instagramUrl;
   if (!hasLinks) return null;
 
+  const toHttps = (url: string | null | undefined) =>
+    url?.trim() ? normalizeUrlToHttps(url) : null;
+
   const linkClass = iconOnly
     ? "inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
     : "inline-flex items-center gap-1.5 text-sm text-primary hover:underline";
@@ -43,9 +47,9 @@ export function VendorSocialLinks({
 
   return (
     <div className={`flex flex-wrap gap-2 ${className}`}>
-      {websiteUrl && (
+      {websiteUrl && toHttps(websiteUrl) && (
         <a
-          href={websiteUrl}
+          href={toHttps(websiteUrl)!}
           target="_blank"
           rel="noopener noreferrer"
           className={linkClass}
@@ -56,9 +60,9 @@ export function VendorSocialLinks({
           {!iconOnly && "Website"}
         </a>
       )}
-      {facebookUrl && (
+      {facebookUrl && toHttps(facebookUrl) && (
         <a
-          href={facebookUrl}
+          href={toHttps(facebookUrl)!}
           target="_blank"
           rel="noopener noreferrer"
           className={linkClass}
@@ -69,9 +73,9 @@ export function VendorSocialLinks({
           {!iconOnly && "Facebook"}
         </a>
       )}
-      {instagramUrl && (
+      {instagramUrl && toHttps(instagramUrl) && (
         <a
-          href={instagramUrl}
+          href={toHttps(instagramUrl)!}
           target="_blank"
           rel="noopener noreferrer"
           className={linkClass}
