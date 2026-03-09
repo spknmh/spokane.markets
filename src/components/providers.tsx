@@ -7,7 +7,7 @@ import { ConsentBanner } from "@/components/consent-banner";
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <SessionProvider>
+      <SessionProvider refetchInterval={60} refetchOnWindowFocus={true}>
         {children}
         <ConsentBanner />
       </SessionProvider>
