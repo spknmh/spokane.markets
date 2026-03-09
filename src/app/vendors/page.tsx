@@ -114,8 +114,11 @@ export default async function VendorsPage({
         <>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {vendors.map((vendor) => (
-            <Link key={vendor.id} href={`/vendors/${vendor.slug}`}>
-              <Card className="h-full border-2 transition-all hover:shadow-lg hover:border-primary/50 overflow-hidden">
+            <Card
+              key={vendor.id}
+              className="relative h-full overflow-hidden border-2 transition-all hover:shadow-lg hover:border-primary/50"
+            >
+              <Link href={`/vendors/${vendor.slug}`} className="block">
                 {vendor.imageUrl ? (
                   <div className="relative aspect-[16/9] w-full shrink-0 bg-muted">
                     <Image
@@ -133,32 +136,16 @@ export default async function VendorsPage({
                   </div>
                 )}
                 <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start justify-between gap-2 pr-12">
                     <CardTitle className="font-sans line-clamp-2 text-lg font-bold text-foreground">
                       {vendor.businessName}
                     </CardTitle>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <FavoriteVendorButton
-                        slug={vendor.slug}
-                        initialFavorited={favoriteIds.includes(vendor.id)}
-                        iconOnly
-                        stopPropagation
-                        isLoggedIn={!!session?.user}
-                        callbackUrl={(() => {
-                          const p = new URLSearchParams();
-                          if (q) p.set("q", q);
-                          if (page > 1) p.set("page", String(page));
-                          const qs = p.toString();
-                          return qs ? `/vendors?${qs}` : "/vendors";
-                        })()}
-                      />
-                      {vendor._count.vendorEvents > 0 && (
-                        <Badge variant="secondary">
-                          {vendor._count.vendorEvents} event
-                          {vendor._count.vendorEvents !== 1 ? "s" : ""}
-                        </Badge>
-                      )}
-                    </div>
+                    {vendor._count.vendorEvents > 0 && (
+                      <Badge variant="secondary" className="shrink-0">
+                        {vendor._count.vendorEvents} event
+                        {vendor._count.vendorEvents !== 1 ? "s" : ""}
+                      </Badge>
+                    )}
                   </div>
                   {vendor.specialties && (
                     <p className="line-clamp-1 text-sm font-semibold text-foreground">
@@ -190,8 +177,24 @@ export default async function VendorsPage({
                     )}
                   </CardContent>
                 )}
-              </Card>
-            </Link>
+              </Link>
+              <div className="absolute right-2 top-2 z-10">
+                <FavoriteVendorButton
+                  slug={vendor.slug}
+                  initialFavorited={favoriteIds.includes(vendor.id)}
+                  iconOnly
+                  isLoggedIn={!!session?.user}
+                  className="rounded-full bg-background/80 shadow-sm backdrop-blur-sm"
+                  callbackUrl={(() => {
+                    const p = new URLSearchParams();
+                    if (q) p.set("q", q);
+                    if (page > 1) p.set("page", String(page));
+                    const qs = p.toString();
+                    return qs ? `/vendors?${qs}` : "/vendors";
+                  })()}
+                />
+              </div>
+            </Card>
           ))}
         </div>
         <Pagination

@@ -20,6 +20,12 @@ describe("getSignInErrorMessage", () => {
     );
   });
 
+  it("returns email verification message when code is EmailNotVerified", () => {
+    expect(
+      getSignInErrorMessage("CredentialsSignin", "EmailNotVerified")
+    ).toContain("verify your email");
+  });
+
   it("returns generic message for undefined", () => {
     expect(getSignInErrorMessage(undefined)).toContain(
       "Invalid email or password"

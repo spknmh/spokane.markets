@@ -1,10 +1,14 @@
 /**
  * Returns a user-friendly error message for sign-in failures.
  * Distinguishes email-not-verified from generic credential errors.
+ * Auth.js may return error (e.g. "CredentialsSignin") and code (e.g. "EmailNotVerified") separately.
  */
-export function getSignInErrorMessage(error: string | undefined): string {
-  if (!error) return "Invalid email or password. Please try again.";
+export function getSignInErrorMessage(
+  error: string | undefined,
+  code?: string | undefined,
+): string {
   const isEmailNotVerified =
+    code === "EmailNotVerified" ||
     error === "EmailNotVerified" ||
     String(error).toLowerCase().includes("emailnotverified");
   return isEmailNotVerified

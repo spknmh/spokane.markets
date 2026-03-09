@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Facebook from "next-auth/providers/facebook";
 import Credentials from "next-auth/providers/credentials";
+import { CredentialsSignin } from "@auth/core/errors";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcryptjs";
 import { db } from "@/lib/db";
@@ -9,6 +10,10 @@ import { signInSchema } from "@/lib/validations";
 import type { Role } from "@prisma/client";
 import type { Adapter } from "next-auth/adapters";
 import authConfig from "./auth.config";
+
+class EmailNotVerifiedError extends CredentialsSignin {
+  code = "EmailNotVerified";
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -52,7 +57,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           user.createdAt &&
           Date.now() - user.createdAt.getTime() < 5 * 60 * 1000;
         if (!user.emailVerified && !justSignedUp) {
-          throw new Error("EmailNotVerified");
+          throw new EmailNotVerifiedError(
+            "Please verify your email before signing in.",
+          );
         }
 
         return {

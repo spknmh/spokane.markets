@@ -12,8 +12,8 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { Calendar, CheckCircle2, ExternalLink, Facebook, Instagram, MapPin } from "lucide-react";
-import { formatDateRangeInTimezone, formatNeighborhoodLabel, getDirectionsUrl } from "@/lib/utils";
+import { Calendar, CheckCircle2, ExternalLink, Facebook, Instagram, MapPin, Mail, Phone } from "lucide-react";
+import { formatDateRangeInTimezone, formatNeighborhoodLabel, formatPhoneNumber, getDirectionsUrl } from "@/lib/utils";
 import { MapPreview } from "@/components/map-preview";
 import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
@@ -278,13 +278,24 @@ export default async function MarketDetailPage({ params }: PageProps) {
                     <p>
                       <a
                         href={`mailto:${market.contactEmail}`}
-                        className="text-primary hover:underline"
+                        className="inline-flex min-h-[44px] items-center gap-2 text-primary hover:underline"
                       >
+                        <Mail className="h-4 w-4 shrink-0" />
                         {market.contactEmail}
                       </a>
                     </p>
                   )}
-                  {market.contactPhone && <p className="text-foreground">{market.contactPhone}</p>}
+                  {market.contactPhone && (
+                    <p>
+                      <a
+                        href={`tel:${market.contactPhone.replace(/\D/g, "")}`}
+                        className="inline-flex min-h-[44px] items-center gap-2 text-foreground hover:underline"
+                      >
+                        <Phone className="h-4 w-4 shrink-0" />
+                        {formatPhoneNumber(market.contactPhone)}
+                      </a>
+                    </p>
+                  )}
                 </div>
               </div>
             )}

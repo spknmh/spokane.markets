@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Mail, Phone } from "lucide-react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SITE_NAME } from "@/lib/constants";
+import { formatPhoneNumber } from "@/lib/utils";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
@@ -161,18 +163,9 @@ export default async function VendorProfilePage({ params }: PageProps) {
             )}
 
             <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-3xl font-bold tracking-tight">
-                  {vendor.businessName}
-                </h1>
-                <FavoriteVendorButton
-                  slug={vendor.slug}
-                  initialFavorited={!!favorite}
-                  initialEmailAlerts={favorite?.emailAlerts ?? true}
-                  isLoggedIn={!!session?.user}
-                  callbackUrl={`/vendors/${vendor.slug}`}
-                />
-              </div>
+              <h1 className="text-3xl font-bold tracking-tight">
+                {vendor.businessName}
+              </h1>
 
               {vendor.specialties && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -238,11 +231,13 @@ export default async function VendorProfilePage({ params }: PageProps) {
 
         {/* Sidebar */}
         <aside className="w-full shrink-0 lg:w-80 lg:sticky lg:top-24">
-          <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-5">
-            <ReportButton
-              targetType="VENDOR"
-              targetId={vendor.id}
+          <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-6">
+            <FavoriteVendorButton
+              slug={vendor.slug}
+              initialFavorited={!!favorite}
+              initialEmailAlerts={favorite?.emailAlerts ?? true}
               isLoggedIn={!!session?.user}
+              callbackUrl={`/vendors/${vendor.slug}`}
             />
             {vendor.socialLinksVisible !== false && (
               <VendorSocialLinks
@@ -262,8 +257,9 @@ export default async function VendorProfilePage({ params }: PageProps) {
                     <p>
                       <a
                         href={`mailto:${vendor.contactEmail}`}
-                        className="min-h-[44px] inline-flex items-center text-primary hover:underline"
+                        className="min-h-[44px] inline-flex items-center gap-2 text-primary hover:underline"
                       >
+                        <Mail className="h-4 w-4 shrink-0" />
                         {vendor.contactEmail}
                       </a>
                     </p>
@@ -272,9 +268,10 @@ export default async function VendorProfilePage({ params }: PageProps) {
                     <p>
                       <a
                         href={`tel:${vendor.contactPhone.replace(/\D/g, "")}`}
-                        className="min-h-[44px] inline-flex items-center text-foreground hover:underline"
+                        className="min-h-[44px] inline-flex items-center gap-2 text-foreground hover:underline"
                       >
-                        {vendor.contactPhone}
+                        <Phone className="h-4 w-4 shrink-0" />
+                        {formatPhoneNumber(vendor.contactPhone)}
                       </a>
                     </p>
                   )}
@@ -294,6 +291,14 @@ export default async function VendorProfilePage({ params }: PageProps) {
                 </Button>
               </AuthGate>
             )}
+
+            <div className="border-t border-border pt-4">
+              <ReportButton
+                targetType="VENDOR"
+                targetId={vendor.id}
+                isLoggedIn={!!session?.user}
+              />
+            </div>
           </div>
         </aside>
       </div>

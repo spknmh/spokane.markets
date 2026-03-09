@@ -218,4 +218,17 @@ Note: The web image is standalone and may not include tsx. Use the init image in
 | **TLS cert error** (`remote error: tls: internal error`) | Caddyfile uses `disable_tlsalpn_challenge` to force HTTP-01. Ensure ports 80 and 443 are open (`ufw status`), DNS points to server IP, and no proxy/load balancer terminates TLS before Caddy. If behind Cloudflare or similar, use DNS-01 challenge instead. |
 | **Build `npm ci` ECONNRESET** | Transient network failure. Retry the build. The Dockerfile sets `fetch-retries`, `fetch-retry-mintimeout`, and `fetch-retry-maxtimeout` to harden against this. If it persists: `docker build --network host -t ... .` or check proxy/firewall. |
 | **Cron not running** | Check `docker compose logs cron`. Ensure init image has crond (Alpine). If missing, use host crontab (see §8). |
-| **Failed to find Server Action** | Set `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` (generate: `openssl rand -base64 32`) in: (1) `.env.local` on server, (2) GitHub Secrets for CI builds. Rebuild images so the key is embedded at build time. For local `docker compose build`, ensure the key is in `.env` (Compose loads it) or exported. Clear browser cache after deploy. |
+| **Failed to find Server Action** | See [Failed to find Server Action](#failed-to-find-server-action) below. |
+
+### Failed to find Server Action
+
+This error indicates a client/server build mismatch. Fix steps:
+
+1. **Verify key consistency** — `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` must be identical in:
+   - GitHub Secrets (for CI builds)
+   - Server `.env.local` (for runtime)
+   Generate once with `openssl rand -base64 32` and use the same value everywhere.
+
+2. **Rebuild after key changes** — If the key was changed, rebuild images with `docker compose build --no-cache` (or re-run the GitHub Actions workflow) so the new key is embedded.
+
+3. **Clear browser cache** — After deploy, hard refresh (Ctrl+Shift+R) or clear cache to avoid stale client bundles.

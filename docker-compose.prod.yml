@@ -24,6 +24,7 @@ services:
 
   web:
     image: ghcr.io/redkeysh/spokane.markets:latest
+    env_file: .env.local
     depends_on:
       init:
         condition: service_completed_successfully

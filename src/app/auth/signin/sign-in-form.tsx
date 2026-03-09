@@ -55,7 +55,7 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
 
     if (result?.error) {
       trackEvent("api_error", { endpoint: "/api/auth/signin", status: 401 });
-      setError(getSignInErrorMessage(result.error));
+      setError(getSignInErrorMessage(result.error, result.code));
       return;
     }
 

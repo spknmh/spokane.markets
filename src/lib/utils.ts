@@ -30,6 +30,22 @@ export function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+/**
+ * Formats a phone string for display. US 10-digit: (XXX) XXX-XXXX.
+ * 11-digit with leading 1: +1 (XXX) XXX-XXXX. Otherwise returns trimmed input.
+ */
+export function formatPhoneNumber(phone: string | null | undefined): string {
+  if (!phone?.trim()) return "";
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+  return phone.trim();
+}
+
 export function formatRelativeTime(date: Date): string {
   const rtf = new Intl.RelativeTimeFormat("en-US", { numeric: "auto" });
   const now = new Date();
