@@ -7,7 +7,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signUpSchema, SIGNUP_ROLES, type SignUpInput } from "@/lib/validations";
+import {
+  signUpSchema,
+  signUpSchemaMagicLink,
+  SIGNUP_ROLES,
+  type SignUpInput,
+  type SignUpInputMagicLink,
+} from "@/lib/validations";
 import { isValidCallbackUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,18 +27,32 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
-export function SignUpForm() {
+type SignUpFormProps = {
+  magicLinkEnabled?: boolean;
+};
+
+export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawCallbackUrl = searchParams.get("callbackUrl") ?? "/";
   const callbackUrl = isValidCallbackUrl(rawCallbackUrl) ? rawCallbackUrl : "/";
   const [error, setError] = useState<string | null>(null);
+  const [useMagicLink, setUseMagicLink] = useState(magicLinkEnabled);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<SignUpInput>({
+  const vendorRedirect = "/vendor/dashboard";
+  const defaultRedirect = "/dashboard";
+
+  const magicLinkForm = useForm<SignUpInputMagicLink>({
+    resolver: zodResolver(signUpSchemaMagicLink),
+    defaultValues: {
+      name: "",
+      email: "",
+      role: "USER",
+      website: "",
+    },
+  });
+
+  const credentialsForm = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       name: "",
@@ -44,7 +64,51 @@ export function SignUpForm() {
     },
   });
 
-  async function onSubmit(data: SignUpInput) {
+  async function onSubmitMagicLink(data: SignUpInputMagicLink) {
+    setError(null);
+    trackEvent("signup_start", { role: data.role });
+    const redirectAfterSignIn =
+      data.role === "VENDOR" ? vendorRedirect : defaultRedirect;
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        website: data.website,
+        callbackUrl: redirectAfterSignIn,
+        magicLink: true,
+      }),
+    });
+
+    const json = await res.json();
+
+    if (!res.ok) {
+      trackEvent("api_error", {
+        endpoint: "/api/auth/register",
+        status: res.status,
+      });
+      if (typeof json.error === "string") {
+        setError(json.error);
+      } else if (json.error && typeof json.error === "object") {
+        const firstField = Object.values(json.error)[0];
+        const msg = Array.isArray(firstField) ? firstField[0] : String(firstField);
+        setError(msg ?? "Registration failed");
+      } else {
+        setError("Registration failed. Please try again.");
+      }
+      return;
+    }
+
+    trackEvent("signup_success", { role: data.role });
+    router.push(
+      `/auth/verify-request?callbackUrl=${encodeURIComponent(redirectAfterSignIn)}`
+    );
+    router.refresh();
+  }
+
+  async function onSubmitCredentials(data: SignUpInput) {
     setError(null);
     trackEvent("signup_start", { role: data.role });
     const res = await fetch("/api/auth/register", {
@@ -63,7 +127,10 @@ export function SignUpForm() {
     const json = await res.json();
 
     if (!res.ok) {
-      trackEvent("api_error", { endpoint: "/api/auth/register", status: res.status });
+      trackEvent("api_error", {
+        endpoint: "/api/auth/register",
+        status: res.status,
+      });
       if (typeof json.error === "string") {
         setError(json.error);
       } else if (json.error && typeof json.error === "object") {
@@ -78,13 +145,13 @@ export function SignUpForm() {
 
     trackEvent("signup_success", { role: data.role });
 
-    const vendorRedirect =
-      data.role === "VENDOR" ? "/vendor/dashboard" : "/dashboard";
+    const vendorRedirectUrl =
+      data.role === "VENDOR" ? vendorRedirect : defaultRedirect;
     const signInResult = await signIn("credentials", {
       email: data.email,
       password: data.password,
       redirect: false,
-      callbackUrl: vendorRedirect,
+      callbackUrl: vendorRedirectUrl,
     });
 
     if (signInResult?.ok) {
@@ -113,133 +180,265 @@ export function SignUpForm() {
             Create an account to get started
           </CardDescription>
         </CardHeader>
-        <form
-          onSubmit={handleSubmit(onSubmit, () =>
-            trackEvent("form_error", { form_id: "signup", reason: "validation" })
+        <CardContent className="space-y-4">
+          {error && (
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            >
+              {error}
+            </div>
           )}
-        >
-          <CardContent className="space-y-4">
-            {error && (
-              <div
-                role="alert"
-                className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-              >
-                {error}
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Your name"
-                autoComplete="name"
-                {...register("name")}
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
+
+          {magicLinkEnabled && useMagicLink ? (
+            <form
+              onSubmit={magicLinkForm.handleSubmit(onSubmitMagicLink, () =>
+                trackEvent("form_error", {
+                  form_id: "signup",
+                  reason: "validation",
+                })
               )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                autoComplete="email"
-                {...register("email")}
-              />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-sm text-destructive">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-            {/* Honeypot — hidden from users, bots fill it */}
-            <div className="absolute -left-[9999px] opacity-0" aria-hidden>
-              <Label htmlFor="website">Website</Label>
-              <input
-                id="website"
-                type="text"
-                tabIndex={-1}
-                autoComplete="off"
-                {...register("website")}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                {...register("confirmPassword")}
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-destructive">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>What brings you here?</Label>
-              <p className="text-xs text-muted-foreground">
-                This helps us show you the right features.
-              </p>
+              className="space-y-4"
+            >
               <div className="space-y-2">
-                {SIGNUP_ROLES.map((r) => (
-                  <label
-                    key={r.value}
-                    className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                  >
-                    <input
-                      type="radio"
-                      value={r.value}
-                      {...register("role")}
-                      className="mt-1"
-                    />
-                    <div>
-                      <span className="font-medium">{r.label}</span>
-                      <p className="text-xs text-muted-foreground">{r.description}</p>
-                    </div>
-                  </label>
-                ))}
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Your name"
+                  autoComplete="name"
+                  {...magicLinkForm.register("name")}
+                />
+                {magicLinkForm.formState.errors.name && (
+                  <p className="text-sm text-destructive">
+                    {magicLinkForm.formState.errors.name.message}
+                  </p>
+                )}
               </div>
-              {errors.role && (
-                <p className="text-sm text-destructive">{errors.role.message}</p>
-              )}
-            </div>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Creating account…" : "Sign up"}
-            </Button>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link
-                href={
-                  callbackUrl
-                    ? `/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
-                    : "/auth/signin"
-                }
-                className="text-primary hover:underline"
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  {...magicLinkForm.register("email")}
+                />
+                {magicLinkForm.formState.errors.email && (
+                  <p className="text-sm text-destructive">
+                    {magicLinkForm.formState.errors.email.message}
+                  </p>
+                )}
+              </div>
+              <div className="absolute -left-[9999px] opacity-0" aria-hidden>
+                <Label htmlFor="website-magic">Website</Label>
+                <input
+                  id="website-magic"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  {...magicLinkForm.register("website")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>What brings you here?</Label>
+                <p className="text-xs text-muted-foreground">
+                  This helps us show you the right features.
+                </p>
+                <div className="space-y-2">
+                  {SIGNUP_ROLES.map((r) => (
+                    <label
+                      key={r.value}
+                      className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                    >
+                      <input
+                        type="radio"
+                        value={r.value}
+                        {...magicLinkForm.register("role")}
+                        className="mt-1"
+                      />
+                      <div>
+                        <span className="font-medium">{r.label}</span>
+                        <p className="text-xs text-muted-foreground">
+                          {r.description}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                {magicLinkForm.formState.errors.role && (
+                  <p className="text-sm text-destructive">
+                    {magicLinkForm.formState.errors.role.message}
+                  </p>
+                )}
+              </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={magicLinkForm.formState.isSubmitting}
               >
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
+                {magicLinkForm.formState.isSubmitting
+                  ? "Creating account…"
+                  : "Sign up"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setUseMagicLink(false)}
+              >
+                Sign up with password instead
+              </Button>
+            </form>
+          ) : (
+            <form
+              onSubmit={credentialsForm.handleSubmit(onSubmitCredentials, () =>
+                trackEvent("form_error", {
+                  form_id: "signup",
+                  reason: "validation",
+                })
+              )}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Your name"
+                  autoComplete="name"
+                  {...credentialsForm.register("name")}
+                />
+                {credentialsForm.formState.errors.name && (
+                  <p className="text-sm text-destructive">
+                    {credentialsForm.formState.errors.name.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  {...credentialsForm.register("email")}
+                />
+                {credentialsForm.formState.errors.email && (
+                  <p className="text-sm text-destructive">
+                    {credentialsForm.formState.errors.email.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="new-password"
+                  {...credentialsForm.register("password")}
+                />
+                {credentialsForm.formState.errors.password && (
+                  <p className="text-sm text-destructive">
+                    {credentialsForm.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+              <div className="absolute -left-[9999px] opacity-0" aria-hidden>
+                <Label htmlFor="website">Website</Label>
+                <input
+                  id="website"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  {...credentialsForm.register("website")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  {...credentialsForm.register("confirmPassword")}
+                />
+                {credentialsForm.formState.errors.confirmPassword && (
+                  <p className="text-sm text-destructive">
+                    {
+                      credentialsForm.formState.errors.confirmPassword.message
+                    }
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>What brings you here?</Label>
+                <p className="text-xs text-muted-foreground">
+                  This helps us show you the right features.
+                </p>
+                <div className="space-y-2">
+                  {SIGNUP_ROLES.map((r) => (
+                    <label
+                      key={r.value}
+                      className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                    >
+                      <input
+                        type="radio"
+                        value={r.value}
+                        {...credentialsForm.register("role")}
+                        className="mt-1"
+                      />
+                      <div>
+                        <span className="font-medium">{r.label}</span>
+                        <p className="text-xs text-muted-foreground">
+                          {r.description}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                {credentialsForm.formState.errors.role && (
+                  <p className="text-sm text-destructive">
+                    {credentialsForm.formState.errors.role.message}
+                  </p>
+                )}
+              </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={credentialsForm.formState.isSubmitting}
+              >
+                {credentialsForm.formState.isSubmitting
+                  ? "Creating account…"
+                  : "Sign up"}
+              </Button>
+              {magicLinkEnabled && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setUseMagicLink(true)}
+                >
+                  Sign up with email link instead
+                </Button>
+              )}
+            </form>
+          )}
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link
+              href={
+                callbackUrl
+                  ? `/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                  : "/auth/signin"
+              }
+              className="text-primary hover:underline"
+            >
+              Sign in
+            </Link>
+          </p>
+        </CardFooter>
       </Card>
     </div>
   );
