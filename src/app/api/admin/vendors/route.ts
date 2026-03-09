@@ -75,6 +75,21 @@ export async function POST(request: Request) {
           .filter((s) => s.startsWith("http"))
       : []);
 
+  let userId: string | undefined =
+    data.userId && typeof data.userId === "string" && data.userId.trim()
+      ? data.userId.trim()
+      : undefined;
+
+  if (!userId && data.contactEmail && typeof data.contactEmail === "string") {
+    const userByEmail = await db.user.findUnique({
+      where: { email: data.contactEmail.trim() },
+      select: { id: true },
+    });
+    if (userByEmail) {
+      userId = userByEmail.id;
+    }
+  }
+
   const vendor = await db.vendorProfile.create({
     data: {
       businessName: data.businessName,
@@ -88,10 +103,7 @@ export async function POST(request: Request) {
       contactPhone: toOptional(data.contactPhone),
       galleryUrls,
       specialties: toOptional(data.specialties),
-      userId:
-        data.userId && typeof data.userId === "string" && data.userId.trim()
-          ? data.userId.trim()
-          : undefined,
+      userId,
       contactVisible: data.contactVisible ?? true,
       socialLinksVisible: data.socialLinksVisible ?? true,
     },

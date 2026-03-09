@@ -12,17 +12,21 @@ const DEFAULT_LIMIT = 25;
 export default async function AdminVendorsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; limit?: string }>;
+  searchParams: Promise<{ page?: string; limit?: string; orphaned?: string }>;
 }) {
   await requireAdmin();
 
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page ?? "1", 10));
   const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
+  const orphanedOnly = params.orphaned === "1" || params.orphaned === "true";
+
+  const where = orphanedOnly ? { userId: null } : undefined;
 
   const [total, vendors] = await Promise.all([
-    db.vendorProfile.count(),
+    db.vendorProfile.count({ where }),
     db.vendorProfile.findMany({
+      where,
       orderBy: { businessName: "asc" },
       include: {
         _count: { select: { vendorEvents: true } },
@@ -45,6 +49,17 @@ export default async function AdminVendorsPage({
           <p className="mt-1 text-muted-foreground">
             Manage vendor profiles. Create, edit, or delete.
           </p>
+          <div className="mt-2 flex gap-2">
+            <Button
+              variant={orphanedOnly ? "default" : "outline"}
+              size="sm"
+              asChild
+            >
+              <Link href={orphanedOnly ? "/admin/vendors" : "/admin/vendors?orphaned=true"}>
+                {orphanedOnly ? "All vendors" : "Unlinked only"}
+              </Link>
+            </Button>
+          </div>
         </div>
         <Button asChild>
           <Link href="/admin/vendors/new">Create Vendor</Link>
