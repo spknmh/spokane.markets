@@ -38,19 +38,19 @@ export function NavbarClient({ session, unreadCount = 0 }: NavbarClientProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-nav/95 backdrop-blur supports-[backdrop-filter]:bg-nav/95">
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <SiteLogo />
 
         {/* Desktop nav */}
-        <div className="hidden md:flex md:items-center md:gap-8">
+        <div className="hidden md:flex md:items-center md:gap-10">
           {navLinks.map((link) => {
             const Icon = "icon" in link ? link.icon : null;
             const linkEl = (
               <Link
                 href={link.href}
-                className="flex items-center gap-1.5 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
+                className="flex items-center gap-2 text-base font-medium text-link transition-colors hover:text-link/90 hover:underline"
               >
-                {Icon && <Icon className="h-4 w-4" aria-hidden />}
+                {Icon && <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />}
                 {link.label}
               </Link>
             );
@@ -65,7 +65,7 @@ export function NavbarClient({ session, unreadCount = 0 }: NavbarClientProps) {
         </div>
 
         {/* Desktop auth */}
-        <div className="hidden md:flex md:items-center md:gap-2">
+        <div className="hidden md:flex md:items-center md:gap-3">
           <ThemeToggle />
           {session && (
             <NotificationBell unreadCount={unreadCount} />
@@ -74,10 +74,10 @@ export function NavbarClient({ session, unreadCount = 0 }: NavbarClientProps) {
             <UserMenu session={session} />
           ) : (
             <>
-              <Button asChild variant="ghost" size="sm">
+              <Button asChild variant="ghost" size="default">
                 <Link href="/auth/signin">Sign In</Link>
               </Button>
-              <Button asChild size="sm">
+              <Button asChild size="default">
                 <Link href="/auth/signup">Sign Up</Link>
               </Button>
             </>
@@ -119,7 +119,7 @@ function MobileNav({
             aria-hidden
             onClick={() => setOpen(false)}
           />
-          <div className="fixed right-0 top-16 z-50 flex h-[calc(100vh-4rem)] w-64 flex-col gap-4 overflow-y-auto border-l border-border bg-nav p-4 shadow-lg">
+          <div className="fixed right-0 top-20 z-50 flex h-[calc(100vh-5rem)] w-64 flex-col gap-4 overflow-y-auto border-l border-border bg-nav p-4 shadow-lg">
             {!session && (
               <div className="flex flex-col gap-2 pb-2 border-b border-border">
                 <Button asChild variant="outline" size="sm" className="w-full">

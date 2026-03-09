@@ -20,7 +20,7 @@ export function ThemeToggle({ showLabel = false }: ThemeToggleProps) {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" aria-label="Toggle theme" className="h-9 w-9" disabled>
+      <Button variant="ghost" size="icon" aria-label="Toggle theme" className="h-10 w-10" disabled>
         <Sun className="h-4 w-4" aria-hidden />
       </Button>
     );
@@ -34,7 +34,7 @@ export function ThemeToggle({ showLabel = false }: ThemeToggleProps) {
       variant="ghost"
       size={showLabel ? "sm" : "icon"}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className={showLabel ? "h-auto w-full justify-start gap-2" : "h-9 w-9"}
+      className={showLabel ? "h-auto w-full justify-start gap-2" : "h-10 w-10"}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
       {isDark ? (

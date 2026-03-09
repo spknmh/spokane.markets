@@ -41,9 +41,9 @@ export function UserMenu({ session }: UserMenuProps) {
     <div className="relative" ref={menuRef}>
       <Button
         variant="outline"
-        size="sm"
+        size="default"
         onClick={() => setOpen(!open)}
-        className="gap-1.5"
+        className="gap-2 text-base"
       >
         <span className="max-w-[120px] truncate">
           {session.user?.name ?? session.user?.email}
