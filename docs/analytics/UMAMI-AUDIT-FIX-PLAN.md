@@ -23,7 +23,7 @@
 | Var | Set In | Notes |
 |-----|--------|-------|
 | `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | `.env.example`, `docker-compose.yml` (init + web build args), `Dockerfile` ARG/ENV, `deploy.yml` secrets | Baked at build time |
-| `NEXT_PUBLIC_UMAMI_SCRIPT_URL` | Same; default `https://analytics.spokane.markets/a-smh.js` in layout | Fallback in layout if unset |
+| `NEXT_PUBLIC_UMAMI_SCRIPT_URL` | Same; default `https://analytics.spokane.markets/script.js` in layout | Fallback in layout if unset |
 
 ### Analytics Wrapper / Hook
 | File | Contents |
@@ -34,7 +34,7 @@
 
 ### Umami Host / Website ID / Script Path
 - **Host URL:** `https://analytics.spokane.markets` (from default script URL)
-- **Script path:** `/a-smh.js` (custom name; `TRACKER_SCRIPT_NAME=a-smh` on Umami server)
+- **Script path:** `/script.js` (Umami v2 default)
 - **Website ID:** From `NEXT_PUBLIC_UMAMI_WEBSITE_ID` (UUID from Umami dashboard)
 - **Caddy:** `analytics.spokane.markets` → `reverse_proxy umami:3000` (Caddyfile line 39)
 
@@ -53,9 +53,8 @@
 ## 2) Umami v2 Compatibility Check (March 2026)
 
 ### Script URL Format
-- **Expected:** Umami v2 default is `/script.js`; custom names via `TRACKER_SCRIPT_NAME` (e.g. `a-smh` → `/a-smh.js`)
-- **Current:** `https://analytics.spokane.markets/a-smh.js` — valid if Umami server has `TRACKER_SCRIPT_NAME=a-smh`
-- **Verify:** Confirm Umami server env has `TRACKER_SCRIPT_NAME=a-smh` or update layout default to `/script.js`
+- **Expected:** Umami v2 default is `/script.js`; custom names via `TRACKER_SCRIPT_NAME`
+- **Current:** `https://analytics.spokane.markets/script.js` (default)
 
 ### Required Attributes
 | Attribute | Current | v2 Expectation |
@@ -80,7 +79,7 @@
 - **Current code:** Uses `track()` and `trackEvent` fallback. v2 only has `track`; `trackEvent` will be undefined.
 
 ### Proxy / Rewrite
-- **Caddyfile:** `analytics.spokane.markets` → `umami:3000`. No path rewrite; `/a-smh.js` and `/api/send` served by Umami.
+- **Caddyfile:** `analytics.spokane.markets` → `umami:3000`. No path rewrite; `/script.js` and `/api/send` served by Umami.
 - **Next.js middleware:** No rewrite for `/umami` or analytics; middleware does not touch static `.js` requests.
 
 ---
@@ -124,14 +123,14 @@ And removal of `getUmamiApiHost()` and `sendToUmamiApi()` (~40 lines). Rationale
 
 | Symptom | Hypothesis | Evidence | How to Confirm | Fix Approach |
 |---------|------------|----------|----------------|---------------|
-| No pageviews | Script not loading (404, wrong URL) | layout.tsx line 32: default `a-smh.js`; env may be unset at build | DevTools Network: script 200? | Verify script URL; ensure env at build |
+| No pageviews | Script not loading (404, wrong URL) | layout.tsx: default `script.js`; env may be unset at build | DevTools Network: script 200? | Verify script URL; ensure env at build |
 | No pageviews | `data-domains` excludes current host | layout.tsx line 66: `data-domains={umamiDomain}`; umamiDomain = hostname of NEXT_PUBLIC_APP_URL | Debug page: compare dataDomains vs window.location.hostname | Allow multiple domains or derive from current host |
 | No pageviews | Script loads after trackUmamiPageview | AnalyticsProvider mounts, useEffect runs; script may still be loading | Debug page: `window.umami` exists? | Wait for script load (onload callback, queue, or delay) |
 | No pageviews | DNT blocks tracking | layout.tsx line 66: `data-do-not-track="true"` | Test with DNT off | Document; optionally make configurable |
 | No events | `window.umami` undefined at call time | umami.ts: no fallback when track/trackEvent missing | Debug page: track === "function"? | Same as script timing |
 | No events | Wrong event API for v2 | umami.ts uses trackEvent as fallback; v2 has only track | v2 docs: trackEvent removed | Remove trackEvent branch; use only track() |
 | No events | Fallback removed | c886132 removed sendToUmamiApi | git show c886132 | Restore fallback or fix script loading |
-| Script 404 | Wrong script path | Default `a-smh.js`; Umami may use `script.js` | curl https://analytics.spokane.markets/a-smh.js | Align with Umami TRACKER_SCRIPT_NAME |
+| Script 404 | Wrong script path | Default `script.js` | curl https://analytics.spokane.markets/script.js | Verify Umami serves /script.js |
 | CORS / network | Collect endpoint unreachable | Script sends to same origin as script | DevTools Network: POST to /api/send 200? | Check Caddy, Umami CORS |
 | Env at build | NEXT_PUBLIC_* not set in Docker build | Dockerfile ARG/ENV; deploy.yml secrets | Build logs: NEXT_PUBLIC_UMAMI_WEBSITE_ID set? | Ensure secrets in CI; verify baked values |
 
@@ -166,7 +165,7 @@ And removal of `getUmamiApiHost()` and `sendToUmamiApi()` (~40 lines). Rationale
 
 ### 5.5 Env Vars
 - **NEXT_PUBLIC_UMAMI_WEBSITE_ID:** Required for tracking. Must be set at build (Dockerfile ARG, deploy secrets).
-- **NEXT_PUBLIC_UMAMI_SCRIPT_URL:** Optional. Default in layout to `https://analytics.spokane.markets/script.js` or confirm `a-smh.js` matches Umami server config.
+- **NEXT_PUBLIC_UMAMI_SCRIPT_URL:** Optional. Default in layout to `https://analytics.spokane.markets/script.js`.
 - **Security:** No secrets in client; both vars are public by design.
 
 ### 5.6 Proxy Config
@@ -214,7 +213,7 @@ And removal of `getUmamiApiHost()` and `sendToUmamiApi()` (~40 lines). Rationale
 ## 7) QA + Verification Checklist
 
 ### DevTools Network
-- [ ] Script loads: `https://analytics.spokane.markets/a-smh.js` (or configured URL) returns 200
+- [ ] Script loads: `https://analytics.spokane.markets/script.js` (or configured URL) returns 200
 - [ ] Collect: POST to `https://analytics.spokane.markets/api/send` returns 200 on pageview/event
 
 ### Console
