@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { findEventBySlug } from "@/lib/services/event-occurrence-service";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
@@ -30,36 +31,7 @@ interface EventDetailPageProps {
 }
 
 async function getEvent(slug: string) {
-  return db.event.findUnique({
-    where: { slug },
-    include: {
-      venue: true,
-      market: true,
-      tags: true,
-      features: true,
-      scheduleDays: { orderBy: { date: "asc" } },
-      attendances: true,
-      vendorRoster: {
-        where: { status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] } },
-        include: {
-          vendorProfile: {
-            select: { id: true, businessName: true, slug: true, imageUrl: true, specialties: true },
-          },
-        },
-      },
-      vendorIntents: {
-        where: {
-          status: { in: ["ATTENDING", "INTERESTED"] },
-          visibility: "PUBLIC",
-        },
-        include: {
-          vendorProfile: {
-            select: { id: true, businessName: true, slug: true, imageUrl: true, specialties: true },
-          },
-        },
-      },
-    },
-  });
+  return findEventBySlug(slug);
 }
 
 export async function generateMetadata({ params }: EventDetailPageProps): Promise<Metadata> {

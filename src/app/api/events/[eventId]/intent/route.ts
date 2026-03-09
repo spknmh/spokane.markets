@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { findEventByIdOrSlug } from "@/lib/services/event-occurrence-service";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { vendorIntentSchema } from "@/lib/validations";
 
-function isCuid(value: string): boolean {
-  return /^c[a-z0-9]{24}$/i.test(value);
-}
-
 async function findEvent(eventIdOrSlug: string) {
-  if (isCuid(eventIdOrSlug)) {
-    return db.event.findUnique({ where: { id: eventIdOrSlug }, include: { market: true } });
-  }
-  return db.event.findUnique({ where: { slug: eventIdOrSlug }, include: { market: true } });
+  return findEventByIdOrSlug(eventIdOrSlug);
 }
 
 export async function POST(

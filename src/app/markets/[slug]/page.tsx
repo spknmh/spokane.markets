@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { findMarketBySlug } from "@/lib/services/market-series-service";
 import { getSession } from "@/lib/auth-utils";
 import { AuthGate } from "@/components/auth-gate";
 import { Badge } from "@/components/ui/badge";
@@ -40,9 +41,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const market = await db.market.findUnique({
-    where: { slug },
-  });
+  const market = await findMarketBySlug(slug);
   if (!market) return { title: "Market Not Found" };
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const description = market.description ?? `Discover ${market.name} and upcoming events in the Spokane area.`;
@@ -74,23 +73,7 @@ export default async function MarketDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const now = new Date();
 
-  const market = await db.market.findUnique({
-    where: { slug },
-    include: {
-      venue: true,
-      events: {
-        where: {
-          status: "PUBLISHED",
-          startDate: { gte: now },
-        },
-        orderBy: { startDate: "asc" },
-        take: 10,
-        include: {
-          venue: true,
-        },
-      },
-    },
-  });
+  const market = await findMarketBySlug(slug);
 
   if (!market) notFound();
 
