@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { extractSocialHandle } from "@/lib/utils";
 import { AdminVendorForm } from "@/components/admin/vendor-form";
 import { notFound } from "next/navigation";
 
@@ -24,8 +25,12 @@ export default async function EditVendorPage({
     description: vendor.description ?? "",
     imageUrl: vendor.imageUrl ?? "",
     websiteUrl: vendor.websiteUrl ?? "",
-    facebookUrl: vendor.facebookUrl ?? "",
-    instagramUrl: vendor.instagramUrl ?? "",
+    facebookUrl: vendor.facebookUrl
+      ? extractSocialHandle(vendor.facebookUrl, "facebook")
+      : "",
+    instagramUrl: vendor.instagramUrl
+      ? extractSocialHandle(vendor.instagramUrl, "instagram")
+      : "",
     contactEmail: vendor.contactEmail ?? "",
     contactPhone: vendor.contactPhone ?? "",
     galleryUrlsText: vendor.galleryUrls?.join("\n") ?? "",

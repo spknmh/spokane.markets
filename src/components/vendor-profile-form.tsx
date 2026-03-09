@@ -240,11 +240,11 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="facebookUrl">Facebook</Label>
+              <Label htmlFor="facebookUrl">Facebook username</Label>
               <Input
                 id="facebookUrl"
                 type="text"
-                placeholder="www.facebook.com/... or https://..."
+                placeholder="username"
                 {...register("facebookUrl")}
               />
               {errors.facebookUrl && (
@@ -255,11 +255,11 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="instagramUrl">Instagram</Label>
+              <Label htmlFor="instagramUrl">Instagram username</Label>
               <Input
                 id="instagramUrl"
                 type="text"
-                placeholder="www.instagram.com/... or https://..."
+                placeholder="username"
                 {...register("instagramUrl")}
               />
               {errors.instagramUrl && (

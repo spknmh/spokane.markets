@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { adminVendorProfileSchema } from "@/lib/validations";
-import { normalizeUrlToHttps, slugify } from "@/lib/utils";
+import { extractSocialHandle, normalizeUrlToHttps, slugify } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
 function toOptional(value: string | undefined): string | undefined {
@@ -12,6 +12,15 @@ function toOptional(value: string | undefined): string | undefined {
 function toOptionalUrl(value: string | undefined): string | undefined {
   if (value === undefined || value === "") return undefined;
   return normalizeUrlToHttps(value);
+}
+
+function toOptionalHandle(
+  value: string | undefined,
+  platform: "facebook" | "instagram"
+): string | undefined {
+  if (value === undefined || value === "") return undefined;
+  const handle = extractSocialHandle(value, platform);
+  return handle ? handle : undefined;
 }
 
 async function generateUniqueSlug(base: string, excludeId?: string): Promise<string> {
@@ -98,8 +107,8 @@ export async function PUT(
       description: toOptional(data.description),
       imageUrl: toOptional(data.imageUrl),
       websiteUrl: toOptionalUrl(data.websiteUrl),
-      facebookUrl: toOptionalUrl(data.facebookUrl),
-      instagramUrl: toOptionalUrl(data.instagramUrl),
+      facebookUrl: toOptionalHandle(data.facebookUrl, "facebook"),
+      instagramUrl: toOptionalHandle(data.instagramUrl, "instagram"),
       contactEmail: toOptional(data.contactEmail),
       contactPhone: toOptional(data.contactPhone),
       ...(Array.isArray(galleryUrls) && { galleryUrls }),

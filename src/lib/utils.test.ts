@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
+  extractSocialHandle,
+  buildFacebookUrl,
+  buildInstagramUrl,
   formatPhoneNumber,
   formatPhoneInput,
   normalizeUrlToHttps,
@@ -72,5 +75,30 @@ describe("normalizeUrlToHttps", () => {
   it("returns empty string for empty or whitespace input", () => {
     expect(normalizeUrlToHttps("")).toBe("");
     expect(normalizeUrlToHttps("   ")).toBe("");
+  });
+});
+
+describe("extractSocialHandle", () => {
+  it("extracts handle from Facebook URL", () => {
+    expect(extractSocialHandle("https://facebook.com/johndoe", "facebook")).toBe("johndoe");
+    expect(extractSocialHandle("https://www.facebook.com/johndoe", "facebook")).toBe("johndoe");
+    expect(extractSocialHandle("facebook.com/johndoe", "facebook")).toBe("johndoe");
+  });
+
+  it("extracts handle from Instagram URL", () => {
+    expect(extractSocialHandle("https://instagram.com/johndoe", "instagram")).toBe("johndoe");
+    expect(extractSocialHandle("instagram.com/johndoe", "instagram")).toBe("johndoe");
+  });
+
+  it("returns handle as-is when not a URL", () => {
+    expect(extractSocialHandle("johndoe", "facebook")).toBe("johndoe");
+    expect(extractSocialHandle("johndoe", "instagram")).toBe("johndoe");
+  });
+});
+
+describe("buildFacebookUrl / buildInstagramUrl", () => {
+  it("builds correct URLs from handles", () => {
+    expect(buildFacebookUrl("johndoe")).toBe("https://facebook.com/johndoe");
+    expect(buildInstagramUrl("johndoe")).toBe("https://instagram.com/johndoe");
   });
 });

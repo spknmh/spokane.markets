@@ -41,6 +41,29 @@ export async function POST(request: Request) {
     endDate = parseDateTimeInTimezone(last.date, lastEnd, tz);
   }
 
+  let venueId = data.venueId?.trim() || null;
+  if (!venueId && data.venueName?.trim() && data.venueAddress?.trim() && data.venueCity?.trim() && data.venueState?.trim() && data.venueZip?.trim()) {
+    const venue = await db.venue.create({
+      data: {
+        name: data.venueName.trim(),
+        address: data.venueAddress.trim(),
+        city: data.venueCity.trim(),
+        state: data.venueState.trim(),
+        zip: data.venueZip.trim(),
+        lat: 47.6588,
+        lng: -117.426,
+      },
+    });
+    venueId = venue.id;
+  }
+
+  if (!venueId) {
+    return NextResponse.json(
+      { error: { message: "Select a venue or enter an address" } },
+      { status: 400 }
+    );
+  }
+
   const event = await db.event.create({
     data: {
       title: data.title,
@@ -49,7 +72,7 @@ export async function POST(request: Request) {
       startDate,
       endDate,
       timezone: null,
-      venueId: data.venueId,
+      venueId,
       marketId: data.marketId || null,
       imageUrl: data.imageUrl || null,
       status: data.status,

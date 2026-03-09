@@ -63,6 +63,66 @@ export function formatPhoneInput(value: string): string {
 }
 
 /**
+ * Extracts a social handle from a URL or returns the input if it's already a handle.
+ * Handles: https://facebook.com/johndoe, facebook.com/johndoe, www.instagram.com/johndoe, johndoe
+ */
+export function extractSocialHandle(
+  input: string,
+  platform: "facebook" | "instagram"
+): string {
+  const trimmed = input.trim();
+  if (!trimmed) return "";
+  const domain = platform === "facebook" ? "facebook.com" : "instagram.com";
+  const re = new RegExp(`${domain.replace(".", "\\.")}/([^/?#]+)`, "i");
+  const match = trimmed.match(re);
+  if (match) return match[1];
+  try {
+    const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : "https://" + trimmed;
+    const u = new URL(withProtocol);
+    const host = u.hostname.replace(/^www\./, "");
+    if (host === domain) {
+      const path = u.pathname.replace(/^\/|\/$/g, "").split("/")[0];
+      return path || trimmed;
+    }
+  } catch {
+    // not a URL, use as handle
+  }
+  return trimmed;
+}
+
+/** Builds https://facebook.com/{handle} from a handle. */
+export function buildFacebookUrl(handle: string): string {
+  const h = handle?.trim();
+  return h ? `https://facebook.com/${h}` : "";
+}
+
+/** Builds https://instagram.com/{handle} from a handle. */
+export function buildInstagramUrl(handle: string): string {
+  const h = handle?.trim();
+  return h ? `https://instagram.com/${h}` : "";
+}
+
+/**
+ * Returns https://facebook.com/... URL from a handle or legacy full URL.
+ * Handles both "johndoe" and "https://facebook.com/johndoe".
+ */
+export function getFacebookDisplayUrl(value: string | null | undefined): string | null {
+  if (!value?.trim()) return null;
+  const handle = extractSocialHandle(value, "facebook");
+  return handle ? buildFacebookUrl(handle) : null;
+}
+
+/**
+ * Returns https://instagram.com/... URL from a handle or legacy full URL.
+ * Handles both "johndoe" and "https://instagram.com/johndoe".
+ */
+export function getInstagramDisplayUrl(value: string | null | undefined): string | null {
+  if (!value?.trim()) return null;
+  const handle = extractSocialHandle(value, "instagram");
+  return handle ? buildInstagramUrl(handle) : null;
+}
+
+/**
  * Normalizes a URL to https:// for use in links.
  * Accepts: www.example.com, http://example.com, https://example.com, example.com
  */

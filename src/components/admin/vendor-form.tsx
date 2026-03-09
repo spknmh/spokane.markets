@@ -293,11 +293,11 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="facebookUrl">Facebook</Label>
+              <Label htmlFor="facebookUrl">Facebook username</Label>
               <Input
                 id="facebookUrl"
-                type="url"
-                placeholder="https://facebook.com/..."
+                type="text"
+                placeholder="username"
                 {...register("facebookUrl")}
               />
               {errors.facebookUrl && (
@@ -308,11 +308,11 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="instagramUrl">Instagram</Label>
+              <Label htmlFor="instagramUrl">Instagram username</Label>
               <Input
                 id="instagramUrl"
                 type="text"
-                placeholder="www.instagram.com/... or https://..."
+                placeholder="username"
                 {...register("instagramUrl")}
               />
               {errors.instagramUrl && (

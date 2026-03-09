@@ -1,5 +1,6 @@
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { extractSocialHandle } from "@/lib/utils";
 import { VendorProfileForm } from "@/components/vendor-profile-form";
 
 export default async function VendorProfileEditPage() {
@@ -17,8 +18,12 @@ export default async function VendorProfileEditPage() {
         description: profile.description ?? "",
         imageUrl: profile.imageUrl ?? "",
         websiteUrl: profile.websiteUrl ?? "",
-        facebookUrl: profile.facebookUrl ?? "",
-        instagramUrl: profile.instagramUrl ?? "",
+        facebookUrl: profile.facebookUrl
+          ? extractSocialHandle(profile.facebookUrl, "facebook")
+          : "",
+        instagramUrl: profile.instagramUrl
+          ? extractSocialHandle(profile.instagramUrl, "instagram")
+          : "",
         contactEmail: profile.contactEmail ?? "",
         contactPhone: profile.contactPhone ?? "",
         galleryUrlsText: (profile.galleryUrls ?? []).join("\n"),
