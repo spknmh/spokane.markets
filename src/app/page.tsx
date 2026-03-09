@@ -54,7 +54,8 @@ export default async function HomePage() {
     db.event.findMany({
       where: {
         status: "PUBLISHED",
-        startDate: { gte: start, lt: end },
+        startDate: { lte: end },
+        endDate: { gte: start },
       },
       include: {
         venue: true,
@@ -69,10 +70,8 @@ export default async function HomePage() {
     db.event.findMany({
       where: {
         status: "PUBLISHED",
-        startDate: {
-          gte: planAheadRange.start,
-          lte: planAheadRange.end,
-        },
+        startDate: { lte: planAheadRange.end },
+        endDate: { gte: planAheadRange.start },
       },
       include: {
         venue: true,

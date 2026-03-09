@@ -50,20 +50,42 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
 
   const where: Prisma.EventWhereInput = {
     status: "PUBLISHED",
-    startDate: { gte: monthStart, lte: monthEnd },
+    startDate: { lte: monthEnd },
+    endDate: { gte: monthStart },
   };
 
   const events = await db.event.findMany({
     where,
-    include: { venue: true, tags: true, features: true },
+    include: { venue: true, tags: true, features: true, scheduleDays: { orderBy: { date: "asc" } } },
     orderBy: { startDate: "asc" },
   });
 
   const eventsByDay = new Map<number, typeof events>();
   for (const event of events) {
-    const d = new Date(event.startDate).getDate();
-    if (!eventsByDay.has(d)) eventsByDay.set(d, []);
-    eventsByDay.get(d)!.push(event);
+    const daysToShow = new Set<number>();
+    if (event.scheduleDays.length > 0) {
+      for (const sd of event.scheduleDays) {
+        const d = new Date(sd.date);
+        if (d.getFullYear() === year && d.getMonth() === month) {
+          daysToShow.add(d.getDate());
+        }
+      }
+    }
+    if (daysToShow.size === 0) {
+      const start = new Date(event.startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(event.endDate);
+      end.setHours(23, 59, 59, 999);
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        if (d.getFullYear() === year && d.getMonth() === month) {
+          daysToShow.add(d.getDate());
+        }
+      }
+    }
+    for (const day of daysToShow) {
+      if (!eventsByDay.has(day)) eventsByDay.set(day, []);
+      eventsByDay.get(day)!.push(event);
+    }
   }
 
   const firstDay = new Date(year, month, 1).getDay();

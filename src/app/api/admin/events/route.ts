@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { syncEventToOccurrence } from "@/lib/services/event-sync";
 import { eventSchema } from "@/lib/validations";
 import { parseDateTimeInTimezone } from "@/lib/utils";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -119,6 +120,14 @@ export async function POST(request: Request) {
   syncEventToOccurrence(event.id).catch((err) =>
     console.error("syncEventToOccurrence failed:", err)
   );
+
+  revalidatePath("/events");
+  revalidatePath("/events/calendar");
+  revalidatePath("/events/map");
+  revalidatePath("/");
+  if (event.status === "PUBLISHED") {
+    revalidatePath(`/events/${event.slug}`);
+  }
 
   return NextResponse.json(event, { status: 201 });
 }

@@ -4,6 +4,7 @@ import { syncEventToOccurrence } from "@/lib/services/event-sync";
 import { eventSchema } from "@/lib/validations";
 import { parseDateTimeInTimezone } from "@/lib/utils";
 import { createNotification } from "@/lib/notifications";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 async function requireAdmin() {
@@ -138,6 +139,12 @@ export async function PUT(
   syncEventToOccurrence(id).catch((err) =>
     console.error("syncEventToOccurrence failed:", err)
   );
+
+  revalidatePath("/events");
+  revalidatePath("/events/calendar");
+  revalidatePath("/events/map");
+  revalidatePath("/");
+  revalidatePath(`/events/${event.slug}`);
 
   if (existing?.submittedById && data.status !== existing.status) {
     const prefs = await db.notificationPreference.findUnique({
