@@ -302,6 +302,9 @@ export function SubmissionForm({
 
           <div className="space-y-2">
             <Label>Search for venue address</Label>
+            <p className="text-xs text-muted-foreground">
+              Select a result to auto-fill street, city, state, and ZIP below.
+            </p>
             <AddressAutocomplete
               placeholder="Start typing an address..."
               onSelect={(addr) => {
@@ -331,11 +334,11 @@ export function SubmissionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="venueAddress">Venue address</Label>
+            <Label className="text-muted-foreground">Address details (editable)</Label>
             <Input
               id="venueAddress"
               type="text"
-              placeholder="123 Main St"
+              placeholder="Street address"
               {...register("venueAddress")}
             />
             {errors.venueAddress && (
@@ -343,33 +346,23 @@ export function SubmissionForm({
                 {errors.venueAddress.message}
               </p>
             )}
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="venueCity">City (optional)</Label>
+            <div className="grid gap-4 sm:grid-cols-3">
               <Input
                 id="venueCity"
                 type="text"
-                placeholder="Spokane"
+                placeholder="City"
                 {...register("venueCity")}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="venueState">State (optional)</Label>
               <Input
                 id="venueState"
                 type="text"
-                placeholder="WA"
+                placeholder="State"
                 {...register("venueState")}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="venueZip">ZIP (optional)</Label>
               <Input
                 id="venueZip"
                 type="text"
-                placeholder="99201"
+                placeholder="ZIP"
                 {...register("venueZip")}
               />
             </div>

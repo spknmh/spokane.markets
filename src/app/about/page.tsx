@@ -53,6 +53,17 @@ export default async function AboutPage() {
       </p>
 
       <section className="mt-12">
+        <h2 className="text-xl font-semibold">The Backstory</h2>
+        <p className="mt-2 text-muted-foreground">
+          Curious who built this and why?{" "}
+          <Link href="/about/backstory" className="text-primary hover:underline">
+            Read the founder&apos;s backstory
+          </Link>
+          .
+        </p>
+      </section>
+
+      <section id="contact" className="mt-12">
         <h2 className="text-xl font-semibold">Contact</h2>
         <p className="mt-2 text-muted-foreground">
           Have a question, suggestion, or want to report an issue? We&apos;d love

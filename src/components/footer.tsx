@@ -41,6 +41,14 @@ export async function Footer() {
               </li>
               <li>
                 <Link
+                  href="/about/backstory"
+                  className="text-sm text-primary-foreground/90 transition-colors hover:text-primary-foreground"
+                >
+                  Backstory
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/terms"
                   className="text-sm text-primary-foreground/90 transition-colors hover:text-primary-foreground"
                 >

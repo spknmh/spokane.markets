@@ -349,8 +349,18 @@ export function OrganizerEventForm({
             <p className="text-sm font-medium text-muted-foreground">Enter address</p>
             <div className="space-y-2">
               <Label>Search for address</Label>
+              <p className="text-xs text-muted-foreground">
+                Select a result to auto-fill street, city, state, and ZIP below.
+              </p>
               <AddressAutocomplete
                 placeholder="Start typing an address..."
+                defaultValue={
+                  watch("venueAddress") || watch("venueCity") || watch("venueZip")
+                    ? [watch("venueAddress"), watch("venueCity"), watch("venueState"), watch("venueZip")]
+                        .filter(Boolean)
+                        .join(", ")
+                    : undefined
+                }
                 onSelect={(addr) => {
                   setValue("venueId", "");
                   setValue("venueName", addr.name || addr.address || "Venue");
@@ -378,10 +388,10 @@ export function OrganizerEventForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="venueAddress">Street address</Label>
+              <Label className="text-muted-foreground">Address details (editable)</Label>
               <Input
                 id="venueAddress"
-                placeholder="123 Main St"
+                placeholder="Street address"
                 {...register("venueAddress", {
                   onChange: () => setValue("venueId", ""),
                 })}
@@ -389,29 +399,16 @@ export function OrganizerEventForm({
               {errors.venueAddress && (
                 <p className="text-sm text-destructive">{errors.venueAddress.message}</p>
               )}
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="venueCity">City</Label>
-                <Input id="venueCity" {...register("venueCity")} />
-                {errors.venueCity && (
-                  <p className="text-sm text-destructive">{errors.venueCity.message}</p>
-                )}
+              <div className="grid grid-cols-3 gap-4">
+                <Input id="venueCity" placeholder="City" {...register("venueCity")} />
+                <Input id="venueState" placeholder="State" {...register("venueState")} />
+                <Input id="venueZip" placeholder="ZIP" {...register("venueZip")} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="venueState">State</Label>
-                <Input id="venueState" {...register("venueState")} />
-                {errors.venueState && (
-                  <p className="text-sm text-destructive">{errors.venueState.message}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="venueZip">ZIP</Label>
-                <Input id="venueZip" {...register("venueZip")} placeholder="99201" />
-                {errors.venueZip && (
-                  <p className="text-sm text-destructive">{errors.venueZip.message}</p>
-                )}
-              </div>
+              {(errors.venueCity || errors.venueState || errors.venueZip) && (
+                <p className="text-sm text-destructive">
+                  {errors.venueCity?.message || errors.venueState?.message || errors.venueZip?.message}
+                </p>
+              )}
             </div>
           </div>
         )}

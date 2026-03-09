@@ -24,6 +24,8 @@ interface AddressAutocompleteProps {
   className?: string;
   /** Bounding box to bias results: [minLng, minLat, maxLng, maxLat] */
   bbox?: [number, number, number, number];
+  /** Initial value when editing (e.g. combined address from form) */
+  defaultValue?: string;
 }
 
 function debounce<T extends (...args: Parameters<T>) => void>(
@@ -43,20 +45,44 @@ type PhotonFeature = {
   properties?: Record<string, string>;
 };
 
+/** US state name -> abbreviation for form display */
+const STATE_ABBREV: Record<string, string> = {
+  Washington: "WA",
+  "Washington State": "WA",
+  Oregon: "OR",
+  Idaho: "ID",
+  Montana: "MT",
+  California: "CA",
+};
+
 function parsePhotonFeature(f: PhotonFeature): AddressResult | null {
   const coords = f.geometry?.type === "Point" ? f.geometry.coordinates : null;
   if (!coords || coords.length < 2) return null;
   const [lng, lat] = coords;
   const p = (f.properties || {}) as Record<string, string | undefined>;
-  const street = [p.street, p.housenumber].filter(Boolean).join(" ") || p.name || "";
-  const city = p.city || p.locality || p.county || "";
-  const state = p.state || "";
+  const streetNum = p.housenumber || "";
+  const streetName = p.street || "";
+  const street =
+    streetNum && streetName
+      ? `${streetNum} ${streetName}`.trim()
+      : streetName || streetNum || p.name || "";
+  const city =
+    p.city ||
+    p.town ||
+    p.village ||
+    p.municipality ||
+    (p.county ? p.county.replace(/\s*County\s*$/i, "").trim() : "") ||
+    p.locality ||
+    "";
+  const stateRaw = p.state || "";
+  const state = STATE_ABBREV[stateRaw] || stateRaw;
   const zip = p.postcode || "";
-  const name = p.name || (street ? `${street}, ${city}`.trim() : city) || "Unknown";
+
+  const name = p.name || (street ? `${street}${city ? `, ${city}` : ""}`.trim()) || "Venue";
   const address = street || p.name || "";
 
   return {
-    name: name.trim() || "Unknown",
+    name: name.trim() || "Venue",
     address: address.trim(),
     city: city.trim(),
     state: state.trim(),
@@ -77,8 +103,9 @@ export function AddressAutocomplete({
   disabled = false,
   className,
   bbox,
+  defaultValue = "",
 }: AddressAutocompleteProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(defaultValue ?? "");
   const [results, setResults] = useState<AddressResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
