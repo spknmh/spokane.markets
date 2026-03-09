@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import NextAuth from "next-auth";
-import type { NextAuthRequest } from "next-auth";
-import authConfig from "@/auth.config";
-import { isPrivilegedForMaintenance } from "@/lib/maintenance-rbac";
 import type { MaintenanceMode } from "@prisma/client";
-import type { Role } from "@prisma/client";
-
-const { auth } = NextAuth(authConfig);
 
 /** Paths that always bypass maintenance gate */
 const BYPASS_PATHS = [
@@ -50,7 +43,12 @@ function getApiBase(request: NextRequest): string {
   return request.nextUrl.origin;
 }
 
-export default auth(async function middleware(request: NextAuthRequest) {
+/**
+ * Maintenance gate: when mode is ON, rewrite to /maintenance.
+ * Privileged users (admin, vendor, organizer) bypass via the maintenance page
+ * which runs on Node.js and can use auth() with database sessions.
+ */
+export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (isStaticFile(pathname)) {
@@ -76,18 +74,13 @@ export default auth(async function middleware(request: NextAuthRequest) {
       return NextResponse.next();
     }
 
-    const role = (request.auth?.user?.role ?? null) as Role | null;
-    if (isPrivilegedForMaintenance(role, mode)) {
-      return NextResponse.next();
-    }
-
     const maintenanceUrl = new URL("/maintenance", request.url);
     maintenanceUrl.searchParams.set("next", pathname);
     return NextResponse.rewrite(maintenanceUrl);
   } catch {
     return NextResponse.next();
   }
-});
+}
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|.*\\.).*)"],

@@ -2,8 +2,8 @@ import type { NextAuthConfig } from "next-auth";
 import type { Role } from "@prisma/client";
 
 /**
- * Edge-compatible auth config (no DB/adapter).
- * Used by middleware for maintenance mode RBAC.
+ * Auth config. Uses JWT strategy (Credentials provider requires JWT).
+ * Middleware no longer uses auth (maintenance bypass handled on maintenance page).
  */
 export default {
   providers: [],
