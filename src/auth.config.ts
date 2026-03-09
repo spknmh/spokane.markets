@@ -2,7 +2,8 @@ import type { NextAuthConfig } from "next-auth";
 import type { Role } from "@prisma/client";
 
 /**
- * Auth config. Uses JWT strategy (Credentials provider requires JWT).
+ * Auth config. Uses JWT strategy (Credentials requires JWT).
+ * Credentials, OAuth, and magic link all supported during verification phase.
  * Middleware no longer uses auth (maintenance bypass handled on maintenance page).
  */
 export default {
