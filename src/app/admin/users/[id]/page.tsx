@@ -183,7 +183,7 @@ export default async function AdminUserDetailPage({
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {review.event
-                        ? `Market date: ${review.event.title}`
+                        ? `Event: ${review.event.title}`
                         : review.market
                           ? `Market: ${review.market.name}`
                           : "—"}

@@ -142,7 +142,7 @@ export default async function VendorsPage({
                     </CardTitle>
                     {vendor._count.vendorEvents > 0 && (
                       <Badge variant="secondary" className="shrink-0">
-                        {vendor._count.vendorEvents} market date
+                        {vendor._count.vendorEvents} event
                         {vendor._count.vendorEvents !== 1 ? "s" : ""}
                       </Badge>
                     )}

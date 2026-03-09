@@ -212,7 +212,7 @@ export default async function VendorDashboardPage() {
       <section className="mt-10">
         <h2 className="text-xl font-semibold">My Season Pipeline</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Market dates you&apos;ve requested, marked attending, or expressed interest in.
+          Events you&apos;ve requested, marked attending, or expressed interest in.
         </p>
         <VendorPipelineBoard
           intents={profile.vendorIntents.map((i) => ({
@@ -234,18 +234,18 @@ export default async function VendorDashboardPage() {
 
       <section className="mt-10">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Upcoming Market Dates</h2>
+          <h2 className="text-xl font-semibold">Upcoming Events</h2>
           <Button asChild size="sm">
-            <Link href="/vendor/events/link">Link to Market Date</Link>
+            <Link href="/vendor/events/link">Link to Event</Link>
           </Button>
         </div>
 
         {upcomingEvents.length === 0 ? (
           <Card className="mt-4">
             <CardContent className="py-8 text-center text-muted-foreground">
-              <p>No upcoming market dates linked yet.</p>
+              <p>No upcoming events linked yet.</p>
               <p className="mt-1 text-sm">
-                Link yourself to market dates so customers know where to find you.
+                Link yourself to events so customers know where to find you.
               </p>
             </CardContent>
           </Card>

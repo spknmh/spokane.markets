@@ -20,11 +20,11 @@ export default async function AdminCategoriesPage() {
     <div className="space-y-10">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Market Date Types & Features
+          Event Types & Features
         </h1>
         <p className="mt-1 text-muted-foreground">
-          Manage market date types (e.g. Farmers Market, Craft Fair) and features/amenities
-          (e.g. Indoor, WiFi Available). These appear in filters and on market date cards.
+          Manage event types (e.g. Farmers Market, Craft Fair) and features/amenities
+          (e.g. Indoor, WiFi Available). These appear in filters and on event cards.
           The slug is auto-generated from the name.
         </p>
       </div>

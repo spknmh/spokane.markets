@@ -18,9 +18,9 @@ import { SITE_NAME } from "@/lib/constants";
 import { HomeScrollDepth } from "@/components/home-scroll-depth";
 
 export const metadata: Metadata = {
-  title: "Find Local Farmers Markets & Market Dates This Weekend",
+  title: "Find Local Farmers Markets & Events This Weekend",
   description:
-    "Discover farmers markets, craft fairs, and community market dates in Spokane. Browse this weekend's markets, plan ahead, and never miss a local market date.",
+    "Discover farmers markets, craft fairs, and community events in Spokane. Browse this weekend's markets, plan ahead, and never miss a local event.",
 };
 
 export default async function HomePage() {
@@ -108,12 +108,12 @@ export default async function HomePage() {
             Discover {SITE_NAME}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/90 drop-shadow-sm">
-            Find markets, craft fairs, and local market dates across Spokane. Never
+            Find markets, craft fairs, and local events across Spokane. Never
             miss a weekend market again.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Button size="lg" asChild className="shadow-lg">
-              <Link href="/events">Browse Market Dates</Link>
+              <Link href="/events">Browse Events</Link>
             </Button>
             <Button size="lg" variant="secondary" asChild className="bg-background/90 text-foreground hover:bg-background shadow-lg border border-border/50">
               <Link href="/markets">View Markets</Link>
@@ -127,10 +127,10 @@ export default async function HomePage() {
         <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
           <div className="mb-8">
             <h2 className="text-2xl font-bold tracking-tight">
-              Featured Market Dates
+              Featured Events
             </h2>
             <p className="mt-1 text-muted-foreground">
-              Sponsored and partner market dates worth planning for
+              Sponsored and partner events worth planning for
             </p>
           </div>
           <div
@@ -165,7 +165,7 @@ export default async function HomePage() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight">This Weekend in Spokane</h2>
             <p className="mt-1 text-muted-foreground">
-              Markets and market dates happening this Saturday &amp; Sunday
+              Markets and events happening this Saturday &amp; Sunday
             </p>
           </div>
           <Link
@@ -185,13 +185,13 @@ export default async function HomePage() {
         ) : (
           <div className="rounded-lg border border-dashed border-border py-12 text-center">
             <p className="text-muted-foreground">
-              No market dates scheduled for this weekend yet.
+              No events scheduled for this weekend yet.
             </p>
             <Link
               href="/events?dateRange=all"
               className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
             >
-              Browse all upcoming market dates →
+              Browse all upcoming events →
             </Link>
           </div>
         )}
@@ -200,7 +200,7 @@ export default async function HomePage() {
           href="/events?dateRange=weekend"
           className="mt-4 block text-center text-sm font-medium text-primary hover:underline sm:hidden"
         >
-          View all weekend market dates →
+          View all weekend events →
         </Link>
       </section>
 
@@ -212,7 +212,7 @@ export default async function HomePage() {
               Plan in Advance
             </h2>
             <p className="mt-1 text-muted-foreground">
-              Markets and market dates 2–4 weeks out
+              Markets and events 2–4 weeks out
             </p>
           </div>
           <Link
@@ -232,13 +232,13 @@ export default async function HomePage() {
         ) : (
           <div className="rounded-lg border border-dashed border-border py-12 text-center">
             <p className="text-muted-foreground">
-              No market dates scheduled 2–4 weeks out yet.
+              No events scheduled 2–4 weeks out yet.
             </p>
             <Link
               href="/events?dateRange=all"
               className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
             >
-              Browse all upcoming market dates →
+              Browse all upcoming events →
             </Link>
           </div>
         )}
@@ -256,7 +256,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-xl px-4 text-center">
           <h2 className="text-2xl font-bold tracking-tight">Stay in the Loop</h2>
           <p className="mt-2 text-muted-foreground">
-            Get a weekly digest of upcoming markets and market dates delivered to your
+            Get a weekly digest of upcoming markets and events delivered to your
             inbox every Thursday.
           </p>
           <form

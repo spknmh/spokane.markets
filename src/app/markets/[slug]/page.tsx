@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const market = await findMarketBySlug(slug);
   if (!market) return { title: "Market Not Found" };
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const description = market.description ?? `Discover ${market.name} and upcoming market dates in the Spokane area.`;
+  const description = market.description ?? `Discover ${market.name} and upcoming events in the Spokane area.`;
   const marketImage =
     market.imageUrl?.startsWith("http")
       ? market.imageUrl
@@ -141,7 +141,7 @@ export default async function MarketDetailPage({ params }: PageProps) {
 
           {market.events.length > 0 && (
             <section>
-              <h2 className="mb-4 text-xl font-semibold">Upcoming Market Dates</h2>
+              <h2 className="mb-4 text-xl font-semibold">Upcoming Events</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {market.events.map((event) => (
                   <Link key={event.id} href={`/events/${event.slug}`}>

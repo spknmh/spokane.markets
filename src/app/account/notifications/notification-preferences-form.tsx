@@ -102,7 +102,7 @@ export function NotificationPreferencesForm({
           </label>
           <label className="flex items-center justify-between gap-4">
             <span className="text-sm font-medium">
-              New market dates matching saved filters
+              New events matching saved filters
             </span>
             <input
               type="checkbox"
@@ -115,7 +115,7 @@ export function NotificationPreferencesForm({
           </label>
           <label className="flex items-center justify-between gap-4">
             <span className="text-sm font-medium">
-              Favorite vendors added to market dates
+              Favorite vendors added to events
             </span>
             <input
               type="checkbox"
@@ -131,7 +131,7 @@ export function NotificationPreferencesForm({
           </label>
           <label className="flex items-center justify-between gap-4">
             <span className="text-sm font-medium">
-              Organizer alerts (market date published/rejected)
+              Organizer alerts (event published/rejected)
             </span>
             <input
               type="checkbox"
@@ -163,7 +163,7 @@ export function NotificationPreferencesForm({
           </label>
           <label className="flex items-center justify-between gap-4">
             <span className="text-sm font-medium">
-              New reviews on your market dates or vendor profile
+              New reviews on your events or vendor profile
             </span>
             <input
               type="checkbox"

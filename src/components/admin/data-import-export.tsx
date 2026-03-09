@@ -85,7 +85,7 @@ export function DataImportExport() {
             Import
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            JSON: full structure with venues, markets, market dates. CSV: venues only (name, address, city, state, zip, lat, lng).
+            JSON: full structure with venues, markets, events. CSV: venues only (name, address, city, state, zip, lat, lng).
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -133,7 +133,7 @@ export function DataImportExport() {
           {importResult && (
             <div className="rounded-lg border border-border p-3 text-sm space-y-1">
               <p>
-                Created: {importResult.venuesCreated} venues, {importResult.marketsCreated} markets, {importResult.eventsCreated} market dates
+                Created: {importResult.venuesCreated} venues, {importResult.marketsCreated} markets, {importResult.eventsCreated} events
               </p>
               {importResult.errors.length > 0 && (
                 <div className="text-destructive">
@@ -160,7 +160,7 @@ export function DataImportExport() {
             Export / Backup
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Export all market dates, markets, and venues to a JSON file. Saved to uploads/backups/ on the host.
+            Export all events, markets, and venues to a JSON file. Saved to uploads/backups/ on the host.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -170,7 +170,7 @@ export function DataImportExport() {
           {exportResult && exportResult.url && (
             <div className="rounded-lg border border-border p-3 text-sm space-y-1">
               <p>
-                Exported {exportResult.counts.venues} venues, {exportResult.counts.markets} markets, {exportResult.counts.events} market dates
+                Exported {exportResult.counts.venues} venues, {exportResult.counts.markets} markets, {exportResult.counts.events} events
               </p>
               <a
                 href={exportResult.url}

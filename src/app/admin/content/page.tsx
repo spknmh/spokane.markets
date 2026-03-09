@@ -12,8 +12,8 @@ const BANNER_LABELS: Record<string, string> = {
   craftStall: "Submit page",
   community: "Auth layout",
   localVendor: "Vendors / Vendor survey",
-  marketCrowd: "Market Dates / Newsletter",
-  events: "Market date detail",
+  marketCrowd: "Events / Newsletter",
+  events: "Event detail",
 };
 
 export default async function AdminContentPage() {

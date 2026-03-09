@@ -22,8 +22,8 @@ export async function generateMetadata({ searchParams }: CalendarMetadataProps):
   const isPastMonth = monthEnd < now;
 
   return {
-    title: `Market Dates Calendar — ${SITE_NAME}`,
-    description: "Browse upcoming markets and market dates by date.",
+    title: `Events Calendar — ${SITE_NAME}`,
+    description: "Browse upcoming markets and events by date.",
     ...(isPastMonth && { robots: { index: false, follow: true } }),
   };
 }
@@ -82,7 +82,7 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
       <div className="relative -mx-4 mb-10 overflow-hidden rounded-xl sm:-mx-6 lg:-mx-8">
         <Image
           src={banners.marketCrowd}
-          alt="Markets and market dates calendar"
+          alt="Markets and events calendar"
           width={1200}
           height={400}
           className="h-52 w-full object-cover sm:h-64"
@@ -92,10 +92,10 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
         <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6">
           <div className="inline-block max-w-2xl rounded-lg bg-black/50 px-4 py-3 backdrop-blur-sm sm:px-5 sm:py-4">
             <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-sm sm:text-4xl">
-              Market Dates Calendar
+              Events Calendar
             </h1>
             <p className="mt-1 text-base text-white/95 sm:text-lg">
-              Browse market dates by date
+              Browse events by date
             </p>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
       {/* Mobile: list view */}
       <div className="sm:hidden space-y-4">
         {events.length === 0 ? (
-          <p className="py-8 text-center text-muted-foreground">No market dates this month</p>
+          <p className="py-8 text-center text-muted-foreground">No events this month</p>
         ) : (
           events.map((event) => (
             <Link

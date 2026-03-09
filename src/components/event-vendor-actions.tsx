@@ -104,7 +104,7 @@ export function EventVendorActions({
       <div className="rounded-xl border border-border bg-muted/30 p-4">
         <p className="text-sm font-medium text-foreground">Vendor participation</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          This market date is invite-only. Only organizers can add vendors to the official roster.
+          This event is invite-only. Only organizers can add vendors to the official roster.
         </p>
         {hasVendorProfile && (
           <Button

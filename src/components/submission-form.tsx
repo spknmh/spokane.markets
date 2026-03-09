@@ -129,7 +129,7 @@ export function SubmissionForm({
         <CardHeader>
           <CardTitle>Thank you!</CardTitle>
           <CardDescription>
-            Your market date submission has been received. We&apos;ll review it and add
+            Your event submission has been received. We&apos;ll review it and add
             it to the calendar if it fits our criteria. You&apos;ll hear back
             within a few business days.
           </CardDescription>
@@ -141,9 +141,9 @@ export function SubmissionForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Market date details</CardTitle>
+        <CardTitle>Event details</CardTitle>
         <CardDescription>
-          Fill in the information about the market date you&apos;d like to submit.
+          Fill in the information about the event you&apos;d like to submit.
         </CardDescription>
       </CardHeader>
       <form
@@ -201,7 +201,7 @@ export function SubmissionForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="eventTitle">Market date title</Label>
+            <Label htmlFor="eventTitle">Event title</Label>
             <Input
               id="eventTitle"
               type="text"
@@ -216,10 +216,10 @@ export function SubmissionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="eventDescription">Market date description</Label>
+            <Label htmlFor="eventDescription">Event description</Label>
             <Textarea
               id="eventDescription"
-              placeholder="Brief description of the market date..."
+              placeholder="Brief description of the event..."
               rows={3}
               {...register("eventDescription")}
             />
@@ -249,7 +249,7 @@ export function SubmissionForm({
             </div>
             <label className="flex items-center gap-2">
               <input type="checkbox" {...register("allDay")} />
-              <span className="text-sm">All day</span>
+              <span className="text-sm">All day event</span>
             </label>
             {!watchAllDay && (
               <div className="grid gap-4 sm:grid-cols-2">
@@ -361,7 +361,7 @@ export function SubmissionForm({
 
           {tags.length > 0 && (
             <div className="space-y-2">
-              <Label>Market date type (optional)</Label>
+              <Label>Event type (optional)</Label>
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag) => (
                   <label
@@ -452,7 +452,7 @@ export function SubmissionForm({
           </div>
 
           <Button type="submit" variant="accent" className="w-full font-semibold" disabled={isSubmitting}>
-            {isSubmitting ? "Submitting…" : "Submit market date"}
+            {isSubmitting ? "Submitting…" : "Submit event"}
           </Button>
         </CardContent>
       </form>

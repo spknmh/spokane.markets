@@ -66,7 +66,7 @@ export default async function ClaimVendorPage({ params }: PageProps) {
           <CardTitle>Claim {vendor.businessName}</CardTitle>
           <CardDescription>
             Prove your ownership or management of this vendor to gain access to
-            manage its profile and market date listings.
+            manage its profile and event listings.
           </CardDescription>
         </CardHeader>
         <CardContent>

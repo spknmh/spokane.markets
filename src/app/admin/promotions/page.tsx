@@ -38,7 +38,7 @@ export default async function AdminPromotionsPage() {
       </div>
 
       <p className="text-muted-foreground">
-        Manage featured, sponsored, and partner market dates shown in the home page
+        Manage featured, sponsored, and partner events shown in the home page
         carousel.
       </p>
 
@@ -46,7 +46,7 @@ export default async function AdminPromotionsPage() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              <th className="p-3 text-left font-medium">Market Date</th>
+              <th className="p-3 text-left font-medium">Event</th>
               <th className="p-3 text-left font-medium">Type</th>
               <th className="p-3 text-left font-medium">Sponsor</th>
               <th className="p-3 text-left font-medium">Display Period</th>
@@ -58,7 +58,7 @@ export default async function AdminPromotionsPage() {
             {promotions.length === 0 ? (
               <tr>
                 <td colSpan={6} className="p-6 text-center text-muted-foreground">
-                  No promotions yet. Create one to feature market dates on the home
+                  No promotions yet. Create one to feature events on the home
                   page.
                 </td>
               </tr>

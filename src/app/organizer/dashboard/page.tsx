@@ -14,7 +14,7 @@ import { Users, Clock } from "lucide-react";
 
 const QUEUE_LABELS: Record<string, string> = {
   vendor_requests: "Pending Vendor Requests",
-  events_pending: "Market Dates Pending Review",
+  events_pending: "Events Pending Review",
 };
 
 const QUEUE_ICONS: Record<string, typeof Users> = {
@@ -139,11 +139,11 @@ export default async function OrganizerDashboardPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Organizer Dashboard</h1>
           <p className="mt-1 text-muted-foreground">
-            Manage your markets and market dates.
+            Manage your markets and events.
           </p>
         </div>
         <Link href="/organizer/events/new">
-          <Button>Submit New Market Date</Button>
+          <Button>Submit New Event</Button>
         </Link>
       </div>
 
@@ -165,7 +165,7 @@ export default async function OrganizerDashboardPage() {
 
       {hasVerifiedMarket && (
         <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
-          You own a verified market — your submitted market dates will be
+          You own a verified market — your submitted events will be
           auto-published.
         </div>
       )}
@@ -179,7 +179,7 @@ export default async function OrganizerDashboardPage() {
             href="#events"
             className="text-amber-700 dark:text-amber-300 underline hover:no-underline"
           >
-            Review in Your Market Dates
+            Review in Your Events
           </Link>
         </div>
       )}
@@ -291,7 +291,7 @@ export default async function OrganizerDashboardPage() {
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <span className="text-xs text-muted-foreground">
-                      {market._count.events} market dates
+                      {market._count.events} events
                     </span>
                     {market.events[0] && (
                       <span className="text-xs text-muted-foreground">
@@ -326,15 +326,15 @@ export default async function OrganizerDashboardPage() {
 
       {/* Events */}
       <section id="events" className="mt-10 scroll-mt-8">
-        <h2 className="text-xl font-semibold">Your Market Dates</h2>
+        <h2 className="text-xl font-semibold">Your Events</h2>
         {events.length === 0 ? (
           <Card className="mt-4 border-2 border-dashed">
             <CardContent className="flex flex-col items-center justify-center gap-3 py-10 text-center">
               <p className="text-muted-foreground">
-                You haven&apos;t submitted any market dates yet.
+                You haven&apos;t submitted any events yet.
               </p>
               <Button asChild>
-                <Link href="/organizer/events/new">Submit Your First Market Date</Link>
+                <Link href="/organizer/events/new">Submit Your First Event</Link>
               </Button>
             </CardContent>
           </Card>

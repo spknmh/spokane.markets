@@ -199,11 +199,11 @@ export function CategoriesManager({
 
   return (
     <div className="grid gap-10 lg:grid-cols-2">
-      {/* Market Date Types (Tags) */}
+      {/* Event Types (Tags) */}
       <section className="rounded-lg border border-border p-6">
-        <h2 className="text-xl font-semibold">Market Date Types</h2>
+        <h2 className="text-xl font-semibold">Event Types</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          What kind of market date: Farmers Market, Craft Fair, Flea Market, etc.
+          What kind of event: Farmers Market, Craft Fair, Flea Market, etc.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Input
@@ -282,7 +282,7 @@ export function CategoriesManager({
                   <span className="font-medium">{tag.name}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">
-                      {tag.slug} · {tag._count.events} market dates
+                      {tag.slug} · {tag._count.events} events
                     </span>
                     <Button
                       variant="ghost"
@@ -295,8 +295,8 @@ export function CategoriesManager({
                     </Button>
                     <DeleteButton
                       action={() => deleteTag(tag.id)}
-                      title="Delete market date type"
-                      description={`Delete "${tag.name}"? Market dates using it will be updated.`}
+                      title="Delete event type"
+                      description={`Delete "${tag.name}"? Events using it will be updated.`}
                       iconOnly
                     />
                   </div>
@@ -311,7 +311,7 @@ export function CategoriesManager({
       <section className="rounded-lg border border-border p-6">
         <h2 className="text-xl font-semibold">Features & Amenities</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Venue/market date attributes: Indoor, WiFi Available, Power Available, etc.
+          Venue/event attributes: Indoor, WiFi Available, Power Available, etc.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Input
@@ -405,7 +405,7 @@ export function CategoriesManager({
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">
-                      {feature.slug} · {feature._count.events} market dates
+                      {feature.slug} · {feature._count.events} events
                     </span>
                     <Button
                       variant="ghost"
@@ -419,7 +419,7 @@ export function CategoriesManager({
                     <DeleteButton
                       action={() => deleteFeature(feature.id)}
                       title="Delete feature/amenity"
-                      description={`Delete "${feature.name}"? Market dates using it will be updated.`}
+                      description={`Delete "${feature.name}"? Events using it will be updated.`}
                       iconOnly
                     />
                   </div>

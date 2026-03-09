@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { OrganizerEventForm } from "@/components/organizer-event-form";
 
 export const metadata: Metadata = {
-  title: `Submit Market Date — ${SITE_NAME}`,
+  title: `Submit Event — ${SITE_NAME}`,
 };
 
 export default async function OrganizerNewEventPage() {
@@ -27,9 +27,9 @@ export default async function OrganizerNewEventPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-3xl font-bold tracking-tight">Submit New Market Date</h1>
+      <h1 className="text-3xl font-bold tracking-tight">Submit New Event</h1>
       <p className="mt-1 text-muted-foreground">
-        Fill out the details below to submit your market date for listing.
+        Fill out the details below to submit your event for listing.
       </p>
       <div className="mt-6">
         <OrganizerEventForm

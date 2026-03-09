@@ -40,9 +40,9 @@ export async function generateMetadata({ searchParams }: EventsPageProps): Promi
   const shouldNoIndex = page > 1 || (hasFilters && activeFilterCount >= 3);
 
   return {
-    title: `Market Dates — ${SITE_NAME}`,
+    title: `Events — ${SITE_NAME}`,
     description:
-      "Browse upcoming markets, craft fairs, and community market dates in the Spokane area. Filter by date, neighborhood, and category.",
+      "Browse upcoming markets, craft fairs, and community events in the Spokane area. Filter by date, neighborhood, and category.",
     ...(shouldNoIndex && { robots: { index: false, follow: true } }),
   };
 }
@@ -171,7 +171,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
       <div className="relative -mx-4 mb-10 overflow-hidden rounded-xl sm:-mx-6 lg:-mx-8">
         <Image
           src={banners.marketCrowd}
-          alt="Markets and market dates in Spokane"
+          alt="Markets and events in Spokane"
           width={1200}
           height={400}
           className="h-52 w-full object-cover sm:h-64"
@@ -181,10 +181,10 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6">
           <div className="inline-block max-w-2xl rounded-lg bg-black/50 px-4 py-3 backdrop-blur-sm sm:px-5 sm:py-4">
             <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-sm sm:text-4xl">
-              Market Dates
+              Events
             </h1>
             <p className="mt-1 text-base text-white/95 sm:text-lg">
-              Find markets, fairs, and community market dates across Spokane.
+              Find markets, fairs, and community events across Spokane.
             </p>
           </div>
         </div>
@@ -263,7 +263,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
               feature={feature}
             />
             <p className="mb-4 text-sm text-muted-foreground">
-              {totalCount} {totalCount === 1 ? "market date" : "market dates"} found
+              {totalCount} {totalCount === 1 ? "event" : "events"} found
             </p>
 
             {events.length > 0 ? (
@@ -282,7 +282,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
               </>
             ) : (
               <div className="rounded-lg border border-dashed border-border py-16 text-center">
-                <p className="text-lg font-medium">No market dates found</p>
+                <p className="text-lg font-medium">No events found</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Try adjusting your filters or check back later.
                 </p>

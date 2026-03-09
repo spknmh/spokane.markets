@@ -8,9 +8,9 @@ import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: `Submit a Market Date — ${SITE_NAME}`,
+  title: `Submit an Event — ${SITE_NAME}`,
   description:
-    "Submit a market, craft fair, or community market date for inclusion in the Spokane Markets calendar. We review submissions within a few business days.",
+    "Submit a market, craft fair, or community event for inclusion in the Spokane Markets calendar. We review submissions within a few business days.",
   robots: { index: false, follow: true },
 };
 
@@ -36,9 +36,9 @@ export default async function SubmitPage() {
         />
       </div>
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tight">Submit a Market Date</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Submit an Event</h1>
         <p className="mt-3 text-muted-foreground">
-          Know of a market, craft fair, or community market date in the Spokane area?
+          Know of a market, craft fair, or community event in the Spokane area?
           Submit it here and we&apos;ll review it for inclusion in our calendar.
           Submissions are typically reviewed within a few business days.
         </p>

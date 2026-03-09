@@ -18,12 +18,12 @@ export function QRTracker() {
         Welcome to {SITE_NAME}
       </h1>
       <p className="mt-6 max-w-xl text-lg text-muted-foreground">
-        Discover local markets, craft fairs, and vendor market dates in the Spokane
+        Discover local markets, craft fairs, and vendor events in the Spokane
         area.
       </p>
       <div className="mt-10 flex flex-wrap justify-center gap-4">
         <Button asChild size="lg">
-          <Link href="/events">Browse Market Dates</Link>
+          <Link href="/events">Browse Events</Link>
         </Button>
         <Button asChild variant="outline" size="lg">
           <Link href="/markets">View Markets</Link>

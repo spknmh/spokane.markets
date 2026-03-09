@@ -64,9 +64,9 @@ export default async function AdminEventsPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Market Dates</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Events</h1>
         <Button asChild>
-          <Link href="/admin/events/new">Create Market Date</Link>
+          <Link href="/admin/events/new">Create Event</Link>
         </Button>
       </div>
 
@@ -102,7 +102,7 @@ export default async function AdminEventsPage({
             {events.length === 0 ? (
               <tr>
                 <td colSpan={5} className="p-6 text-center text-muted-foreground">
-                  No market dates found.
+                  No events found.
                 </td>
               </tr>
             ) : (
@@ -124,8 +124,8 @@ export default async function AdminEventsPage({
                     </Button>
                     <DeleteButton
                       action={deleteEvent.bind(null, event.id)}
-                      title="Delete market date"
-                      description={`Are you sure you want to delete "${event.title}"? This will remove the market date and cannot be undone.`}
+                      title="Delete event"
+                      description={`Are you sure you want to delete "${event.title}"? This will remove the event and cannot be undone.`}
                     />
                   </td>
                 </tr>

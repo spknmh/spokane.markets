@@ -216,7 +216,7 @@ export default async function VendorProfilePage({ params }: PageProps) {
             {upcomingEvents.length === 0 ? (
               <Card className="mt-4">
                 <CardContent className="py-8 text-center text-muted-foreground">
-                  No upcoming market dates scheduled. Check back soon!
+                  No upcoming events scheduled. Check back soon!
                 </CardContent>
               </Card>
             ) : (

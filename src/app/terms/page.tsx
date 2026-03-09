@@ -28,9 +28,9 @@ export default function TermsPage() {
 
         <h2 className="mt-6 text-xl font-semibold">2. Use of the Service</h2>
         <p>
-          The Service provides a platform to discover local markets, craft fairs, vendor market dates, and
-          community gatherings in the Spokane area. You may browse market dates, markets, and vendor profiles, create
-          an account to save favorites, submit market dates, write reviews, and claim markets or vendor profiles
+          The Service provides a platform to discover local markets, craft fairs, vendor events, and
+          community gatherings in the Spokane area. You may browse events, markets, and vendor profiles, create
+          an account to save favorites, submit events, write reviews, and claim markets or vendor profiles
           where applicable.
         </p>
         <p>
@@ -69,9 +69,9 @@ export default function TermsPage() {
           FREE OF HARMFUL COMPONENTS.
         </p>
         <p>
-          Market date listings, market information, and vendor profiles are provided by users and third parties.
+          Event listings, market information, and vendor profiles are provided by users and third parties.
           We do not verify the accuracy of all content. We encourage you to confirm details directly with
-          organizers or vendors before attending or purchasing.
+          event organizers or vendors before attending or purchasing.
         </p>
 
         <h2 className="mt-6 text-xl font-semibold">6. Limitation of Liability</h2>

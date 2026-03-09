@@ -98,7 +98,7 @@ export default async function AdminOverviewPage() {
 
   const metricStats = [
     { label: "Total Users", value: totalUsers, icon: Users },
-    { label: "Published Market Dates", value: publishedEvents, sub: `of ${totalEvents}`, icon: Calendar },
+    { label: "Published Events", value: publishedEvents, sub: `of ${totalEvents}`, icon: Calendar },
     { label: "Markets", value: totalMarkets, icon: Store },
     { label: "Vendors", value: totalVendors, icon: Store },
     { label: "Venues", value: totalVenues, icon: MapPin },
@@ -120,7 +120,7 @@ export default async function AdminOverviewPage() {
           <Button asChild size="sm">
             <Link href="/admin/events/new">
               <Plus className="mr-2 h-4 w-4" />
-              Create Market Date
+              Create Event
             </Link>
           </Button>
           <Button asChild size="sm" variant="outline">
