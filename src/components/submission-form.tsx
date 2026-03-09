@@ -24,6 +24,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import { AddressAutocomplete } from "@/components/address-autocomplete";
 
 interface SubmissionFormProps {
   session: Session | null;
@@ -298,6 +299,21 @@ export function SubmissionForm({
               </Select>
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label>Search for venue address</Label>
+            <AddressAutocomplete
+              placeholder="Start typing an address..."
+              onSelect={(addr) => {
+                setValue("venueName", addr.name || addr.address || "Venue");
+                setValue("venueAddress", addr.address);
+                setValue("venueCity", addr.city || "");
+                setValue("venueState", addr.state || "");
+                setValue("venueZip", addr.zip || "");
+              }}
+              bbox={[-117.9, 47.4, -117.0, 48.0]}
+            />
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="venueName">Venue name</Label>

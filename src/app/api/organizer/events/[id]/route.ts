@@ -64,6 +64,37 @@ export async function PUT(
     endDate = parseDateTimeInTimezone(last.date, lastEnd, tz);
   }
 
+  let venueId = data.venueId?.trim() || null;
+  if (!venueId && data.venueName?.trim() && data.venueAddress?.trim() && data.venueCity?.trim() && data.venueState?.trim() && data.venueZip?.trim()) {
+    const lat =
+      typeof data.venueLat === "number" && !Number.isNaN(data.venueLat)
+        ? data.venueLat
+        : 47.6588;
+    const lng =
+      typeof data.venueLng === "number" && !Number.isNaN(data.venueLng)
+        ? data.venueLng
+        : -117.426;
+    const venue = await db.venue.create({
+      data: {
+        name: data.venueName.trim(),
+        address: data.venueAddress.trim(),
+        city: data.venueCity.trim(),
+        state: data.venueState.trim(),
+        zip: data.venueZip.trim(),
+        lat,
+        lng,
+      },
+    });
+    venueId = venue.id;
+  }
+
+  if (!venueId) {
+    return NextResponse.json(
+      { error: { message: "Select a venue or enter an address" } },
+      { status: 400 }
+    );
+  }
+
   const updated = await db.event.update({
     where: { id },
     data: {
@@ -73,7 +104,7 @@ export async function PUT(
       startDate,
       endDate,
       timezone: null,
-      venueId: data.venueId,
+      venueId,
       marketId: data.marketId || null,
       imageUrl: data.imageUrl || null,
       websiteUrl: data.websiteUrl || null,

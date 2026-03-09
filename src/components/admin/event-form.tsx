@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { ScheduleRecurringGenerator } from "@/components/schedule-recurring-generator";
+import { AddressAutocomplete } from "@/components/address-autocomplete";
 
 type ScheduleDay = {
   date: string;
@@ -91,6 +92,8 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
           venueCity: "Spokane",
           venueState: "WA",
           venueZip: "",
+          venueLat: undefined,
+          venueLng: undefined,
           marketId: "",
           imageUrl: "",
           status: "DRAFT",
@@ -334,6 +337,8 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
                   setValue("venueCity", "Spokane");
                   setValue("venueState", "WA");
                   setValue("venueZip", "");
+                  setValue("venueLat", undefined);
+                  setValue("venueLng", undefined);
                 }
               },
             })}
@@ -349,6 +354,23 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
         {useInlineAddress && (
           <div className="mt-4 space-y-4 border-t border-border pt-4">
             <p className="text-sm font-medium text-muted-foreground">Enter address</p>
+            <div className="space-y-2">
+              <Label>Search for address</Label>
+              <AddressAutocomplete
+                placeholder="Start typing an address..."
+                onSelect={(addr) => {
+                  setValue("venueId", "");
+                  setValue("venueName", addr.name || addr.address || "Venue");
+                  setValue("venueAddress", addr.address);
+                  setValue("venueCity", addr.city || "Spokane");
+                  setValue("venueState", addr.state || "WA");
+                  setValue("venueZip", addr.zip);
+                  setValue("venueLat", addr.lat);
+                  setValue("venueLng", addr.lng);
+                }}
+                bbox={[-117.9, 47.4, -117.0, 48.0]}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="venueName">Location name</Label>
               <Input

@@ -204,6 +204,8 @@ export const eventSchema = z
     venueCity: z.string().optional().or(z.literal("")),
     venueState: z.string().optional().or(z.literal("")),
     venueZip: z.string().optional().or(z.literal("")),
+    venueLat: z.number().optional(),
+    venueLng: z.number().optional(),
     marketId: z.string().optional(),
   imageUrl: imageUrlSchema,
   status: z.enum(["DRAFT", "PENDING", "PUBLISHED", "REJECTED", "CANCELLED"]),
@@ -464,20 +466,42 @@ export type PromotionInput = z.infer<typeof promotionSchema>;
 export const promotionPatchSchema = promotionSchema.partial();
 export type PromotionPatchInput = z.infer<typeof promotionPatchSchema>;
 
-export const organizerEventSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  slug: z.string().min(1, "Slug is required"),
-  description: z.string().optional(),
-  startDate: z.string().min(1, "Start date is required"),
-  endDate: z.string().min(1, "End date is required"),
-  timezone: z.string().optional().nullable(),
-  venueId: z.string().min(1, "Venue is required"),
-  marketId: z.string().optional(),
-  imageUrl: imageUrlSchema,
-  websiteUrl: z.string().url().optional().or(z.literal("")),
-  facebookUrl: z.string().url().optional().or(z.literal("")),
-  tagIds: z.array(z.string()).optional(),
-  featureIds: z.array(z.string()).optional(),
-  scheduleDays: z.array(eventScheduleDaySchema).optional(),
-});
+export const organizerEventSchema = z
+  .object({
+    title: z.string().min(1, "Title is required"),
+    slug: z.string().min(1, "Slug is required"),
+    description: z.string().optional(),
+    startDate: z.string().min(1, "Start date is required"),
+    endDate: z.string().min(1, "End date is required"),
+    timezone: z.string().optional().nullable(),
+    venueId: z.string().optional().or(z.literal("")),
+    venueName: z.string().optional().or(z.literal("")),
+    venueAddress: z.string().optional().or(z.literal("")),
+    venueCity: z.string().optional().or(z.literal("")),
+    venueState: z.string().optional().or(z.literal("")),
+    venueZip: z.string().optional().or(z.literal("")),
+    venueLat: z.number().optional(),
+    venueLng: z.number().optional(),
+    marketId: z.string().optional(),
+    imageUrl: imageUrlSchema,
+    websiteUrl: z.string().url().optional().or(z.literal("")),
+    facebookUrl: z.string().url().optional().or(z.literal("")),
+    tagIds: z.array(z.string()).optional(),
+    featureIds: z.array(z.string()).optional(),
+    scheduleDays: z.array(eventScheduleDaySchema).optional(),
+  })
+  .refine(
+    (data) => {
+      const hasVenue = !!data.venueId?.trim();
+      const hasInline =
+        !!data.venueName?.trim() &&
+        !!data.venueAddress?.trim() &&
+        !!data.venueCity?.trim() &&
+        !!data.venueState?.trim() &&
+        !!data.venueZip?.trim() &&
+        data.venueZip.length >= 5;
+      return hasVenue || hasInline;
+    },
+    { message: "Select a venue or enter an address", path: ["venueId"] }
+  );
 export type OrganizerEventInput = z.infer<typeof organizerEventSchema>;

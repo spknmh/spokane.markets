@@ -51,6 +51,8 @@ export default async function EditEventPage({
     venueCity: "Spokane",
     venueState: "WA",
     venueZip: "",
+    venueLat: undefined,
+    venueLng: undefined,
     marketId: event.marketId ?? "",
     imageUrl: event.imageUrl ?? "",
     status: event.status as "DRAFT" | "PENDING" | "PUBLISHED" | "REJECTED" | "CANCELLED",

@@ -53,6 +53,14 @@ export async function PUT(
 
   let venueId = data.venueId?.trim() || null;
   if (!venueId && data.venueName?.trim() && data.venueAddress?.trim() && data.venueCity?.trim() && data.venueState?.trim() && data.venueZip?.trim()) {
+    const lat =
+      typeof data.venueLat === "number" && !Number.isNaN(data.venueLat)
+        ? data.venueLat
+        : 47.6588;
+    const lng =
+      typeof data.venueLng === "number" && !Number.isNaN(data.venueLng)
+        ? data.venueLng
+        : -117.426;
     const venue = await db.venue.create({
       data: {
         name: data.venueName.trim(),
@@ -60,8 +68,8 @@ export async function PUT(
         city: data.venueCity.trim(),
         state: data.venueState.trim(),
         zip: data.venueZip.trim(),
-        lat: 47.6588,
-        lng: -117.426,
+        lat,
+        lng,
       },
     });
     venueId = venue.id;

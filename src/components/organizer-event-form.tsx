@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { ScheduleRecurringGenerator } from "@/components/schedule-recurring-generator";
+import { AddressAutocomplete } from "@/components/address-autocomplete";
 
 type ScheduleDay = {
   date: string;
@@ -92,6 +93,13 @@ export function OrganizerEventForm({
           endDate: `${today}T23:59:00`,
           timezone: "",
           venueId: "",
+          venueName: "",
+          venueAddress: "",
+          venueCity: "Spokane",
+          venueState: "WA",
+          venueZip: "",
+          venueLat: undefined,
+          venueLng: undefined,
           marketId: "",
           imageUrl: "",
           websiteUrl: "",
@@ -110,6 +118,7 @@ export function OrganizerEventForm({
   const watchTitle = watch("title");
   const watchMarketId = watch("marketId");
   const watchVenueId = watch("venueId");
+  const useInlineAddress = !watchVenueId;
   const watchImageUrl = watch("imageUrl");
   const watchTagIds = watch("tagIds") ?? [];
   const watchFeatureIds = watch("featureIds") ?? [];
@@ -304,16 +313,108 @@ export function OrganizerEventForm({
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="venueId">Venue</Label>
-        <Select id="venueId" {...register("venueId")}>
-          <option value="">Select a venue...</option>
-          {venues.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.name}
-            </option>
-          ))}
-        </Select>
+      <div className="space-y-4 rounded-lg border border-border p-4">
+        <Label>Location</Label>
+        <p className="text-xs text-muted-foreground">
+          Select a venue or enter an address. Either is required.
+        </p>
+        <div className="space-y-2">
+          <Label htmlFor="venueId" className="text-sm font-normal">Venue (optional)</Label>
+          <Select
+            id="venueId"
+            {...register("venueId", {
+              onChange: (e) => {
+                if (e.target.value) {
+                  setValue("venueName", "");
+                  setValue("venueAddress", "");
+                  setValue("venueCity", "Spokane");
+                  setValue("venueState", "WA");
+                  setValue("venueZip", "");
+                  setValue("venueLat", undefined);
+                  setValue("venueLng", undefined);
+                }
+              },
+            })}
+          >
+            <option value="">Or enter address below...</option>
+            {venues.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        {useInlineAddress && (
+          <div className="mt-4 space-y-4 border-t border-border pt-4">
+            <p className="text-sm font-medium text-muted-foreground">Enter address</p>
+            <div className="space-y-2">
+              <Label>Search for address</Label>
+              <AddressAutocomplete
+                placeholder="Start typing an address..."
+                onSelect={(addr) => {
+                  setValue("venueId", "");
+                  setValue("venueName", addr.name || addr.address || "Venue");
+                  setValue("venueAddress", addr.address);
+                  setValue("venueCity", addr.city || "Spokane");
+                  setValue("venueState", addr.state || "WA");
+                  setValue("venueZip", addr.zip);
+                  setValue("venueLat", addr.lat);
+                  setValue("venueLng", addr.lng);
+                }}
+                bbox={[-117.9, 47.4, -117.0, 48.0]}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="venueName">Location name</Label>
+              <Input
+                id="venueName"
+                placeholder="e.g. Riverside Park Pavilion"
+                {...register("venueName", {
+                  onChange: () => setValue("venueId", ""),
+                })}
+              />
+              {errors.venueName && (
+                <p className="text-sm text-destructive">{errors.venueName.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="venueAddress">Street address</Label>
+              <Input
+                id="venueAddress"
+                placeholder="123 Main St"
+                {...register("venueAddress", {
+                  onChange: () => setValue("venueId", ""),
+                })}
+              />
+              {errors.venueAddress && (
+                <p className="text-sm text-destructive">{errors.venueAddress.message}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="venueCity">City</Label>
+                <Input id="venueCity" {...register("venueCity")} />
+                {errors.venueCity && (
+                  <p className="text-sm text-destructive">{errors.venueCity.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="venueState">State</Label>
+                <Input id="venueState" {...register("venueState")} />
+                {errors.venueState && (
+                  <p className="text-sm text-destructive">{errors.venueState.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="venueZip">ZIP</Label>
+                <Input id="venueZip" {...register("venueZip")} placeholder="99201" />
+                {errors.venueZip && (
+                  <p className="text-sm text-destructive">{errors.venueZip.message}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         {errors.venueId && (
           <p className="text-sm text-destructive">{errors.venueId.message}</p>
         )}
