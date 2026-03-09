@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountPrivacyPage() {
-  const session = await requireAuth();
+  const session = await requireAuth("/account/privacy");
 
   const vendorProfile = await db.vendorProfile.findUnique({
     where: { userId: session.user.id },

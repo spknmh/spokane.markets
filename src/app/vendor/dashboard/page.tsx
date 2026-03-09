@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { computeVendorProfileCompletion } from "@/lib/vendor-profile";
 
 export default async function VendorDashboardPage() {
-  const session = await requireAuth();
+  const session = await requireAuth("/vendor/dashboard");
 
   await evaluateAndGrantBadges(session.user.id);
 
@@ -72,7 +73,9 @@ export default async function VendorDashboardPage() {
     }),
   ]);
 
-  if (!user) return null;
+  if (!user) {
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent("/vendor/dashboard")}`);
+  }
 
   if (!profile) {
     return (

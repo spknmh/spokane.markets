@@ -1,5 +1,4 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { requireAuth } from "@/lib/auth-utils";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 
 const consumerNavItems = [
@@ -17,10 +16,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  if (!session?.user) {
-    redirect("/auth/signin");
-  }
+  await requireAuth("/dashboard");
 
   return (
     <div className="flex min-h-screen bg-background">

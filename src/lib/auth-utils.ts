@@ -6,6 +6,11 @@ import { isValidCallbackUrl } from "@/lib/utils";
 export async function requireAuth(callbackPath?: string) {
   const session = await auth();
   if (!session?.user) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[auth] requireAuth: no session, redirecting to signin", {
+        callbackPath: callbackPath ?? "(none)",
+      });
+    }
     const safePath = isValidCallbackUrl(callbackPath) ? callbackPath : "/";
     redirect(`/auth/signin?callbackUrl=${encodeURIComponent(safePath || "/")}`);
   }

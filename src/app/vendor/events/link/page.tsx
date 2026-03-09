@@ -8,7 +8,7 @@ import { VendorEventLinker } from "@/components/vendor-event-linker";
 import { ArrowLeft } from "lucide-react";
 
 export default async function VendorEventsLinkPage() {
-  const session = await requireAuth();
+  const session = await requireAuth("/vendor/events/link");
 
   const profile = await db.vendorProfile.findUnique({
     where: { userId: session.user.id },

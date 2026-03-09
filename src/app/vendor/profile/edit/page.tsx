@@ -4,7 +4,7 @@ import { extractSocialHandle } from "@/lib/utils";
 import { VendorProfileForm } from "@/components/vendor-profile-form";
 
 export default async function VendorProfileEditPage() {
-  const session = await requireAuth();
+  const session = await requireAuth("/vendor/profile/edit");
 
   const profile = await db.vendorProfile.findUnique({
     where: { userId: session.user.id },

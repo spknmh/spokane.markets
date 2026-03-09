@@ -24,7 +24,7 @@ export default async function AccountSavedPage({
 }: {
   searchParams: Promise<{ tab?: string }>;
 }) {
-  const session = await requireAuth();
+  const session = await requireAuth("/account/saved");
   const params = await searchParams;
   const tab = (params.tab === "filters" || params.tab === "rsvps" || params.tab === "favorites"
     ? params.tab

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireAuth } from "@/lib/auth-utils";
 import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountSettingsPage() {
-  const session = await requireAuth();
+  const session = await requireAuth("/account/settings");
 
   const user = await db.user.findUnique({
     where: { id: session.user.id },
@@ -31,7 +32,9 @@ export default async function AccountSettingsPage() {
 
   const emailsPaused = !!prefs?.emailsPausedAt;
 
-  if (!user) return null;
+  if (!user) {
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent("/account/settings")}`);
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">

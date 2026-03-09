@@ -20,7 +20,7 @@ export default async function VendorLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await requireAuth();
+  const session = await requireAuth("/vendor/dashboard");
 
   const profile = await db.vendorProfile.findUnique({
     where: { userId: session.user.id },

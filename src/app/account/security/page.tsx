@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountSecurityPage() {
-  const session = await requireAuth();
+  const session = await requireAuth("/account/security");
 
   const sessions = await db.session.findMany({
     where: { userId: session.user.id },

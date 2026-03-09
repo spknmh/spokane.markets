@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountNotificationsPage() {
-  const session = await requireAuth();
+  const session = await requireAuth("/account/notifications");
 
   let prefs = await db.notificationPreference.findUnique({
     where: { userId: session.user.id },
