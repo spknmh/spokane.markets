@@ -12,6 +12,7 @@ import {
 import { slugify } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/phone-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
@@ -197,10 +198,8 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
 
             <div className="space-y-2">
               <Label htmlFor="contactPhone">Contact Phone</Label>
-              <Input
+              <PhoneInput
                 id="contactPhone"
-                type="tel"
-                placeholder="(509) 555-0123"
                 {...register("contactPhone")}
               />
               {errors.contactPhone && (

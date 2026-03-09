@@ -6,6 +6,7 @@ import { marketSchema, type MarketInput } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/phone-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -196,7 +197,7 @@ export function MarketForm({ initialData, venues, users = [], ownerDisplay }: Ma
         </div>
         <div className="space-y-2">
           <Label htmlFor="contactPhone">Contact Phone</Label>
-          <Input id="contactPhone" type="tel" {...register("contactPhone")} />
+          <PhoneInput id="contactPhone" {...register("contactPhone")} />
         </div>
       </div>
 

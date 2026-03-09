@@ -8,6 +8,7 @@ import {
 } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/phone-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
@@ -147,7 +148,7 @@ export function OrganizerMarketForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="contactPhone">Contact Phone</Label>
-          <Input id="contactPhone" type="tel" {...register("contactPhone")} />
+          <PhoneInput id="contactPhone" {...register("contactPhone")} />
         </div>
       </div>
 

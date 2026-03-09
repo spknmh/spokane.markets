@@ -46,6 +46,22 @@ export function formatPhoneNumber(phone: string | null | undefined): string {
   return phone.trim();
 }
 
+/**
+ * Formats phone input as the user types. US format: (XXX) XXX-XXXX.
+ * For 11 digits with leading 1: +1 (XXX) XXX-XXXX.
+ */
+export function formatPhoneInput(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length === 0) return "";
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+}
+
 export function formatRelativeTime(date: Date): string {
   const rtf = new Intl.RelativeTimeFormat("en-US", { numeric: "auto" });
   const now = new Date();
