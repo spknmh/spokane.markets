@@ -17,7 +17,7 @@ function getNavLinks(session: Session | null) {
     { href: "/events", label: "Events" },
     { href: "/markets", label: "Markets" },
     { href: "/vendors", label: "Vendors" },
-    { href: "/submit", label: "Submit Event" },
+    { href: "/submit", label: "Submit Market Date" },
   ];
   if (session?.user?.role === "VENDOR") {
     base.push({ href: "/vendor-survey", label: "Vendor Survey" });

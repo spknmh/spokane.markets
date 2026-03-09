@@ -3,7 +3,7 @@ import { DashboardSidebar } from "@/components/dashboard-sidebar";
 
 const organizerNavItems = [
   { label: "Overview", href: "/organizer/dashboard", icon: "LayoutDashboard" as const },
-  { label: "Submit Event", href: "/organizer/events/new", icon: "PlusCircle" as const },
+  { label: "Submit Market Date", href: "/organizer/events/new", icon: "PlusCircle" as const },
   { label: "Browse Markets", href: "/markets", icon: "MapPin" as const },
 ];
 
@@ -18,7 +18,7 @@ export default async function OrganizerLayout({
     <div className="flex min-h-screen bg-background">
       <DashboardSidebar
         title="Organizer Dashboard"
-        subtitle="Manage markets and events"
+        subtitle="Manage markets and market dates"
         items={organizerNavItems}
         backLabel="Back to site"
       />

@@ -174,7 +174,7 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
 
       if (!res.ok) {
         const body = await res.json();
-        throw new Error(body.error?.message || "Failed to save event");
+        throw new Error(body.error?.message || "Failed to save market date");
       }
 
       router.push("/admin/events");
@@ -330,7 +330,7 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
         value={watchImageUrl ?? ""}
         onChange={(url) => setValue("imageUrl", url)}
         uploadType="event"
-        label="Event image"
+        label="Market date image"
         aspectRatio="banner"
       />
 
@@ -351,7 +351,7 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
         </summary>
         <div className="space-y-4 border-t border-border p-4">
           <p className="text-xs text-muted-foreground">
-            Override the market&apos;s vendor participation settings for this event. Leave as default to use market settings.
+            Override the market&apos;s vendor participation settings for this market date. Leave as default to use market settings.
           </p>
           <div className="space-y-2">
             <Label htmlFor="participationMode">Participation mode</Label>
@@ -459,8 +459,8 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
           {submitting
             ? "Saving..."
             : initialData
-              ? "Update Event"
-              : "Create Event"}
+              ? "Update Market Date"
+              : "Create Market Date"}
         </Button>
         <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancel

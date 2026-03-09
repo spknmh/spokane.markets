@@ -20,7 +20,7 @@ import { PendingVerificationModal } from "@/components/pending-verification-moda
 
 export const metadata = {
   title: `My Account — ${SITE_NAME}`,
-  description: "Your saved filters, event RSVPs, favorite vendors, and account settings.",
+  description: "Your saved filters, market date RSVPs, favorite vendors, and account settings.",
 };
 
 interface DashboardPageProps {
@@ -81,7 +81,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       />
       <h1 className="text-3xl font-bold tracking-tight">My Account</h1>
       <p className="mt-1 text-muted-foreground">
-        Your saved filters, event RSVPs, and favorite vendors
+        Your saved filters, market date RSVPs, and favorite vendors
       </p>
 
       <DashboardHeaderCard
@@ -108,13 +108,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 <Filter className="h-5 w-5" />
                 Saved Filters
               </CardTitle>
-              <CardDescription>Quick access to your event search filters</CardDescription>
+              <CardDescription>Quick access to your market date search filters</CardDescription>
             </div>
             <Link
               href="/events"
               className="min-h-[44px] shrink-0 rounded-lg border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
             >
-              Browse Events
+              Browse Market Dates
             </Link>
           </CardHeader>
           <CardContent>
@@ -122,7 +122,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               <p className="py-4 text-center text-muted-foreground">
                 No saved filters yet.{" "}
                 <Link href="/events" className="text-primary hover:underline">
-                  Browse events
+                  Browse market dates
                 </Link>{" "}
                 and save a filter to get started.
               </p>
@@ -170,7 +170,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 <CheckCircle2 className="h-5 w-5" />
                 My RSVPs
               </CardTitle>
-              <CardDescription>Events you marked Going or Interested</CardDescription>
+              <CardDescription>Market dates you marked Going or Interested</CardDescription>
             </div>
             <Link
               href="/events"
@@ -184,7 +184,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               <p className="py-4 text-center text-muted-foreground">
                 No upcoming RSVPs.{" "}
                 <Link href="/events" className="text-primary hover:underline">
-                  Find events
+                  Find market dates
                 </Link>{" "}
                 and mark Going or Interested!
               </p>

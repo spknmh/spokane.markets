@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
   const { slug } = await params;
   const event = await getEvent(slug);
 
-  if (!event) return { title: "Event Not Found" };
+  if (!event) return { title: "Market Date Not Found" };
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const eventImage =

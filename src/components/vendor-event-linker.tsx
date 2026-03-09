@@ -93,7 +93,7 @@ export function VendorEventLinker({
   return (
     <div className="space-y-4">
       <Input
-        placeholder="Search events..."
+        placeholder="Search market dates..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
@@ -106,7 +106,7 @@ export function VendorEventLinker({
 
       {filtered.length === 0 ? (
         <p className="py-8 text-center text-muted-foreground">
-          No upcoming events found.
+          No upcoming market dates found.
         </p>
       ) : (
         <div className="space-y-2">
@@ -165,7 +165,7 @@ export function VendorEventLinker({
                       onClick={() => !isInviteOnly && toggleLink(event)}
                       title={
                         isInviteOnly
-                          ? "Organizers add vendors to this event"
+                          ? "Organizers add vendors to this market date"
                           : undefined
                       }
                     >

@@ -46,7 +46,7 @@ export default async function AdminVenuesPage({
               <th className="text-left p-3 font-medium">Name</th>
               <th className="text-left p-3 font-medium">Address</th>
               <th className="text-left p-3 font-medium">Neighborhood</th>
-              <th className="text-left p-3 font-medium">Events</th>
+              <th className="text-left p-3 font-medium">Market Dates</th>
               <th className="text-right p-3 font-medium">Actions</th>
             </tr>
           </thead>
@@ -77,7 +77,7 @@ export default async function AdminVenuesPage({
                     <DeleteButton
                       action={deleteVenue.bind(null, venue.id)}
                       title="Delete venue"
-                      description={`Are you sure you want to delete "${venue.name}"? This will remove the venue. Events using it must be updated first.`}
+                      description={`Are you sure you want to delete "${venue.name}"? This will remove the venue. Market dates using it must be updated first.`}
                     />
                   </td>
                 </tr>

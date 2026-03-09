@@ -102,7 +102,7 @@ export default async function AdminPhotosPage({
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {photo.event
-                        ? `Event: ${photo.event.title}`
+                        ? `Market date: ${photo.event.title}`
                         : photo.market
                           ? `Market: ${photo.market.name}`
                           : photo.review
@@ -125,7 +125,7 @@ export default async function AdminPhotosPage({
                     href={`/events/${photo.event.slug}`}
                     className="text-sm text-primary hover:underline mt-1 inline-block"
                   >
-                    View event →
+                    View market date →
                   </Link>
                 )}
                 {photo.market && (

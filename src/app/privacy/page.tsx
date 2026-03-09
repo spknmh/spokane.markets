@@ -28,7 +28,7 @@ export default function PrivacyPage() {
         <ul className="list-disc pl-6 space-y-1">
           <li><strong>Account information:</strong> Name, email address, and password when you sign up</li>
           <li><strong>Profile information:</strong> Name, profile image, and preferences you choose to share</li>
-          <li><strong>Submissions:</strong> Event details, market information, vendor profiles, and reviews you submit</li>
+          <li><strong>Submissions:</strong> Market date details, market information, vendor profiles, and reviews you submit</li>
           <li><strong>Newsletter:</strong> Email address and area preferences when you subscribe</li>
           <li><strong>Communications:</strong> Messages you send when contacting us</li>
         </ul>
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
           <li><strong>Legal requirements:</strong> When required by law or to protect our rights</li>
         </ul>
         <p>
-          Our Service may contain links to third-party websites (e.g., Facebook, Instagram, event websites).
+          Our Service may contain links to third-party websites (e.g., Facebook, Instagram, market date websites).
           We are not responsible for the privacy practices of those sites.
         </p>
 
@@ -104,7 +104,7 @@ export default function PrivacyPage() {
 
         <h2 className="mt-6 text-xl font-semibold">7. Email Communications and Unsubscribe</h2>
         <p>
-          By subscribing to our newsletter or enabling email alerts (e.g., for saved filters or events), you
+          By subscribing to our newsletter or enabling email alerts (e.g., for saved filters or market dates), you
           consent to receive emails from us. You can unsubscribe at any time via the link in each email or
           by visiting{" "}
           <Link href="/unsubscribe" className="text-primary hover:underline">

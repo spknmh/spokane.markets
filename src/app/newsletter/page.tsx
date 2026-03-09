@@ -20,7 +20,7 @@ export default async function NewsletterPage() {
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold tracking-tight">Newsletter</h1>
         <p className="mt-3 text-muted-foreground">
-          Get a weekly digest of upcoming markets and events in the Spokane area
+          Get a weekly digest of upcoming markets and market dates in the Spokane area
           delivered to your inbox every Thursday. No spam, ever.
         </p>
       </div>

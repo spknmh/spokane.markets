@@ -9,8 +9,8 @@ import { isBannerUnoptimized } from "@/lib/utils";
 import { EventsMap } from "@/components/events-map";
 
 export const metadata: Metadata = {
-  title: `Events Map — ${SITE_NAME}`,
-  description: "Find markets and events near you on the map.",
+  title: `Market Dates Map — ${SITE_NAME}`,
+  description: "Find markets and market dates near you on the map.",
 };
 
 interface MapPageProps {
@@ -89,7 +89,7 @@ export default async function EventsMapPage({ searchParams }: MapPageProps) {
       <div className="relative -mx-4 mb-10 overflow-hidden rounded-xl sm:-mx-6 lg:-mx-8">
         <Image
           src={banners.marketCrowd}
-          alt="Markets and events map"
+          alt="Markets and market dates map"
           width={1200}
           height={400}
           className="h-52 w-full object-cover sm:h-64"
@@ -99,10 +99,10 @@ export default async function EventsMapPage({ searchParams }: MapPageProps) {
         <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6">
           <div className="inline-block max-w-2xl rounded-lg bg-black/50 px-4 py-3 backdrop-blur-sm sm:px-5 sm:py-4">
             <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-sm sm:text-4xl">
-              Events Map
+              Market Dates Map
             </h1>
             <p className="mt-1 text-base text-white/95 sm:text-lg">
-              Find events near you
+              Find market dates near you
             </p>
           </div>
         </div>
@@ -129,7 +129,7 @@ export default async function EventsMapPage({ searchParams }: MapPageProps) {
 
       {events.length === 0 && (
         <p className="mt-4 text-center text-muted-foreground">
-          No events with location data for this period. Try a different date range or{" "}
+          No market dates with location data for this period. Try a different date range or{" "}
           <Link href="/events" className="text-primary hover:underline">
             browse the list
           </Link>

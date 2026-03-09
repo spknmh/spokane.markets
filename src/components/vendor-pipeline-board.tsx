@@ -125,9 +125,9 @@ export function VendorPipelineBoard({ intents }: VendorPipelineBoardProps) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
-          <p>No events in your pipeline yet.</p>
+          <p>No market dates in your pipeline yet.</p>
           <p className="mt-1 text-sm">
-            Visit event pages to mark attending, request roster placement, or
+            Visit market date pages to mark attending, request roster placement, or
             mark interested.
           </p>
         </CardContent>
@@ -170,7 +170,7 @@ export function VendorPipelineBoard({ intents }: VendorPipelineBoardProps) {
       <div className="mt-4 space-y-3">
         {currentIntents.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No events in this category.
+            No market dates in this category.
           </p>
         ) : (
           currentIntents.map((i) => (

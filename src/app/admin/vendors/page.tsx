@@ -59,7 +59,7 @@ export default async function AdminVendorsPage({
               <th className="px-4 py-3 text-left font-medium">Slug</th>
               <th className="px-4 py-3 text-left font-medium">Specialties</th>
               <th className="px-4 py-3 text-left font-medium">Claim</th>
-              <th className="px-4 py-3 text-left font-medium">Events</th>
+              <th className="px-4 py-3 text-left font-medium">Market Dates</th>
               <th className="px-4 py-3 text-left font-medium">Link</th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>

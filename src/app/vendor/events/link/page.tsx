@@ -66,12 +66,12 @@ export default async function VendorEventsLinkPage() {
           </Link>
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          Link to Events
+          Link to Market Dates
         </h1>
       </div>
 
       <p className="mb-6 text-muted-foreground">
-        Select the upcoming events where you&apos;ll be selling. Linked events
+        Select the upcoming market dates where you&apos;ll be selling. Linked market dates
         will appear on your public vendor profile.
       </p>
 

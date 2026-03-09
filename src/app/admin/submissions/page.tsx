@@ -120,7 +120,7 @@ export default async function AdminSubmissionsPage({
               {sub.imageUrl && (
                 <p className="text-sm">
                   <a href={sub.imageUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">
-                    Event image
+                    Market date image
                   </a>
                 </p>
               )}

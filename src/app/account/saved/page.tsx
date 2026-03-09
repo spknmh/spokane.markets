@@ -67,7 +67,7 @@ export default async function AccountSavedPage({
     <div className="mx-auto max-w-2xl">
       <h1 className="text-3xl font-bold tracking-tight">Saved</h1>
       <p className="mt-1 text-muted-foreground">
-        Your saved filters, event RSVPs, and favorite vendors.
+        Your saved filters, market date RSVPs, and favorite vendors.
       </p>
 
       <SavedPageTabs activeTab={tab} />
@@ -145,7 +145,7 @@ export default async function AccountSavedPage({
               <p className="mt-1 text-sm text-muted-foreground">
                 Find{" "}
                 <Link href="/events" className="text-primary hover:underline">
-                  events
+                  market dates
                 </Link>{" "}
                 and mark Going or Interested!
               </p>
@@ -269,7 +269,7 @@ export default async function AccountSavedPage({
                         )}
                         {fav.vendorProfile._count.vendorEvents > 0 && (
                           <Badge variant="secondary">
-                            {fav.vendorProfile._count.vendorEvents} event
+                            {fav.vendorProfile._count.vendorEvents} market date
                             {fav.vendorProfile._count.vendorEvents !== 1
                               ? "s"
                               : ""}

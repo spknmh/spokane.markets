@@ -48,27 +48,27 @@ const websiteJsonLd = {
   name: SITE_NAME,
   url: baseUrl,
   description:
-    "The best way to find markets, craft fairs, and vendor events in the Spokane area. Filter by date, neighborhood, and category.",
+    "The best way to find markets, craft fairs, and vendor market dates in the Spokane area. Filter by date, neighborhood, and category.",
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: `${SITE_NAME} — Discover Local Markets, Fairs & Events`,
+    default: `${SITE_NAME} — Discover Local Markets, Fairs & Market Dates`,
     template: `%s | ${SITE_NAME}`,
   },
   description:
-    "The best way to find markets, craft fairs, and vendor events in the Spokane area. Filter by date, neighborhood, and category.",
+    "The best way to find markets, craft fairs, and vendor market dates in the Spokane area. Filter by date, neighborhood, and category.",
   openGraph: {
     title: SITE_NAME,
-    description: "Discover local markets, fairs & events in Spokane",
+    description: "Discover local markets, fairs & market dates in Spokane",
     type: "website",
     images: [{ url: COMMUNITY_IMAGES.hero, width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
-    description: "Discover local markets, fairs & events in Spokane",
+    description: "Discover local markets, fairs & market dates in Spokane",
   },
 };
 

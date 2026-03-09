@@ -7,7 +7,7 @@ import { notFound, redirect } from "next/navigation";
 import { formatForDateTimeLocal } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: `Edit Event — ${SITE_NAME}`,
+  title: `Edit Market Date — ${SITE_NAME}`,
 };
 
 export default async function OrganizerEditEventPage({
@@ -75,7 +75,7 @@ export default async function OrganizerEditEventPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-3xl font-bold tracking-tight">Edit Event</h1>
+      <h1 className="text-3xl font-bold tracking-tight">Edit Market Date</h1>
       <div className="mt-6">
         <OrganizerEventForm
           venues={venues}

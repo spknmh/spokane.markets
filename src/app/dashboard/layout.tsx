@@ -9,7 +9,7 @@ const consumerNavItems = [
   { label: "Favorite Vendors", href: "/account/saved?tab=favorites", icon: "Heart" as const },
   { label: "Badges", href: "/dashboard/badges", icon: "Award" as const },
   { label: "Account & Settings", href: "/account/settings", icon: "User" as const },
-  { label: "Browse Events", href: "/events", icon: "Calendar" as const },
+  { label: "Browse Market Dates", href: "/events", icon: "Calendar" as const },
 ];
 
 export default async function DashboardLayout({

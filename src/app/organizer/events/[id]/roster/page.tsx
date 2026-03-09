@@ -81,7 +81,7 @@ export default async function OrganizerRosterPage({
             href={`/events/${event.slug}`}
             className="text-sm text-muted-foreground hover:text-primary"
           >
-            ← Back to event
+            ← Back to market date
           </Link>
           <h1 className="mt-2 text-3xl font-bold tracking-tight">
             Manage Vendor Roster
@@ -91,7 +91,7 @@ export default async function OrganizerRosterPage({
           </p>
         </div>
         <Button variant="outline" asChild>
-          <Link href={`/organizer/events/${id}/edit`}>Edit Event</Link>
+          <Link href={`/organizer/events/${id}/edit`}>Edit Market Date</Link>
         </Button>
       </div>
 

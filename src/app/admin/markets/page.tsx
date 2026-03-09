@@ -63,7 +63,7 @@ export default async function AdminMarketsPage({
               <th className="text-left p-3 font-medium">Owner</th>
               <th className="text-left p-3 font-medium">Status</th>
               <th className="text-left p-3 font-medium">Claim</th>
-              <th className="text-left p-3 font-medium">Events</th>
+              <th className="text-left p-3 font-medium">Market Dates</th>
               <th className="text-right p-3 font-medium">Actions</th>
             </tr>
           </thead>
