@@ -264,6 +264,15 @@ export const SIGNUP_ROLES = [
   },
 ] as const;
 
+/** Magic-link sign-up: no password. Used when AUTH_USE_DATABASE_SESSIONS / magic-link-only. */
+export const signUpSchemaMagicLink = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Valid email is required"),
+  role: z.enum(["USER", "VENDOR", "ORGANIZER"]),
+  /** Honeypot — must be empty (bots fill it) */
+  website: z.string().max(0).optional(),
+});
+
 export const signUpSchema = z
   .object({
     name: z.string().min(1, "Name is required"),
@@ -281,6 +290,7 @@ export const signUpSchema = z
 
 export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
+export type SignUpInputMagicLink = z.infer<typeof signUpSchemaMagicLink>;
 
 export const adminCreateUserSchema = z
   .object({

@@ -2,13 +2,26 @@ import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
-import { signUpSchema } from "@/lib/validations";
+import {
+  signUpSchema,
+  signUpSchemaMagicLink,
+} from "@/lib/validations";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { sendVerificationEmail } from "@/lib/send-verification-email";
+import {
+  sendVerificationEmail,
+  sendMagicLinkEmail,
+} from "@/lib/send-verification-email";
+
+const magicLinkEnabled = !!(
+  process.env.RESEND_API_KEY || process.env.AUTH_RESEND_KEY
+);
 
 export async function POST(request: Request) {
   try {
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? request.headers.get("x-real-ip") ?? "unknown";
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0] ??
+      request.headers.get("x-real-ip") ??
+      "unknown";
     const { ok } = checkRateLimit(ip, "register");
     if (!ok) {
       return NextResponse.json(
@@ -18,8 +31,61 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const parsed = signUpSchema.safeParse(body);
 
+    if (magicLinkEnabled && body.magicLink === true) {
+      const parsed = signUpSchemaMagicLink.safeParse(body);
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: parsed.error.flatten().fieldErrors },
+          { status: 400 }
+        );
+      }
+
+      const { name, email, role = "USER", website } = parsed.data;
+      const callbackUrl = (body.callbackUrl as string) || "/dashboard";
+
+      if (website && website.length > 0) {
+        return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+      const existing = await db.user.findUnique({
+        where: { email: normalizedEmail },
+      });
+      if (existing) {
+        return NextResponse.json(
+          { error: { email: ["An account with this email already exists"] } },
+          { status: 409 }
+        );
+      }
+
+      await db.user.create({
+        data: {
+          name,
+          email: normalizedEmail,
+          role: role ?? "USER",
+        },
+      });
+
+      const token = randomBytes(32).toString("hex");
+      await db.verificationToken.create({
+        data: {
+          identifier: normalizedEmail,
+          token,
+          expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+      });
+
+      await sendMagicLinkEmail(normalizedEmail, token, callbackUrl);
+
+      return NextResponse.json({
+        success: true,
+        magicLink: true,
+        callbackUrl,
+      });
+    }
+
+    const parsed = signUpSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         { error: parsed.error.flatten().fieldErrors },
@@ -45,7 +111,7 @@ export async function POST(request: Request) {
 
     const hashedPassword = await hash(password, 10);
 
-    const user = await db.user.create({
+    await db.user.create({
       data: {
         name,
         email,
