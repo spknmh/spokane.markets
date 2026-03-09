@@ -17,6 +17,9 @@ export type AddressResult = {
   lng: number;
 };
 
+/** Photon layer filter: "house" = addresses with numbers, "street" = streets only */
+type PhotonLayer = "house" | "street" | "locality" | "city" | "district" | "county" | "state" | "country";
+
 interface AddressAutocompleteProps {
   onSelect: (address: AddressResult) => void;
   placeholder?: string;
@@ -26,6 +29,8 @@ interface AddressAutocompleteProps {
   bbox?: [number, number, number, number];
   /** Initial value when editing (e.g. combined address from form) */
   defaultValue?: string;
+  /** Filter results by layer: "house" prefers addresses with numbers */
+  layer?: PhotonLayer;
 }
 
 function debounce<T extends (...args: Parameters<T>) => void>(
@@ -62,10 +67,16 @@ function parsePhotonFeature(f: PhotonFeature): AddressResult | null {
   const p = (f.properties || {}) as Record<string, string | undefined>;
   const streetNum = p.housenumber || "";
   const streetName = p.street || "";
-  const street =
+  const constructedStreet =
     streetNum && streetName
       ? `${streetNum} ${streetName}`.trim()
-      : streetName || streetNum || p.name || "";
+      : streetName || streetNum || "";
+  // Prefer p.name when it contains a street number (Photon often puts full address in name)
+  const nameWithNumber = p.name && /\d/.test(p.name) && p.name.length < 100;
+  const streetPart = nameWithNumber
+    ? p.name!.split(",")[0]!.trim()
+    : constructedStreet || p.name || "";
+  const street = streetPart || constructedStreet || p.name || "";
   const city =
     p.city ||
     p.town ||
@@ -105,6 +116,7 @@ export function AddressAutocomplete({
   className,
   bbox,
   defaultValue = "",
+  layer,
 }: AddressAutocompleteProps) {
   const [query, setQuery] = useState(defaultValue ?? "");
   const [results, setResults] = useState<AddressResult[]>([]);
@@ -129,6 +141,9 @@ export function AddressAutocomplete({
         if (bbox) {
           params.set("bbox", bbox.join(","));
         }
+        if (layer) {
+          params.set("layer", layer);
+        }
         const res = await fetch(`${PHOTON_API}?${params}`);
         if (res.ok) {
           const data = (await res.json()) as { features?: PhotonFeature[] };
@@ -145,7 +160,7 @@ export function AddressAutocomplete({
         setLoading(false);
       }
     }, 300),
-    [bbox]
+    [bbox, layer]
   );
 
   useEffect(() => {
