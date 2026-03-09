@@ -8,13 +8,13 @@ export function SiteLogo() {
       href="/"
       className="group flex items-center gap-3 transition-opacity hover:opacity-90"
     >
-      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/15">
+      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
         <Image
           src="/market.png"
           alt=""
           width={40}
           height={40}
-          className="object-contain p-0.5"
+          className="object-contain"
           priority
         />
       </div>
