@@ -78,7 +78,8 @@ function parsePhotonFeature(f: PhotonFeature): AddressResult | null {
   const state = STATE_ABBREV[stateRaw] || stateRaw;
   const zip = p.postcode || "";
 
-  const name = p.name || (street ? `${street}${city ? `, ${city}` : ""}`.trim()) || "Venue";
+  const streetCity = [street, city].filter(Boolean).join(", ");
+  const name = p.name || streetCity.trim() || "Venue";
   const address = street || p.name || "";
 
   return {
