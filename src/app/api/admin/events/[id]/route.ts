@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { syncEventToOccurrence } from "@/lib/services/event-sync";
 import { eventSchema } from "@/lib/validations";
 import { parseDateTimeInTimezone } from "@/lib/utils";
 import { createNotification } from "@/lib/notifications";
@@ -102,6 +103,10 @@ export async function PUT(
       })),
     });
   }
+
+  syncEventToOccurrence(id).catch((err) =>
+    console.error("syncEventToOccurrence failed:", err)
+  );
 
   if (existing?.submittedById && data.status !== existing.status) {
     const prefs = await db.notificationPreference.findUnique({

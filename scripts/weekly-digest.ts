@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Resend } from "resend";
@@ -7,6 +8,48 @@ const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
 });
 const prisma = new PrismaClient({ adapter });
+
+const USE_NEW_MODELS = process.env.USE_NEW_MODELS === "true";
+
+type DigestEvent = { title: string; slug: string; startDate: Date; venue: { name: string; neighborhood: string | null } };
+
+async function getEventsForDigest(
+  now: Date,
+  nextWeek: Date,
+  areaFilter: { location?: { neighborhood: { in: string[] } }; venue?: { neighborhood: { in: string[] } } }
+): Promise<DigestEvent[]> {
+  if (USE_NEW_MODELS) {
+    const events = await prisma.eventOccurrence.findMany({
+      where: {
+        status: "PUBLISHED",
+        startDate: { gte: now, lte: nextWeek },
+        ...areaFilter,
+      },
+      orderBy: { startDate: "asc" },
+      include: {
+        location: { select: { name: true, neighborhood: true } },
+      },
+    });
+    return events.map((e) => ({
+      title: e.title,
+      slug: e.slug,
+      startDate: e.startDate,
+      venue: { name: e.location.name, neighborhood: e.location.neighborhood },
+    }));
+  }
+  const events = await prisma.event.findMany({
+    where: {
+      status: "PUBLISHED",
+      startDate: { gte: now, lte: nextWeek },
+      ...areaFilter,
+    },
+    orderBy: { startDate: "asc" },
+    include: {
+      venue: { select: { name: true, neighborhood: true } },
+    },
+  });
+  return events;
+}
 
 async function main() {
   const apiKey = process.env.RESEND_API_KEY;
@@ -45,20 +88,12 @@ async function main() {
 
     const areaFilter =
       subscriber.areas.length > 0
-        ? { venue: { neighborhood: { in: subscriber.areas } } }
+        ? USE_NEW_MODELS
+          ? { location: { neighborhood: { in: subscriber.areas } } }
+          : { venue: { neighborhood: { in: subscriber.areas } } }
         : {};
 
-    const events = await prisma.event.findMany({
-      where: {
-        status: "PUBLISHED",
-        startDate: { gte: now, lte: nextWeek },
-        ...areaFilter,
-      },
-      orderBy: { startDate: "asc" },
-      include: {
-        venue: { select: { name: true, neighborhood: true } },
-      },
-    });
+    const events = await getEventsForDigest(now, nextWeek, areaFilter);
 
     if (events.length === 0) {
       console.log(`No events for ${subscriber.email} — skipping`);

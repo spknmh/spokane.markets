@@ -16,6 +16,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:backfill-participation": "tsx scripts/backfill-vendor-participation.ts",
+    "db:migrate-to-new-models": "tsx scripts/migrate-to-new-models.ts",
+    "db:migrate-to-new-models:dry-run": "tsx scripts/migrate-to-new-models.ts --dry-run",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",

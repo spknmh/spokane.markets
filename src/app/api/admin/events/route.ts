@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { syncEventToOccurrence } from "@/lib/services/event-sync";
 import { eventSchema } from "@/lib/validations";
 import { parseDateTimeInTimezone } from "@/lib/utils";
 import { NextResponse } from "next/server";
@@ -83,6 +84,10 @@ export async function POST(request: Request) {
       })),
     });
   }
+
+  syncEventToOccurrence(event.id).catch((err) =>
+    console.error("syncEventToOccurrence failed:", err)
+  );
 
   return NextResponse.json(event, { status: 201 });
 }
