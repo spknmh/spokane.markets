@@ -9,10 +9,16 @@ export default function SignInPage() {
   if (process.env.AUTH_FACEBOOK_ID && process.env.AUTH_FACEBOOK_SECRET) {
     oauthProviders.push("facebook");
   }
+  const magicLinkEnabled = !!(
+    process.env.RESEND_API_KEY || process.env.AUTH_RESEND_KEY
+  );
 
   return (
     <Suspense>
-      <SignInForm oauthProviders={oauthProviders} />
+      <SignInForm
+        oauthProviders={oauthProviders}
+        magicLinkEnabled={magicLinkEnabled}
+      />
     </Suspense>
   );
 }

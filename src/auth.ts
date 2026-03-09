@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Facebook from "next-auth/providers/facebook";
 import Credentials from "next-auth/providers/credentials";
+import Resend from "next-auth/providers/resend";
 import { CredentialsSignin } from "@auth/core/errors";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcryptjs";
@@ -24,6 +25,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       : []),
     ...(process.env.AUTH_FACEBOOK_ID && process.env.AUTH_FACEBOOK_SECRET
       ? [Facebook]
+      : []),
+    ...(process.env.RESEND_API_KEY || process.env.AUTH_RESEND_KEY
+      ? [
+          Resend({
+            apiKey: process.env.AUTH_RESEND_KEY ?? process.env.RESEND_API_KEY,
+            from: "Spokane Markets <noreply@spokane.market>",
+          }),
+        ]
       : []),
     Credentials({
       credentials: {
@@ -74,6 +83,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   pages: {
     signIn: "/auth/signin",
+    verifyRequest: "/auth/verify-request",
   },
   callbacks: {
     ...authConfig.callbacks,

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { signIn } from "next-auth/react";
 import { signInSchema, type SignInInput } from "@/lib/validations";
 import { getSignInErrorMessage } from "@/lib/auth-errors";
@@ -22,11 +23,19 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
+const magicLinkSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Invalid email"),
+});
+
 type SignInFormProps = {
   oauthProviders?: ("google" | "facebook")[];
+  magicLinkEnabled?: boolean;
 };
 
-export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
+export function SignInForm({
+  oauthProviders = [],
+  magicLinkEnabled = false,
+}: SignInFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawCallbackUrl = searchParams.get("callbackUrl") ?? "/";
@@ -34,6 +43,7 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
   const redirectUrl = `/auth/redirect?next=${encodeURIComponent(callbackUrl)}`;
   const needsVerification = searchParams.get("verified") === "0";
   const [error, setError] = useState<string | null>(null);
+  const [showMagicLink, setShowMagicLink] = useState(false);
 
   const {
     register,
@@ -42,6 +52,11 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
   } = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "" },
+  });
+
+  const magicLinkForm = useForm<z.infer<typeof magicLinkSchema>>({
+    resolver: zodResolver(magicLinkSchema),
+    defaultValues: { email: "" },
   });
 
   async function onSubmit(data: SignInInput) {
@@ -64,6 +79,15 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
       router.push(callbackUrl);
       router.refresh();
     }
+  }
+
+  async function onMagicLinkSubmit(data: z.infer<typeof magicLinkSchema>) {
+    setError(null);
+    trackEvent("login_magic_link_request", { method: "resend" });
+    await signIn("resend", {
+      email: data.email,
+      callbackUrl: redirectUrl,
+    });
   }
 
   return (
@@ -124,7 +148,7 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Signing in\u2026" : "Sign in"}
             </Button>
-            {oauthProviders.length > 0 && (
+            {(oauthProviders.length > 0 || magicLinkEnabled) && (
               <>
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
@@ -136,42 +160,100 @@ export function SignInForm({ oauthProviders = [] }: SignInFormProps) {
                     </span>
                   </div>
                 </div>
-                <div
-                  className={
-                    oauthProviders.length === 1
-                      ? "grid grid-cols-1 gap-3"
-                      : "grid grid-cols-2 gap-3"
-                  }
-                >
-                  {oauthProviders.includes("google") && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        if (typeof window !== "undefined") {
-                          sessionStorage.setItem("login_method", "oauth");
-                        }
-                        signIn("google", { callbackUrl: redirectUrl });
-                      }}
-                      disabled={isSubmitting}
+                <div className="flex flex-col gap-3">
+                  {oauthProviders.length > 0 && (
+                    <div
+                      className={
+                        oauthProviders.length === 1
+                          ? "grid grid-cols-1 gap-3"
+                          : "grid grid-cols-2 gap-3"
+                      }
                     >
-                      Google
-                    </Button>
+                      {oauthProviders.includes("google") && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            if (typeof window !== "undefined") {
+                              sessionStorage.setItem("login_method", "oauth");
+                            }
+                            signIn("google", { callbackUrl: redirectUrl });
+                          }}
+                          disabled={isSubmitting}
+                        >
+                          Google
+                        </Button>
+                      )}
+                      {oauthProviders.includes("facebook") && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            if (typeof window !== "undefined") {
+                              sessionStorage.setItem("login_method", "oauth");
+                            }
+                            signIn("facebook", { callbackUrl: redirectUrl });
+                          }}
+                          disabled={isSubmitting}
+                        >
+                          Facebook
+                        </Button>
+                      )}
+                    </div>
                   )}
-                  {oauthProviders.includes("facebook") && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        if (typeof window !== "undefined") {
-                          sessionStorage.setItem("login_method", "oauth");
-                        }
-                        signIn("facebook", { callbackUrl: redirectUrl });
-                      }}
-                      disabled={isSubmitting}
-                    >
-                      Facebook
-                    </Button>
+                  {magicLinkEnabled && (
+                    <>
+                      {showMagicLink ? (
+                        <form
+                          onSubmit={magicLinkForm.handleSubmit(onMagicLinkSubmit)}
+                          className="space-y-2"
+                        >
+                          <Label htmlFor="magic-email">Email</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="magic-email"
+                              type="email"
+                              placeholder="you@example.com"
+                              autoComplete="email"
+                              {...magicLinkForm.register("email")}
+                            />
+                            <Button
+                              type="submit"
+                              variant="outline"
+                              disabled={magicLinkForm.formState.isSubmitting}
+                            >
+                              {magicLinkForm.formState.isSubmitting
+                                ? "Sending…"
+                                : "Send link"}
+                            </Button>
+                          </div>
+                          {magicLinkForm.formState.errors.email && (
+                            <p className="text-sm text-destructive">
+                              {
+                                magicLinkForm.formState.errors.email.message
+                              }
+                            </p>
+                          )}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowMagicLink(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </form>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowMagicLink(true)}
+                          disabled={isSubmitting}
+                        >
+                          Sign in with email link
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               </>
