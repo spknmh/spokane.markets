@@ -112,10 +112,10 @@ export default async function HomePage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Button size="lg" asChild className="shadow-lg">
-              <Link href="/events">Browse Events</Link>
+              <Link href="/events">View Upcoming Events</Link>
             </Button>
             <Button size="lg" variant="secondary" asChild className="bg-background/90 text-foreground hover:bg-background shadow-lg border border-border/50">
-              <Link href="/markets">View Markets</Link>
+              <Link href="/vendors">Browse Vendors</Link>
             </Button>
           </div>
         </div>
