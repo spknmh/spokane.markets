@@ -215,7 +215,7 @@ export default async function HomePage() {
             </p>
           </div>
           <Link
-            href="/events?dateRange=month"
+            href="/events?dateRange=plan-ahead"
             className="hidden text-sm font-medium text-primary transition-colors hover:underline sm:block"
           >
             View all →
@@ -243,7 +243,7 @@ export default async function HomePage() {
         )}
 
         <Link
-          href="/events?dateRange=month"
+          href="/events?dateRange=plan-ahead"
           className="mt-4 block text-center text-sm font-medium text-primary hover:underline sm:hidden"
         >
           View all →

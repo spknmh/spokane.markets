@@ -22,6 +22,7 @@ export const DATE_FILTERS = [
   { label: "Today", value: "today" },
   { label: "This Weekend", value: "weekend" },
   { label: "Next 7 Days", value: "week" },
+  { label: "2–4 Weeks Out", value: "plan-ahead" },
   { label: "This Month", value: "month" },
   { label: "All Upcoming", value: "all" },
 ] as const;

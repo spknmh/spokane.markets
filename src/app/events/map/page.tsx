@@ -48,6 +48,14 @@ function getDateRange(filter: string): { gte: Date; lt: Date } {
       end.setDate(end.getDate() + 7);
       return { gte: start, lt: end };
     }
+    case "plan-ahead": {
+      const start = new Date(now);
+      start.setDate(now.getDate() + 14);
+      start.setHours(0, 0, 0, 0);
+      const lt = new Date(start);
+      lt.setDate(start.getDate() + 15);
+      return { gte: start, lt };
+    }
     case "month": {
       const start = new Date(now.getFullYear(), now.getMonth(), 1);
       const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
