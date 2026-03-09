@@ -25,6 +25,17 @@ export function getUpcomingWeekendRange(): { start: Date; end: Date } {
   return { start, end };
 }
 
+/** Returns the next 7 days (today through 6 days from now). */
+export function getUpcomingWeekRange(): { start: Date; end: Date } {
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
+
 /** Returns the Plan in Advance range: events 14–28 days from today. */
 export function getPlanAheadRange(): { start: Date; end: Date } {
   const now = new Date();

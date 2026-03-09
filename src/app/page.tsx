@@ -11,25 +11,25 @@ import { AuthGate } from "@/components/auth-gate";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import {
-  getUpcomingWeekendRange,
+  getUpcomingWeekRange,
   getPlanAheadRange,
 } from "@/lib/date-ranges";
 import { SITE_NAME } from "@/lib/constants";
 import { HomeScrollDepth } from "@/components/home-scroll-depth";
 
 export const metadata: Metadata = {
-  title: "Find Local Farmers Markets & Events This Weekend",
+  title: "Find Local Farmers Markets & Events This Week",
   description:
-    "Discover farmers markets, craft fairs, and community events in Spokane. Browse this weekend's markets, plan ahead, and never miss a local event.",
+    "Discover farmers markets, craft fairs, and community events in Spokane. Browse this week's markets, plan ahead, and never miss a local event.",
 };
 
 export default async function HomePage() {
   const session = await auth();
   const banners = await getBannerImages();
-  const { start, end } = getUpcomingWeekendRange();
+  const { start, end } = getUpcomingWeekRange();
   const planAheadRange = getPlanAheadRange();
 
-  const [promotions, weekendEvents, planAheadEvents] = await Promise.all([
+  const [promotions, weekEvents, planAheadEvents] = await Promise.all([
     db.promotion.findMany({
       where: {
         eventId: { not: null },
@@ -65,7 +65,7 @@ export default async function HomePage() {
         scheduleDays: { orderBy: { date: "asc" } },
       },
       orderBy: { startDate: "asc" },
-      take: 8,
+      take: 12,
     }),
     db.event.findMany({
       where: {
@@ -108,7 +108,7 @@ export default async function HomePage() {
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/90 drop-shadow-sm">
             Find markets, craft fairs, and local events across Spokane. Never
-            miss a weekend market again.
+            miss a local market again.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Button size="lg" asChild className="shadow-lg">
@@ -158,33 +158,33 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* This Weekend */}
+      {/* This Week */}
       <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">This Weekend in Spokane</h2>
+            <h2 className="text-2xl font-bold tracking-tight">This Week in Spokane</h2>
             <p className="mt-1 text-muted-foreground">
-              Markets and events happening this Saturday &amp; Sunday
+              Markets and events over the next 7 days
             </p>
           </div>
           <Link
-            href="/events?dateRange=weekend"
+            href="/events?dateRange=week"
             className="hidden text-sm font-medium text-primary transition-colors hover:underline sm:block"
           >
             View all →
           </Link>
         </div>
 
-        {weekendEvents.length > 0 ? (
+        {weekEvents.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
-            {weekendEvents.map((event) => (
+            {weekEvents.map((event) => (
               <EventCard key={event.id} event={event} />
             ))}
           </div>
         ) : (
           <div className="rounded-lg border border-dashed border-border py-12 text-center">
             <p className="text-muted-foreground">
-              No events scheduled for this weekend yet.
+              No events scheduled for this week yet.
             </p>
             <Link
               href="/events?dateRange=all"
@@ -196,10 +196,10 @@ export default async function HomePage() {
         )}
 
         <Link
-          href="/events?dateRange=weekend"
+          href="/events?dateRange=week"
           className="mt-4 block text-center text-sm font-medium text-primary hover:underline sm:hidden"
         >
-          View all weekend events →
+          View all this week&apos;s events →
         </Link>
       </section>
 
