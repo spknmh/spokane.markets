@@ -24,7 +24,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { AddressAutocomplete } from "@/components/address-autocomplete";
+import { AddressAutofillFields } from "@/components/address-autocomplete";
 
 interface SubmissionFormProps {
   session: Session | null;
@@ -301,24 +301,6 @@ export function SubmissionForm({
           )}
 
           <div className="space-y-2">
-            <Label>Search for venue address</Label>
-            <p className="text-xs text-muted-foreground">
-              Select a result to auto-fill street, city, state, and ZIP below.
-            </p>
-            <AddressAutocomplete
-              placeholder="Start typing an address..."
-              onSelect={(addr) => {
-                setValue("venueName", addr.name || addr.address || "Venue");
-                setValue("venueAddress", addr.address);
-                setValue("venueCity", addr.city || "");
-                setValue("venueState", addr.state || "");
-                setValue("venueZip", addr.zip || "");
-              }}
-              bbox={[-117.9, 47.4, -117.0, 48.0]}
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="venueName">Venue name</Label>
             <Input
               id="venueName"
@@ -335,37 +317,24 @@ export function SubmissionForm({
 
           <div className="space-y-2">
             <Label className="text-muted-foreground">Address details (editable)</Label>
-            <Input
-              id="venueAddress"
-              type="text"
-              placeholder="Street address"
-              {...register("venueAddress")}
+            <p className="text-xs text-muted-foreground">
+              Start typing in the street address field for suggestions.
+            </p>
+            <AddressAutofillFields
+              streetProps={{
+                id: "venueAddress",
+                type: "text",
+                ...register("venueAddress"),
+              }}
+              cityProps={{ type: "text", ...register("venueCity") }}
+              stateProps={{ type: "text", ...register("venueState") }}
+              zipProps={{ type: "text", ...register("venueZip") }}
             />
             {errors.venueAddress && (
               <p className="text-sm text-destructive">
                 {errors.venueAddress.message}
               </p>
             )}
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Input
-                id="venueCity"
-                type="text"
-                placeholder="City"
-                {...register("venueCity")}
-              />
-              <Input
-                id="venueState"
-                type="text"
-                placeholder="State"
-                {...register("venueState")}
-              />
-              <Input
-                id="venueZip"
-                type="text"
-                placeholder="ZIP"
-                {...register("venueZip")}
-              />
-            </div>
           </div>
 
           {tags.length > 0 && (

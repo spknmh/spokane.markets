@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { ScheduleRecurringGenerator } from "@/components/schedule-recurring-generator";
-import { AddressAutocomplete } from "@/components/address-autocomplete";
+import { AddressAutofillFields } from "@/components/address-autocomplete";
 
 type ScheduleDay = {
   date: string;
@@ -348,33 +348,6 @@ export function OrganizerEventForm({
           <div className="mt-4 space-y-4 border-t border-border pt-4">
             <p className="text-sm font-medium text-muted-foreground">Enter address</p>
             <div className="space-y-2">
-              <Label>Search for address</Label>
-              <p className="text-xs text-muted-foreground">
-                Select a result to auto-fill street, city, state, and ZIP below.
-              </p>
-              <AddressAutocomplete
-                placeholder="Start typing an address..."
-                defaultValue={
-                  watch("venueAddress") || watch("venueCity") || watch("venueZip")
-                    ? [watch("venueAddress"), watch("venueCity"), watch("venueState"), watch("venueZip")]
-                        .filter(Boolean)
-                        .join(", ")
-                    : undefined
-                }
-                onSelect={(addr) => {
-                  setValue("venueId", "");
-                  setValue("venueName", addr.name || addr.address || "Venue");
-                  setValue("venueAddress", addr.address);
-                  setValue("venueCity", addr.city || "Spokane");
-                  setValue("venueState", addr.state || "WA");
-                  setValue("venueZip", addr.zip);
-                  setValue("venueLat", addr.lat);
-                  setValue("venueLng", addr.lng);
-                }}
-                bbox={[-117.9, 47.4, -117.0, 48.0]}
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="venueName">Location name</Label>
               <Input
                 id="venueName"
@@ -389,21 +362,26 @@ export function OrganizerEventForm({
             </div>
             <div className="space-y-2">
               <Label className="text-muted-foreground">Address details (editable)</Label>
-              <Input
-                id="venueAddress"
-                placeholder="Street address"
-                {...register("venueAddress", {
-                  onChange: () => setValue("venueId", ""),
-                })}
+              <p className="text-xs text-muted-foreground">
+                Start typing in the street address field for suggestions.
+              </p>
+              <AddressAutofillFields
+                onRetrieve={(addr) => {
+                  setValue("venueId", "");
+                  setValue("venueLat", addr.lat);
+                  setValue("venueLng", addr.lng);
+                }}
+                streetProps={{
+                  id: "venueAddress",
+                  ...register("venueAddress", { onChange: () => setValue("venueId", "") }),
+                }}
+                cityProps={register("venueCity")}
+                stateProps={register("venueState")}
+                zipProps={register("venueZip")}
               />
               {errors.venueAddress && (
                 <p className="text-sm text-destructive">{errors.venueAddress.message}</p>
               )}
-              <div className="grid grid-cols-3 gap-4">
-                <Input id="venueCity" placeholder="City" {...register("venueCity")} />
-                <Input id="venueState" placeholder="State" {...register("venueState")} />
-                <Input id="venueZip" placeholder="ZIP" {...register("venueZip")} />
-              </div>
               {(errors.venueCity || errors.venueState || errors.venueZip) && (
                 <p className="text-sm text-destructive">
                   {errors.venueCity?.message || errors.venueState?.message || errors.venueZip?.message}

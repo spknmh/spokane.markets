@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { ScheduleRecurringGenerator } from "@/components/schedule-recurring-generator";
-import { AddressAutocomplete } from "@/components/address-autocomplete";
+import { AddressAutofillFields } from "@/components/address-autocomplete";
 
 type ScheduleDay = {
   date: string;
@@ -45,12 +45,48 @@ interface EventFormProps {
   tags: { id: string; name: string; slug: string }[];
   features: { id: string; name: string; slug: string }[];
   initialData?: EventInput & { id: string; scheduleDays?: ScheduleDay[] };
+  /** Show JSON import panel on the right (new event only) */
+  showJsonImport?: boolean;
 }
 
-export function EventForm({ venues, markets, tags, features, initialData }: EventFormProps) {
+type JsonImportData = {
+  title?: string;
+  slug?: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  timezone?: string;
+  venueId?: string;
+  venueName?: string;
+  venueAddress?: string;
+  venueCity?: string;
+  venueState?: string;
+  venueZip?: string;
+  venueLat?: number;
+  venueLng?: number;
+  marketId?: string;
+  imageUrl?: string;
+  status?: "DRAFT" | "PENDING" | "PUBLISHED" | "REJECTED" | "CANCELLED";
+  websiteUrl?: string;
+  facebookUrl?: string;
+  tagIds?: string[];
+  tagSlugs?: string[];
+  featureIds?: string[];
+  featureSlugs?: string[];
+  scheduleDays?: { date: string; allDay: boolean; startTime?: string; endTime?: string }[];
+  participationMode?: string;
+  vendorCapacity?: number | null;
+  publicIntentListEnabled?: boolean | null;
+  publicIntentNamesEnabled?: boolean | null;
+  publicRosterEnabled?: boolean | null;
+};
+
+export function EventForm({ venues, markets, tags, features, initialData, showJsonImport }: EventFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [jsonImportText, setJsonImportText] = useState("");
+  const [jsonImportError, setJsonImportError] = useState<string | null>(null);
 
   const today = new Date().toISOString().slice(0, 10);
   const defaultSchedule =
@@ -155,6 +191,75 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
     );
   };
 
+  const handleJsonImport = () => {
+    setJsonImportError(null);
+    try {
+      const data = JSON.parse(jsonImportText) as JsonImportData;
+      if (typeof data !== "object" || data === null) {
+        throw new Error("Invalid JSON: expected an object");
+      }
+      if (data.title != null) setValue("title", String(data.title));
+      if (data.slug != null) setValue("slug", String(data.slug));
+      if (data.description != null) setValue("description", String(data.description));
+      if (data.startDate != null) setValue("startDate", String(data.startDate));
+      if (data.endDate != null) setValue("endDate", String(data.endDate));
+      if (data.timezone != null) setValue("timezone", String(data.timezone));
+      if (data.venueId != null) setValue("venueId", String(data.venueId));
+      if (data.venueName != null) setValue("venueName", String(data.venueName));
+      if (data.venueAddress != null) setValue("venueAddress", String(data.venueAddress));
+      if (data.venueCity != null) setValue("venueCity", String(data.venueCity));
+      if (data.venueState != null) setValue("venueState", String(data.venueState));
+      if (data.venueZip != null) setValue("venueZip", String(data.venueZip));
+      if (data.venueLat != null) setValue("venueLat", data.venueLat);
+      if (data.venueLng != null) setValue("venueLng", data.venueLng);
+      if (data.marketId != null) setValue("marketId", String(data.marketId));
+      if (data.imageUrl != null) setValue("imageUrl", String(data.imageUrl));
+      if (data.status != null) setValue("status", data.status);
+      if (data.websiteUrl != null) setValue("websiteUrl", String(data.websiteUrl));
+      if (data.facebookUrl != null) setValue("facebookUrl", String(data.facebookUrl));
+      if (data.tagIds != null && Array.isArray(data.tagIds)) {
+        setValue("tagIds", data.tagIds.map(String));
+      } else if (data.tagSlugs != null && Array.isArray(data.tagSlugs)) {
+        const ids = data.tagSlugs
+          .map((s) => tags.find((t) => t.slug === s)?.id)
+          .filter((id): id is string => !!id);
+        setValue("tagIds", ids);
+      }
+      if (data.featureIds != null && Array.isArray(data.featureIds)) {
+        setValue("featureIds", data.featureIds.map(String));
+      } else if (data.featureSlugs != null && Array.isArray(data.featureSlugs)) {
+        const ids = data.featureSlugs
+          .map((s) => features.find((f) => f.slug === s)?.id)
+          .filter((id): id is string => !!id);
+        setValue("featureIds", ids);
+      }
+      if (data.scheduleDays != null && Array.isArray(data.scheduleDays) && data.scheduleDays.length > 0) {
+        replace(
+          data.scheduleDays.map((d) => ({
+            date: d.date,
+            allDay: !!d.allDay,
+            startTime: d.startTime,
+            endTime: d.endTime,
+          }))
+        );
+      }
+      if (data.participationMode != null && data.participationMode !== "") {
+        setValue(
+          "participationMode",
+          data.participationMode as "OPEN" | "REQUEST_TO_JOIN" | "INVITE_ONLY" | "CAPACITY_LIMITED"
+        );
+      } else if (data.participationMode === "") {
+        setValue("participationMode", undefined);
+      }
+      if (data.vendorCapacity != null) setValue("vendorCapacity", data.vendorCapacity);
+      if (data.publicIntentListEnabled != null) setValue("publicIntentListEnabled", data.publicIntentListEnabled);
+      if (data.publicIntentNamesEnabled != null) setValue("publicIntentNamesEnabled", data.publicIntentNamesEnabled);
+      if (data.publicRosterEnabled != null) setValue("publicRosterEnabled", data.publicRosterEnabled);
+    } catch (e) {
+      setJsonImportError(e instanceof Error ? e.message : "Invalid JSON");
+    }
+  };
+
   const onSubmit = async (data: EventInput) => {
     setSubmitting(true);
     setError(null);
@@ -195,12 +300,12 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
     }
   };
 
-  return (
+  const formContent = (
     <form
       onSubmit={handleSubmit(onSubmit, (err) => {
         setError("Please fix the errors below.");
       })}
-      className="space-y-6 max-w-2xl"
+      className={`space-y-6 ${showJsonImport ? "" : "max-w-2xl"}`}
     >
       {error && (
         <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
@@ -355,33 +460,6 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
           <div className="mt-4 space-y-4 border-t border-border pt-4">
             <p className="text-sm font-medium text-muted-foreground">Enter address</p>
             <div className="space-y-2">
-              <Label>Search for address</Label>
-              <p className="text-xs text-muted-foreground">
-                Select a result to auto-fill street, city, state, and ZIP below.
-              </p>
-              <AddressAutocomplete
-                placeholder="Start typing an address..."
-                defaultValue={
-                  watch("venueAddress") || watch("venueCity") || watch("venueZip")
-                    ? [watch("venueAddress"), watch("venueCity"), watch("venueState"), watch("venueZip")]
-                        .filter(Boolean)
-                        .join(", ")
-                    : undefined
-                }
-                onSelect={(addr) => {
-                  setValue("venueId", "");
-                  setValue("venueName", addr.name || addr.address || "Venue");
-                  setValue("venueAddress", addr.address);
-                  setValue("venueCity", addr.city || "Spokane");
-                  setValue("venueState", addr.state || "WA");
-                  setValue("venueZip", addr.zip);
-                  setValue("venueLat", addr.lat);
-                  setValue("venueLng", addr.lng);
-                }}
-                bbox={[-117.9, 47.4, -117.0, 48.0]}
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="venueName">Location name</Label>
               <Input
                 id="venueName"
@@ -396,21 +474,26 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
             </div>
             <div className="space-y-2">
               <Label className="text-muted-foreground">Address details (editable)</Label>
-              <Input
-                id="venueAddress"
-                placeholder="Street address"
-                {...register("venueAddress", {
-                  onChange: () => setValue("venueId", ""),
-                })}
+              <p className="text-xs text-muted-foreground">
+                Start typing in the street address field for suggestions.
+              </p>
+              <AddressAutofillFields
+                onRetrieve={(addr) => {
+                  setValue("venueId", "");
+                  setValue("venueLat", addr.lat);
+                  setValue("venueLng", addr.lng);
+                }}
+                streetProps={{
+                  id: "venueAddress",
+                  ...register("venueAddress", { onChange: () => setValue("venueId", "") }),
+                }}
+                cityProps={register("venueCity")}
+                stateProps={register("venueState")}
+                zipProps={register("venueZip")}
               />
               {errors.venueAddress && (
                 <p className="text-sm text-destructive">{errors.venueAddress.message}</p>
               )}
-              <div className="grid grid-cols-3 gap-4">
-                <Input id="venueCity" placeholder="City" {...register("venueCity")} />
-                <Input id="venueState" placeholder="State" {...register("venueState")} />
-                <Input id="venueZip" placeholder="ZIP" {...register("venueZip")} />
-              </div>
               {(errors.venueCity || errors.venueState || errors.venueZip) && (
                 <p className="text-sm text-destructive">
                   {errors.venueCity?.message || errors.venueState?.message || errors.venueZip?.message}
@@ -566,4 +649,38 @@ export function EventForm({ venues, markets, tags, features, initialData }: Even
       </div>
     </form>
   );
+
+  if (showJsonImport) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-start">
+        <div className="min-w-0">{formContent}</div>
+        <div className="lg:sticky lg:top-6">
+          <div className="rounded-lg border border-border p-4 space-y-3 bg-muted/30">
+            <Label className="text-base font-medium">Import from JSON</Label>
+            <p className="text-xs text-muted-foreground">
+              Paste JSON below to populate all form fields. Use tagSlugs and featureSlugs (or tagIds/featureIds).
+            </p>
+            <Textarea
+              value={jsonImportText}
+              onChange={(e) => {
+                setJsonImportText(e.target.value);
+                setJsonImportError(null);
+              }}
+              placeholder='{"title": "My Event", ...}'
+              rows={16}
+              className="font-mono text-xs"
+            />
+            {jsonImportError && (
+              <p className="text-sm text-destructive">{jsonImportError}</p>
+            )}
+            <Button type="button" variant="secondary" onClick={handleJsonImport}>
+              Import
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return formContent;
 }
