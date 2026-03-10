@@ -63,13 +63,14 @@ export async function verifyMarket(id: string) {
     data: { verificationStatus: "VERIFIED" },
   });
   if (market?.ownerId) {
-    await createNotification(
-      market.ownerId,
-      "MARKET_VERIFIED",
-      `Your market ${market.name} is now verified`,
-      null,
-      `/markets/${market.slug}`
-    );
+    await createNotification({
+      userId: market.ownerId,
+      type: "MARKET_VERIFIED",
+      title: `Your market ${market.name} is now verified`,
+      link: `/markets/${market.slug}`,
+      objectType: "market",
+      objectId: id,
+    });
   }
   revalidatePath("/admin/markets");
 }
@@ -88,13 +89,14 @@ export async function setMarketVerificationStatus(
     data: { verificationStatus: status },
   });
   if (status === "VERIFIED" && market?.ownerId) {
-    await createNotification(
-      market.ownerId,
-      "MARKET_VERIFIED",
-      `Your market ${market.name} is now verified`,
-      null,
-      `/markets/${market.slug}`
-    );
+    await createNotification({
+      userId: market.ownerId,
+      type: "MARKET_VERIFIED",
+      title: `Your market ${market.name} is now verified`,
+      link: `/markets/${market.slug}`,
+      objectType: "market",
+      objectId: id,
+    });
   }
   revalidatePath("/admin/markets");
 }
@@ -123,13 +125,14 @@ export async function updateSubmissionStatus(
         ? "Your event submission was approved"
         : "Your event submission was rejected";
     const link = status === "APPROVED" ? "/events" : "/submit";
-    await createNotification(
-      user.id,
-      status === "APPROVED" ? "SUBMISSION_APPROVED" : "SUBMISSION_REJECTED",
+    await createNotification({
+      userId: user.id,
+      type: status === "APPROVED" ? "SUBMISSION_APPROVED" : "SUBMISSION_REJECTED",
       title,
-      null,
-      link
-    );
+      link,
+      objectType: "submission",
+      objectId: id,
+    });
   }
   await logAudit(session.user.id, "UPDATE_SUBMISSION_STATUS", "SUBMISSION", id, {
     status,
@@ -190,21 +193,23 @@ export async function updateClaimStatus(id: string, status: "APPROVED" | "REJECT
 
   if (status === "APPROVED") {
     evaluateAndGrantBadges(claim.userId).catch(() => {});
-    await createNotification(
-      claim.userId,
-      "CLAIM_APPROVED",
-      `Your claim for ${claim.market.name} was approved`,
-      null,
-      `/markets/${claim.market.slug}`
-    );
+    await createNotification({
+      userId: claim.userId,
+      type: "CLAIM_APPROVED",
+      title: `Your claim for ${claim.market.name} was approved`,
+      link: `/markets/${claim.market.slug}`,
+      objectType: "market",
+      objectId: claim.marketId,
+    });
   } else {
-    await createNotification(
-      claim.userId,
-      "CLAIM_REJECTED",
-      `Your claim for ${claim.market.name} was rejected`,
-      null,
-      `/markets/${claim.market.slug}`
-    );
+    await createNotification({
+      userId: claim.userId,
+      type: "CLAIM_REJECTED",
+      title: `Your claim for ${claim.market.name} was rejected`,
+      link: `/markets/${claim.market.slug}`,
+      objectType: "market",
+      objectId: claim.marketId,
+    });
   }
   await logAudit(session.user.id, "UPDATE_CLAIM_STATUS", "CLAIM", id, {
     status,
@@ -235,21 +240,23 @@ export async function updateVendorClaimStatus(id: string, status: "APPROVED" | "
   });
   const link = `/vendors/${claim.vendorProfile.slug}`;
   if (status === "APPROVED") {
-    await createNotification(
-      claim.userId,
-      "VENDOR_CLAIM_APPROVED",
-      `Your claim for ${claim.vendorProfile.businessName} was approved`,
-      null,
-      link
-    );
+    await createNotification({
+      userId: claim.userId,
+      type: "VENDOR_CLAIM_APPROVED",
+      title: `Your claim for ${claim.vendorProfile.businessName} was approved`,
+      link,
+      objectType: "vendor",
+      objectId: claim.vendorProfileId,
+    });
   } else {
-    await createNotification(
-      claim.userId,
-      "VENDOR_CLAIM_REJECTED",
-      `Your claim for ${claim.vendorProfile.businessName} was rejected`,
-      null,
-      link
-    );
+    await createNotification({
+      userId: claim.userId,
+      type: "VENDOR_CLAIM_REJECTED",
+      title: `Your claim for ${claim.vendorProfile.businessName} was rejected`,
+      link,
+      objectType: "vendor",
+      objectId: claim.vendorProfileId,
+    });
   }
   await logAudit(session.user.id, "UPDATE_VENDOR_CLAIM_STATUS", "VENDOR_CLAIM", id, {
     status,

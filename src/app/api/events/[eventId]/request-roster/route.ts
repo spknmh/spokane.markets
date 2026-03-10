@@ -88,13 +88,16 @@ export async function POST(
         prefs?.vendorRequestAlertsEnabled ?? prefs?.organizerAlertsEnabled ?? true;
       if (!allowVendorRequests) continue;
 
-      await createNotification(
-        organizerId,
-        "VENDOR_ROSTER_REQUEST",
-        `${profile.businessName} requested to join`,
-        `${profile.businessName} requested to be listed as a vendor for ${event.title}.`,
-        `/organizer/events/${event.id}/roster`
-      );
+      await createNotification({
+        userId: organizerId,
+        type: "VENDOR_ROSTER_REQUEST",
+        title: `${profile.businessName} requested to join`,
+        body: `${profile.businessName} requested to be listed as a vendor for ${event.title}.`,
+        link: `/organizer/events/${event.id}/roster`,
+        objectType: "event",
+        objectId: event.id,
+        metadata: { actorId: session.user.id },
+      });
     }
 
     return NextResponse.json(intent, { status: 201 });

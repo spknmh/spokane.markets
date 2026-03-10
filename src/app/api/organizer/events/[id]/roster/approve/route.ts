@@ -104,13 +104,15 @@ export async function POST(
       select: { userId: true, businessName: true, slug: true },
     });
     if (vendorProfile?.userId) {
-      await createNotification(
-        vendorProfile.userId,
-        "ROSTER_APPROVED",
-        "You've been approved for the event",
-        `Your request to be listed as a vendor has been approved.`,
-        `/events/${event.slug}`
-      );
+      await createNotification({
+        userId: vendorProfile.userId,
+        type: "ROSTER_APPROVED",
+        title: "You've been approved for the event",
+        body: `Your request to be listed as a vendor has been approved.`,
+        link: `/events/${event.slug}`,
+        objectType: "event",
+        objectId: event.id,
+      });
     }
 
     const favorites = await db.favoriteVendor.findMany({
@@ -131,13 +133,16 @@ export async function POST(
         if (prefs?.favoriteVendorEnabled === false) continue;
         if (prefs?.emailsPausedAt) continue;
 
-        await createNotification(
-          fav.user.id,
-          "FAVORITE_VENDOR_EVENT",
-          `${vendorProfile.businessName} is at ${event.title}`,
-          `A vendor you follow will be at ${event.title}.`,
-          `/events/${event.slug}`
-        );
+        await createNotification({
+          userId: fav.user.id,
+          type: "FAVORITE_VENDOR_EVENT",
+          title: `${vendorProfile.businessName} is at ${event.title}`,
+          body: `A vendor you follow will be at ${event.title}.`,
+          link: `/events/${event.slug}`,
+          objectType: "event",
+          objectId: event.id,
+          metadata: { vendorName: vendorProfile.businessName, eventTitle: event.title },
+        });
       }
     }
 

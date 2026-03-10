@@ -61,13 +61,15 @@ export async function POST(
       select: { userId: true },
     });
     if (vendorProfile?.userId) {
-      await createNotification(
-        vendorProfile.userId,
-        "ROSTER_REJECTED",
-        "Your vendor request was not approved",
-        "The organizer has declined your request to be listed for this event.",
-        `/events/${event.slug}`
-      );
+      await createNotification({
+        userId: vendorProfile.userId,
+        type: "ROSTER_REJECTED",
+        title: "Your vendor request was not approved",
+        body: "The organizer has declined your request to be listed for this event.",
+        link: `/events/${event.slug}`,
+        objectType: "event",
+        objectId: event.id,
+      });
     }
 
     await logAudit(

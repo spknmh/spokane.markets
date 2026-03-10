@@ -12,11 +12,25 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "10", 10) || 10));
   const unreadOnly = searchParams.get("unreadOnly") === "true";
+  const severity = searchParams.get("severity");
+  const category = searchParams.get("category");
+
+  const where: Record<string, unknown> = {
+    userId: session.user.id,
+    archivedAt: null,
+  };
+  if (unreadOnly) where.readAt = null;
+  if (severity) where.severity = severity;
+  if (category) where.category = category;
+
+  const snoozedUntilFilter = searchParams.get("includeSnoozed") === "true"
+    ? undefined
+    : { OR: [{ snoozedUntil: null }, { snoozedUntil: { lt: new Date() } }] };
 
   const notifications = await db.notification.findMany({
     where: {
-      userId: session.user.id,
-      ...(unreadOnly ? { readAt: null } : {}),
+      ...where,
+      ...snoozedUntilFilter,
     },
     orderBy: { createdAt: "desc" },
     take: limit,
@@ -26,7 +40,14 @@ export async function GET(request: Request) {
       title: true,
       body: true,
       link: true,
+      severity: true,
+      category: true,
+      objectId: true,
+      objectType: true,
+      metadata: true,
       readAt: true,
+      archivedAt: true,
+      snoozedUntil: true,
       createdAt: true,
     },
   });

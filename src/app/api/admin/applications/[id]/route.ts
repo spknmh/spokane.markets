@@ -74,13 +74,13 @@ export async function PATCH(
 
     if (application.userId) {
       const statusText = status === "APPROVED" ? "approved" : "rejected";
-      await createNotification(
-        application.userId,
-        "APPLICATION_STATUS",
-        `Your ${application.form.type.toLowerCase()} application has been ${statusText}`,
-        null,
-        `/dashboard`
-      );
+      await createNotification({
+        userId: application.userId,
+        type: "APPLICATION_STATUS",
+        title: `Your ${application.form.type.toLowerCase()} application has been ${statusText}`,
+        link: `/dashboard`,
+        objectType: "application",
+      });
     }
 
     return NextResponse.json(application);

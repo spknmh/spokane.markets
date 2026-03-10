@@ -131,21 +131,27 @@ export async function PUT(
       });
       if (prefs?.organizerAlertsEnabled !== false) {
         if (data.status === "PUBLISHED") {
-          await createNotification(
-            existing.submittedById,
-            "EVENT_PUBLISHED",
-            "Your event is now published",
-            `"${event.title}" is now live and visible to visitors.`,
-            `/events/${event.slug}`
-          );
+          await createNotification({
+            userId: existing.submittedById,
+            type: "EVENT_PUBLISHED",
+            title: "Your event is now published",
+            body: `"${event.title}" is now live and visible to visitors.`,
+            link: `/events/${event.slug}`,
+            objectType: "event",
+            objectId: event.id,
+            metadata: { eventTitle: event.title, eventSlug: event.slug },
+          });
         } else if (data.status === "REJECTED") {
-          await createNotification(
-            existing.submittedById,
-            "EVENT_REJECTED",
-            "Your event was not approved",
-            `"${event.title}" was not approved for publication.`,
-            `/organizer/events/${event.id}/edit`
-          );
+          await createNotification({
+            userId: existing.submittedById,
+            type: "EVENT_REJECTED",
+            title: "Your event was not approved",
+            body: `"${event.title}" was not approved for publication.`,
+            link: `/organizer/events/${event.id}/edit`,
+            objectType: "event",
+            objectId: event.id,
+            metadata: { eventTitle: event.title },
+          });
         }
       }
     }

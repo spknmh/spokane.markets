@@ -94,6 +94,11 @@ export type SavedFilterInput = z.infer<typeof savedFilterSchema>;
 export const notificationPreferenceSchema = z.object({
   emailEnabled: z.boolean().optional(),
   inAppEnabled: z.boolean().optional(),
+  inAppOperationalEnabled: z.boolean().optional(),
+  inAppDiscoveryEnabled: z.boolean().optional(),
+  inAppTrustSafetyEnabled: z.boolean().optional(),
+  inAppGrowthEnabled: z.boolean().optional(),
+  inAppSystemEnabled: z.boolean().optional(),
   weeklyDigestEnabled: z.boolean().optional(),
   eventMatchEnabled: z.boolean().optional(),
   favoriteVendorEnabled: z.boolean().optional(),

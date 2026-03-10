@@ -551,19 +551,29 @@ model ClaimRequest {
 }
 
 model Notification {
-  id        String    @id @default(cuid())
-  userId    String
-  type      String
-  title     String
-  body      String?   @db.Text
-  link      String?
-  readAt    DateTime?
-  createdAt DateTime  @default(now())
+  id           String    @id @default(cuid())
+  userId       String
+  type         String
+  title        String
+  body         String?   @db.Text
+  link         String?
+  severity     String    @default("info")
+  category     String?
+  actorId      String?
+  objectId     String?
+  objectType   String?
+  metadata     Json?
+  readAt       DateTime?
+  archivedAt   DateTime?
+  snoozedUntil DateTime?
+  createdAt    DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([userId, readAt])
+  @@index([userId, severity])
+  @@index([userId, category])
   @@map("notifications")
 }
 
@@ -733,21 +743,26 @@ model SavedFilter {
 }
 
 model NotificationPreference {
-  id                     String    @id @default(cuid())
-  userId                 String    @unique
-  emailEnabled           Boolean   @default(true)
-  inAppEnabled           Boolean   @default(true)
-  weeklyDigestEnabled    Boolean   @default(true)
-  eventMatchEnabled      Boolean   @default(true)
-  favoriteVendorEnabled  Boolean   @default(true)
+  id                         String    @id @default(cuid())
+  userId                     String    @unique
+  emailEnabled               Boolean   @default(true)
+  inAppEnabled               Boolean   @default(true)
+  inAppOperationalEnabled    Boolean   @default(true)
+  inAppDiscoveryEnabled      Boolean   @default(true)
+  inAppTrustSafetyEnabled    Boolean   @default(true)
+  inAppGrowthEnabled         Boolean   @default(true)
+  inAppSystemEnabled         Boolean   @default(true)
+  weeklyDigestEnabled        Boolean   @default(true)
+  eventMatchEnabled          Boolean   @default(true)
+  favoriteVendorEnabled      Boolean   @default(true)
   organizerAlertsEnabled     Boolean   @default(true)
   vendorRequestAlertsEnabled Boolean   @default(true)
   reviewAlertsEnabled        Boolean   @default(true)
   frequency                  String    @default("immediate")
-  quietHoursStart        Int?
-  quietHoursEnd          Int?
-  emailsPausedAt         DateTime?
-  updatedAt              DateTime  @updatedAt
+  quietHoursStart            Int?
+  quietHoursEnd              Int?
+  emailsPausedAt             DateTime?
+  updatedAt                  DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

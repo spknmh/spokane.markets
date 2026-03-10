@@ -8,9 +8,23 @@ export default async function NotificationsPage() {
   const session = await requireAuth("/notifications");
 
   const notifications = await db.notification.findMany({
-    where: { userId: session.user.id! },
+    where: {
+      userId: session.user.id!,
+      archivedAt: null,
+    },
     orderBy: { createdAt: "desc" },
     take: 50,
+    select: {
+      id: true,
+      type: true,
+      title: true,
+      body: true,
+      link: true,
+      severity: true,
+      category: true,
+      readAt: true,
+      createdAt: true,
+    },
   });
 
   return (

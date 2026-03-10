@@ -43,13 +43,13 @@ export async function PATCH(
           ? "Your event submission was approved"
           : "Your event submission was rejected";
       const link = parsed.data.status === "APPROVED" ? "/events" : "/submit";
-      await createNotification(
-        user.id,
-        parsed.data.status === "APPROVED" ? "SUBMISSION_APPROVED" : "SUBMISSION_REJECTED",
+      await createNotification({
+        userId: user.id,
+        type: parsed.data.status === "APPROVED" ? "SUBMISSION_APPROVED" : "SUBMISSION_REJECTED",
         title,
-        null,
-        link
-      );
+        link,
+        objectType: "submission",
+      });
     }
     await logAudit(session.user.id, "UPDATE_SUBMISSION_STATUS", "SUBMISSION", id, {
       status: parsed.data.status,

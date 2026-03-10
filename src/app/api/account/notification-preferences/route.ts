@@ -42,25 +42,17 @@ export async function PUT(request: Request) {
 
   const data = parsed.data;
   const updateData: Record<string, unknown> = {};
-  if (data.emailEnabled !== undefined) updateData.emailEnabled = data.emailEnabled;
-  if (data.inAppEnabled !== undefined) updateData.inAppEnabled = data.inAppEnabled;
-  if (data.weeklyDigestEnabled !== undefined)
-    updateData.weeklyDigestEnabled = data.weeklyDigestEnabled;
-  if (data.eventMatchEnabled !== undefined)
-    updateData.eventMatchEnabled = data.eventMatchEnabled;
-  if (data.favoriteVendorEnabled !== undefined)
-    updateData.favoriteVendorEnabled = data.favoriteVendorEnabled;
-  if (data.organizerAlertsEnabled !== undefined)
-    updateData.organizerAlertsEnabled = data.organizerAlertsEnabled;
-  if (data.vendorRequestAlertsEnabled !== undefined)
-    updateData.vendorRequestAlertsEnabled = data.vendorRequestAlertsEnabled;
-  if (data.reviewAlertsEnabled !== undefined)
-    updateData.reviewAlertsEnabled = data.reviewAlertsEnabled;
-  if (data.frequency !== undefined) updateData.frequency = data.frequency;
-  if (data.quietHoursStart !== undefined)
-    updateData.quietHoursStart = data.quietHoursStart;
-  if (data.quietHoursEnd !== undefined)
-    updateData.quietHoursEnd = data.quietHoursEnd;
+  const fields = [
+    "emailEnabled", "inAppEnabled",
+    "inAppOperationalEnabled", "inAppDiscoveryEnabled",
+    "inAppTrustSafetyEnabled", "inAppGrowthEnabled", "inAppSystemEnabled",
+    "weeklyDigestEnabled", "eventMatchEnabled", "favoriteVendorEnabled",
+    "organizerAlertsEnabled", "vendorRequestAlertsEnabled", "reviewAlertsEnabled",
+    "frequency", "quietHoursStart", "quietHoursEnd",
+  ] as const;
+  for (const field of fields) {
+    if (data[field] !== undefined) updateData[field] = data[field];
+  }
 
   const prefs = await db.notificationPreference.upsert({
     where: { userId: session.user.id },
@@ -68,6 +60,11 @@ export async function PUT(request: Request) {
       userId: session.user.id,
       emailEnabled: data.emailEnabled ?? true,
       inAppEnabled: data.inAppEnabled ?? true,
+      inAppOperationalEnabled: data.inAppOperationalEnabled ?? true,
+      inAppDiscoveryEnabled: data.inAppDiscoveryEnabled ?? true,
+      inAppTrustSafetyEnabled: data.inAppTrustSafetyEnabled ?? true,
+      inAppGrowthEnabled: data.inAppGrowthEnabled ?? true,
+      inAppSystemEnabled: data.inAppSystemEnabled ?? true,
       weeklyDigestEnabled: data.weeklyDigestEnabled ?? true,
       eventMatchEnabled: data.eventMatchEnabled ?? true,
       favoriteVendorEnabled: data.favoriteVendorEnabled ?? true,

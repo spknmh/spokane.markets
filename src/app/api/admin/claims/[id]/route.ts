@@ -46,21 +46,25 @@ export async function PATCH(
         },
       });
       evaluateAndGrantBadges(claim.userId).catch(() => {});
-      await createNotification(
-        claim.userId,
-        "CLAIM_APPROVED",
-        `Your claim for ${claim.market.name} was approved`,
-        null,
-        `/markets/${claim.market.slug}`
-      );
+      await createNotification({
+        userId: claim.userId,
+        type: "CLAIM_APPROVED",
+        title: `Your claim for ${claim.market.name} was approved`,
+        link: `/markets/${claim.market.slug}`,
+        objectType: "market",
+        objectId: claim.marketId,
+        metadata: { marketName: claim.market.name },
+      });
     } else {
-      await createNotification(
-        claim.userId,
-        "CLAIM_REJECTED",
-        `Your claim for ${claim.market.name} was rejected`,
-        null,
-        `/markets/${claim.market.slug}`
-      );
+      await createNotification({
+        userId: claim.userId,
+        type: "CLAIM_REJECTED",
+        title: `Your claim for ${claim.market.name} was rejected`,
+        link: `/markets/${claim.market.slug}`,
+        objectType: "market",
+        objectId: claim.marketId,
+        metadata: { marketName: claim.market.name },
+      });
     }
     await logAudit(session.user.id, "UPDATE_CLAIM_STATUS", "CLAIM", id, {
       status,

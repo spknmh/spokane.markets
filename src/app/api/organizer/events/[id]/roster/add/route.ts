@@ -111,13 +111,14 @@ export async function POST(
 
     if (vendor) {
       if (vendor.userId) {
-        await createNotification(
-          vendor.userId,
-          "ROSTER_ADD",
-          `You were added to the vendor roster for "${event.title}"`,
-          null,
-          `/events/${event.slug}`
-        );
+        await createNotification({
+          userId: vendor.userId,
+          type: "ROSTER_ADD",
+          title: `You were added to the vendor roster for "${event.title}"`,
+          link: `/events/${event.slug}`,
+          objectType: "event",
+          objectId: event.id,
+        });
       }
 
       for (const fav of favorites) {
@@ -125,13 +126,16 @@ export async function POST(
         if (prefs?.favoriteVendorEnabled === false) continue;
         if (prefs?.emailsPausedAt) continue;
 
-        await createNotification(
-          fav.user.id,
-          "FAVORITE_VENDOR_EVENT",
-          `${vendor.businessName} is at ${event.title}`,
-          `A vendor you follow will be at ${event.title}.`,
-          `/events/${event.slug}`
-        );
+        await createNotification({
+          userId: fav.user.id,
+          type: "FAVORITE_VENDOR_EVENT",
+          title: `${vendor.businessName} is at ${event.title}`,
+          body: `A vendor you follow will be at ${event.title}.`,
+          link: `/events/${event.slug}`,
+          objectType: "event",
+          objectId: event.id,
+          metadata: { vendorName: vendor.businessName, eventTitle: event.title },
+        });
       }
     }
 

@@ -92,13 +92,15 @@ export async function POST(request: Request) {
       prefs?.reviewAlertsEnabled ?? prefs?.organizerAlertsEnabled ?? true;
     if (!allowReviewAlerts) continue;
 
-    await createNotification(
-      recipientId,
-      "NEW_REVIEW",
-      "New review",
-      `Someone left a review on your ${targetName}.`,
-      link
-    );
+    await createNotification({
+      userId: recipientId,
+      type: "NEW_REVIEW",
+      title: "New review",
+      body: `Someone left a review on your ${targetName}.`,
+      link: link ?? undefined,
+      objectType: "review",
+      objectId: eventId ?? marketId!,
+    });
   }
 
   return NextResponse.json(review, { status: 201 });

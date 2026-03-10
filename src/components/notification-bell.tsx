@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Bell, CheckCheck } from "lucide-react";
+import { Bell, CheckCheck, AlertTriangle, Info, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, cn } from "@/lib/utils";
 
 interface NotificationBellProps {
   unreadCount: number;
@@ -15,12 +15,29 @@ type Notification = {
   title: string;
   body: string | null;
   link: string | null;
+  severity: string;
+  category: string | null;
   readAt: string | null;
   createdAt: string;
 };
 
 function toDate(d: Date | string): Date {
   return typeof d === "string" ? new Date(d) : d;
+}
+
+const severityConfig: Record<string, { icon: React.ElementType; className: string }> = {
+  action_required: { icon: AlertTriangle, className: "text-orange-600 dark:text-orange-400" },
+  important: { icon: AlertCircle, className: "text-blue-600 dark:text-blue-400" },
+  warning: { icon: AlertTriangle, className: "text-amber-600 dark:text-amber-400" },
+  success: { icon: CheckCircle, className: "text-green-600 dark:text-green-400" },
+  info: { icon: Info, className: "text-muted-foreground" },
+  system: { icon: Info, className: "text-muted-foreground" },
+};
+
+function SeverityIcon({ severity }: { severity: string }) {
+  const config = severityConfig[severity] ?? severityConfig.info;
+  const Icon = config.icon;
+  return <Icon className={cn("h-4 w-4 shrink-0", config.className)} />;
 }
 
 export function NotificationBell({ unreadCount }: NotificationBellProps) {
@@ -70,6 +87,9 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
   }
 
   const displayCount = notifications.filter((n) => n.readAt == null).length;
+  const actionRequiredCount = notifications.filter(
+    (n) => n.readAt == null && n.severity === "action_required"
+  ).length;
 
   return (
     <div className="relative" ref={ref}>
@@ -85,7 +105,14 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+          <span
+            className={cn(
+              "absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold",
+              actionRequiredCount > 0
+                ? "bg-orange-600 text-white"
+                : "bg-primary text-primary-foreground"
+            )}
+          >
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -125,33 +152,11 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
               </p>
             ) : (
               <ul className="divide-y divide-border">
-                {notifications.map((n) => (
-                  <li key={n.id}>
-                    {n.link ? (
-                      <Link
-                        href={n.link}
-                        onClick={() => setOpen(false)}
-                        className={`block p-3 transition-colors hover:bg-muted/50 ${
-                          n.readAt == null ? "bg-primary/5" : ""
-                        }`}
-                      >
-                        <p className="font-medium text-foreground">{n.title}</p>
-                        {n.body && (
-                          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                            {n.body}
-                          </p>
-                        )}
-                        <time
-                          dateTime={toDate(n.createdAt).toISOString()}
-                          className="mt-1 block text-xs text-muted-foreground"
-                        >
-                          {formatRelativeTime(toDate(n.createdAt))}
-                        </time>
-                      </Link>
-                    ) : (
-                      <div
-                        className={`p-3 ${n.readAt == null ? "bg-primary/5" : ""}`}
-                      >
+                {notifications.map((n) => {
+                  const content = (
+                    <div className="flex gap-2.5">
+                      <SeverityIcon severity={n.severity} />
+                      <div className="min-w-0 flex-1">
                         <p className="font-medium text-foreground">{n.title}</p>
                         {n.body && (
                           <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
@@ -165,9 +170,36 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
                           {formatRelativeTime(toDate(n.createdAt))}
                         </time>
                       </div>
-                    )}
-                  </li>
-                ))}
+                    </div>
+                  );
+
+                  const bgClass = n.readAt == null
+                    ? n.severity === "action_required"
+                      ? "bg-orange-50 dark:bg-orange-950/30"
+                      : "bg-primary/5"
+                    : "";
+
+                  return (
+                    <li key={n.id}>
+                      {n.link ? (
+                        <Link
+                          href={n.link}
+                          onClick={() => setOpen(false)}
+                          className={cn(
+                            "block p-3 transition-colors hover:bg-muted/50",
+                            bgClass
+                          )}
+                        >
+                          {content}
+                        </Link>
+                      ) : (
+                        <div className={cn("p-3", bgClass)}>
+                          {content}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

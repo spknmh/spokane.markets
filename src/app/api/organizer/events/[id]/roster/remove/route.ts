@@ -63,13 +63,14 @@ export async function POST(
         select: { userId: true },
       });
       if (vendor?.userId) {
-        await createNotification(
-          vendor.userId,
-          "ROSTER_REMOVE",
-          `You were removed from the vendor roster for "${event.title}"`,
-          null,
-          `/events/${event.slug}`
-        );
+        await createNotification({
+          userId: vendor.userId,
+          type: "ROSTER_REMOVE",
+          title: `You were removed from the vendor roster for "${event.title}"`,
+          link: `/events/${event.slug}`,
+          objectType: "event",
+          objectId: event.id,
+        });
       }
     }
 

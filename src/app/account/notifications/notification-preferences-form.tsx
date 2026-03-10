@@ -12,6 +12,38 @@ interface NotificationPreferencesFormProps {
   initialPrefs: NotificationPreference;
 }
 
+function Toggle({
+  label,
+  description,
+  checked,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-4">
+      <div>
+        <span className="text-sm font-medium">{label}</span>
+        {description && (
+          <p className="text-xs text-muted-foreground">{description}</p>
+        )}
+      </div>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        disabled={disabled}
+        className="rounded border-border"
+      />
+    </label>
+  );
+}
+
 export function NotificationPreferencesForm({
   initialPrefs,
 }: NotificationPreferencesFormProps) {
@@ -23,6 +55,11 @@ export function NotificationPreferencesForm({
   const [prefs, setPrefs] = useState({
     emailEnabled: initialPrefs.emailEnabled,
     inAppEnabled: initialPrefs.inAppEnabled,
+    inAppOperationalEnabled: initialPrefs.inAppOperationalEnabled,
+    inAppDiscoveryEnabled: initialPrefs.inAppDiscoveryEnabled,
+    inAppTrustSafetyEnabled: initialPrefs.inAppTrustSafetyEnabled,
+    inAppGrowthEnabled: initialPrefs.inAppGrowthEnabled,
+    inAppSystemEnabled: initialPrefs.inAppSystemEnabled,
     weeklyDigestEnabled: initialPrefs.weeklyDigestEnabled,
     eventMatchEnabled: initialPrefs.eventMatchEnabled,
     favoriteVendorEnabled: initialPrefs.favoriteVendorEnabled,
@@ -31,6 +68,10 @@ export function NotificationPreferencesForm({
     reviewAlertsEnabled: initialPrefs.reviewAlertsEnabled ?? true,
     frequency: initialPrefs.frequency,
   });
+
+  function update(field: string, value: boolean | string) {
+    setPrefs((p) => ({ ...p, [field]: value }));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,105 +119,44 @@ export function NotificationPreferencesForm({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <label className="flex items-center justify-between gap-4">
-            <span className="text-sm font-medium">Enable email notifications</span>
-            <input
-              type="checkbox"
-              checked={prefs.emailEnabled}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, emailEnabled: e.target.checked }))
-              }
-              className="rounded border-border"
-            />
-          </label>
-          <label className="flex items-center justify-between gap-4">
-            <span className="text-sm font-medium">Weekly digest</span>
-            <input
-              type="checkbox"
-              checked={prefs.weeklyDigestEnabled}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, weeklyDigestEnabled: e.target.checked }))
-              }
-              className="rounded border-border"
-            />
-          </label>
-          <label className="flex items-center justify-between gap-4">
-            <span className="text-sm font-medium">
-              New events matching saved filters
-            </span>
-            <input
-              type="checkbox"
-              checked={prefs.eventMatchEnabled}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, eventMatchEnabled: e.target.checked }))
-              }
-              className="rounded border-border"
-            />
-          </label>
-          <label className="flex items-center justify-between gap-4">
-            <span className="text-sm font-medium">
-              Favorite vendors added to events
-            </span>
-            <input
-              type="checkbox"
-              checked={prefs.favoriteVendorEnabled}
-              onChange={(e) =>
-                setPrefs((p) => ({
-                  ...p,
-                  favoriteVendorEnabled: e.target.checked,
-                }))
-              }
-              className="rounded border-border"
-            />
-          </label>
-          <label className="flex items-center justify-between gap-4">
-            <span className="text-sm font-medium">
-              Organizer alerts (event published/rejected)
-            </span>
-            <input
-              type="checkbox"
-              checked={prefs.organizerAlertsEnabled}
-              onChange={(e) =>
-                setPrefs((p) => ({
-                  ...p,
-                  organizerAlertsEnabled: e.target.checked,
-                }))
-              }
-              className="rounded border-border"
-            />
-          </label>
-          <label className="flex items-center justify-between gap-4">
-            <span className="text-sm font-medium">
-              Vendor roster requests (when vendors request to join your events)
-            </span>
-            <input
-              type="checkbox"
-              checked={prefs.vendorRequestAlertsEnabled}
-              onChange={(e) =>
-                setPrefs((p) => ({
-                  ...p,
-                  vendorRequestAlertsEnabled: e.target.checked,
-                }))
-              }
-              className="rounded border-border"
-            />
-          </label>
-          <label className="flex items-center justify-between gap-4">
-            <span className="text-sm font-medium">
-              New reviews on your events or vendor profile
-            </span>
-            <input
-              type="checkbox"
-              checked={prefs.reviewAlertsEnabled}
-              onChange={(e) =>
-                setPrefs((p) => ({
-                  ...p,
-                  reviewAlertsEnabled: e.target.checked,
-                }))
-              }
-              className="rounded border-border"
-            />
-          </label>
+          <Toggle
+            label="Enable email notifications"
+            checked={prefs.emailEnabled}
+            onChange={(v) => update("emailEnabled", v)}
+          />
+          <Toggle
+            label="Weekly digest"
+            checked={prefs.weeklyDigestEnabled}
+            onChange={(v) => update("weeklyDigestEnabled", v)}
+          />
+          <Toggle
+            label="New events matching saved filters"
+            checked={prefs.eventMatchEnabled}
+            onChange={(v) => update("eventMatchEnabled", v)}
+          />
+          <Toggle
+            label="Favorite vendors added to events"
+            checked={prefs.favoriteVendorEnabled}
+            onChange={(v) => update("favoriteVendorEnabled", v)}
+          />
+          <Toggle
+            label="Organizer alerts"
+            description="Event published, rejected, roster activity"
+            checked={prefs.organizerAlertsEnabled}
+            onChange={(v) => update("organizerAlertsEnabled", v)}
+          />
+          <Toggle
+            label="Vendor roster requests"
+            description="When vendors request to join your events"
+            checked={prefs.vendorRequestAlertsEnabled}
+            onChange={(v) => update("vendorRequestAlertsEnabled", v)}
+          />
+          <Toggle
+            label="Review alerts"
+            description="New reviews on your events or vendor profile"
+            checked={prefs.reviewAlertsEnabled}
+            onChange={(v) => update("reviewAlertsEnabled", v)}
+          />
         </CardContent>
       </Card>
 
@@ -184,21 +164,58 @@ export function NotificationPreferencesForm({
         <CardHeader>
           <CardTitle>In-app notifications</CardTitle>
           <CardDescription>
-            Show notifications in the site notification center.
+            Control what appears in your notification center.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <label className="flex items-center justify-between gap-4">
-            <span className="text-sm font-medium">Enable in-app notifications</span>
-            <input
-              type="checkbox"
-              checked={prefs.inAppEnabled}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, inAppEnabled: e.target.checked }))
-              }
-              className="rounded border-border"
-            />
-          </label>
+        <CardContent className="space-y-4">
+          <Toggle
+            label="Enable in-app notifications"
+            checked={prefs.inAppEnabled}
+            onChange={(v) => update("inAppEnabled", v)}
+          />
+
+          <div className={prefs.inAppEnabled ? "" : "pointer-events-none opacity-50"}>
+            <p className="mb-3 mt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Categories
+            </p>
+            <div className="space-y-3">
+              <Toggle
+                label="Operational"
+                description="Roster changes, event status, applications"
+                checked={prefs.inAppOperationalEnabled}
+                onChange={(v) => update("inAppOperationalEnabled", v)}
+                disabled={!prefs.inAppEnabled}
+              />
+              <Toggle
+                label="Discovery"
+                description="Favorite vendor activity, event matches"
+                checked={prefs.inAppDiscoveryEnabled}
+                onChange={(v) => update("inAppDiscoveryEnabled", v)}
+                disabled={!prefs.inAppEnabled}
+              />
+              <Toggle
+                label="Trust & Safety"
+                description="Claims, verifications, moderation"
+                checked={prefs.inAppTrustSafetyEnabled}
+                onChange={(v) => update("inAppTrustSafetyEnabled", v)}
+                disabled={!prefs.inAppEnabled}
+              />
+              <Toggle
+                label="Growth"
+                description="Profile tips, performance insights"
+                checked={prefs.inAppGrowthEnabled}
+                onChange={(v) => update("inAppGrowthEnabled", v)}
+                disabled={!prefs.inAppEnabled}
+              />
+              <Toggle
+                label="System"
+                description="Account alerts, platform announcements"
+                checked={prefs.inAppSystemEnabled}
+                onChange={(v) => update("inAppSystemEnabled", v)}
+                disabled={!prefs.inAppEnabled}
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -214,12 +231,7 @@ export function NotificationPreferencesForm({
             <Label>Delivery frequency</Label>
             <select
               value={prefs.frequency}
-              onChange={(e) =>
-                setPrefs((p) => ({
-                  ...p,
-                  frequency: e.target.value as "immediate" | "daily" | "weekly",
-                }))
-              }
+              onChange={(e) => update("frequency", e.target.value)}
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
             >
               <option value="immediate">Immediate</option>
