@@ -41,9 +41,9 @@ jobs:
             echo "Add them in Settings > Secrets and variables > Actions."
             exit 1
           fi
-          [ -z "$UMAMI_ID" ] && echo "::warning::NEXT_PUBLIC_UMAMI_WEBSITE_ID not set - Umami will be disabled in the client bundle"
-          [ -z "$GTM_ID" ] && echo "::notice::NEXT_PUBLIC_GTM_ID not set - GTM will be disabled"
-          [ -z "$MAPBOX_TOKEN" ] && echo "::notice::NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN not set - address autofill will be disabled"
+          if [ -z "$UMAMI_ID" ]; then echo "::warning::NEXT_PUBLIC_UMAMI_WEBSITE_ID not set - Umami will be disabled in the client bundle"; fi
+          if [ -z "$GTM_ID" ]; then echo "::notice::NEXT_PUBLIC_GTM_ID not set - GTM will be disabled"; fi
+          if [ -z "$MAPBOX_TOKEN" ]; then echo "::notice::NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN not set - address autofill will be disabled"; fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
