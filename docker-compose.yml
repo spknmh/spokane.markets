@@ -33,6 +33,8 @@ services:
     restart: "no"
     volumes:
       - ./uploads:/app/uploads
+    networks:
+      - backend
 
   web:
     build:

@@ -22,6 +22,8 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - backend
 
   web:
     image: ghcr.io/redkeysh/spokane.markets:latest
