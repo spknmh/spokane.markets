@@ -71,7 +71,7 @@ export function sendVendorFavoriteAlerts(
 
         try {
           await sendWithUnsubscribeHeaders(resend, {
-            from: `${SITE_NAME} <alerts@spokane.market>`,
+            from: `${SITE_NAME} <alerts@spokane.markets>`,
             to: fav.user.email,
             subject: `${vendor.businessName} is at ${event.title}`,
             html: `

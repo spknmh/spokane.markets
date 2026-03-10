@@ -37,7 +37,7 @@ async function main() {
     return;
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://spokane.market";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://spokane.markets";
   const resend = new Resend(apiKey);
 
   const now = new Date();
@@ -123,7 +123,7 @@ async function main() {
 
     try {
       await sendWithUnsubscribeHeaders(resend, {
-        from: "Spokane Markets <digest@spokane.market>",
+        from: "Spokane Markets <digest@spokane.markets>",
         to: subscriber.email,
         subject: "This Week in Spokane Markets",
         html,

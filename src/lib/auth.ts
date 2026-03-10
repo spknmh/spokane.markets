@@ -55,7 +55,7 @@ export const auth = betterAuth({
       const resend = getResend();
       try {
         await resend.emails.send({
-          from: `${SITE_NAME} <noreply@spokane.market>`,
+          from: `${SITE_NAME} <noreply@spokane.markets>`,
           to: user.email,
           subject: `Verify your email — ${SITE_NAME}`,
           html: `
@@ -81,7 +81,7 @@ export const auth = betterAuth({
       const resend = getResend();
       try {
         await resend.emails.send({
-          from: `${SITE_NAME} <noreply@spokane.market>`,
+          from: `${SITE_NAME} <noreply@spokane.markets>`,
           to: user.email,
           subject: `Reset your password — ${SITE_NAME}`,
           html: `
@@ -127,7 +127,7 @@ export const auth = betterAuth({
         const resend = getResend();
         try {
           await resend.emails.send({
-            from: `${SITE_NAME} <noreply@spokane.market>`,
+            from: `${SITE_NAME} <noreply@spokane.markets>`,
             to: email,
             subject: `Sign in to ${SITE_NAME}`,
             html: `

@@ -10,7 +10,7 @@ export type UnsubscribeParams =
   | { type: "favorites"; email: string };
 
 function buildUnsubscribeUrl(email: string, type: UnsubscribeParams["type"]): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://spokane.market";
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://spokane.markets";
   return `${base}/unsubscribe?email=${encodeURIComponent(email)}&source=${type}`;
 }
 

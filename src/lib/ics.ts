@@ -53,7 +53,7 @@ export function generateEventIcs(
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:${event.id}@spokane.market`,
+    `UID:${event.id}@spokane.markets`,
     `DTSTAMP:${formatIcsDate(new Date())}`,
     `DTSTART:${formatIcsDate(new Date(event.startDate))}`,
     `DTEND:${formatIcsDate(new Date(event.endDate))}`,

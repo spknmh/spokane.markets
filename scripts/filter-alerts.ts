@@ -177,7 +177,7 @@ async function main() {
 
     try {
       await sendWithUnsubscribeHeaders(resend, {
-        from: "Spokane Markets <alerts@spokane.market>",
+        from: "Spokane Markets <alerts@spokane.markets>",
         to: email,
         subject: `${totalEvents} new event${totalEvents === 1 ? "" : "s"} matching your filters`,
         html: `
