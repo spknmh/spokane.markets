@@ -6,6 +6,7 @@ export function SiteLogo() {
   return (
     <Link
       href="/"
+      prefetch={false}
       className="group flex items-center gap-3 transition-opacity hover:opacity-90"
     >
       <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">

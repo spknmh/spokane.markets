@@ -73,7 +73,7 @@ export function FeaturedEventCard({
   );
 
   return (
-    <Link href={`/events/${event.slug}`} className="group block">
+    <Link href={`/events/${event.slug}`} prefetch={false} className="group block">
       <Card className="relative h-full min-h-[140px] border-2 border-accent/40 bg-accent/5 transition-all hover:shadow-lg hover:border-accent/60 hover:bg-accent/10">
         <Badge
           variant="secondary"

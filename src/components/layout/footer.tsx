@@ -18,6 +18,7 @@ export async function Footer() {
           <div className="flex flex-col gap-3">
             <Link
               href="/"
+              prefetch={false}
               className="flex items-center gap-2 font-semibold text-primary-foreground transition-colors hover:text-primary-foreground/90"
             >
               <Store className="h-5 w-5 text-primary-foreground" aria-hidden />

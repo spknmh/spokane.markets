@@ -252,7 +252,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                   if (filter.categories[0]) filterParams.set("category", filter.categories[0]);
                   if (filter.features[0]) filterParams.set("feature", filter.features[0]);
                   return (
-                    <Link key={filter.id} href={`/events?${filterParams.toString()}`}>
+                    <Link key={filter.id} href={`/events?${filterParams.toString()}`} prefetch={false}>
                       <Badge variant="secondary" className="cursor-pointer transition-colors hover:bg-primary hover:text-primary-foreground">
                         {filter.name}
                         {filter.emailAlerts && <span className="ml-1" title="Email alerts on">*</span>}

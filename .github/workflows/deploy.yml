@@ -13,16 +13,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '25'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '25'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test
+
   build-and-deploy:
     runs-on: ubuntu-latest
+    needs: [lint, test]
     environment: spokane.market
     permissions:
       contents: read
       packages: write
     env:
-      # Prisma generate needs DATABASE_URL to exist (does not connect); use placeholder for CI
       DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
-      # Better Auth checks these at import time during build; placeholders silence warnings
       BETTER_AUTH_SECRET: ci-placeholder-secret-not-used-at-runtime
       BETTER_AUTH_URL: http://localhost:3000
 
@@ -60,11 +83,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Test
-        run: npm run test
+      - name: Restore Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
 
       - name: Build
         env:

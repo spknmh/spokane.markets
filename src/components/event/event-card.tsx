@@ -55,7 +55,7 @@ export function EventCard({ event }: EventCardProps) {
   );
 
   return (
-    <Link href={`/events/${event.slug}`} className="group block">
+    <Link href={`/events/${event.slug}`} prefetch={false} className="group block">
       <Card className="h-full min-h-[140px] border-2 transition-all hover:shadow-lg hover:border-primary/50">
         <CardContent className="flex gap-4 p-5">
           <div className="flex shrink-0 flex-col items-center justify-center self-start rounded-lg bg-primary px-3 py-2 text-center">

@@ -41,8 +41,11 @@ export function SignInForm({
   const rawCallbackUrl = searchParams.get("callbackUrl") ?? "/";
   const callbackUrl = isValidCallbackUrl(rawCallbackUrl) ? rawCallbackUrl : "/";
   const needsVerification = searchParams.get("verified") === "0";
-  const [error, setError] = useState<string | null>(null);
-  const [showMagicLink, setShowMagicLink] = useState(magicLinkEnabled);
+  const magicLinkError = searchParams.get("error") === "magic_link_failed";
+  const [error, setError] = useState<string | null>(
+    magicLinkError ? "The sign-in link expired or was already used. Please request a new one." : null
+  );
+  const [showMagicLink, setShowMagicLink] = useState(magicLinkEnabled || magicLinkError);
   const [, setShowCredentials] = useState(!magicLinkEnabled);
 
   const credentialsForm = useForm<SignInInput>({
@@ -78,7 +81,8 @@ export function SignInForm({
     trackEvent("login_magic_link_request", { method: "magic-link" });
     const result = await authClient.signIn.magicLink({
       email: data.email,
-      callbackURL: callbackUrl,
+      callbackURL: `/auth/redirect?next=${encodeURIComponent(callbackUrl)}`,
+      errorCallbackURL: `/auth/signin?error=magic_link_failed`,
     });
 
     if (result.error) {

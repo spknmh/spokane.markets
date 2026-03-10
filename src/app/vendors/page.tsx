@@ -121,7 +121,7 @@ export default async function VendorsPage({
               key={vendor.id}
               className="relative h-full overflow-hidden border-2 transition-all hover:shadow-lg hover:border-primary/50"
             >
-              <Link href={`/vendors/${vendor.slug}`} className="block">
+              <Link href={`/vendors/${vendor.slug}`} prefetch={false} className="block">
                 {vendor.imageUrl ? (
                   <div className="relative aspect-[16/9] w-full shrink-0 bg-muted">
                     <Image

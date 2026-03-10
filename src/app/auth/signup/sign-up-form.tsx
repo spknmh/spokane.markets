@@ -71,7 +71,7 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
         email: data.email,
         role: "USER",
         website: data.website,
-        callbackUrl: "/dashboard",
+        callbackUrl: `/auth/redirect?next=${encodeURIComponent(callbackUrl)}`,
         magicLink: true,
       }),
     });
@@ -97,7 +97,7 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
 
     trackEvent("signup_success", { role: "USER" });
     router.push(
-      `/auth/verify-request?callbackUrl=${encodeURIComponent("/dashboard")}`
+      `/auth/verify-request?callbackUrl=${encodeURIComponent(callbackUrl)}`
     );
     router.refresh();
   }

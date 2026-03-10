@@ -143,7 +143,7 @@ export default async function MarketDetailPage({ params }: PageProps) {
               <h2 className="mb-4 text-xl font-semibold">Upcoming Events</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {market.events.map((event) => (
-                  <Link key={event.id} href={`/events/${event.slug}`}>
+                  <Link key={event.id} href={`/events/${event.slug}`} prefetch={false}>
                     <Card className="h-full transition-all hover:shadow-lg hover:border-primary/30">
                       <CardHeader>
                         <CardTitle className="line-clamp-2">{event.title}</CardTitle>
