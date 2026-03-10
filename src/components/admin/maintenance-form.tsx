@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { MaintenanceMode } from "@prisma/client";
 
 interface MaintenanceLink {
@@ -71,7 +71,11 @@ export function MaintenanceForm({ initialState }: MaintenanceFormProps) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Failed to save");
+        const errMsg =
+          typeof data?.error === "string"
+            ? data.error
+            : data?.error?.message ?? "Failed to save";
+        throw new Error(errMsg);
       }
       router.refresh();
       setSuccess(true);
@@ -90,17 +94,20 @@ export function MaintenanceForm({ initialState }: MaintenanceFormProps) {
     >
       <div className="space-y-2">
         <Label htmlFor="maintenance-mode">Mode</Label>
-        <Select
+        <select
           id="maintenance-mode"
           value={mode}
           onChange={(e) => setMode(e.target.value as MaintenanceMode)}
+          className={cn(
+            "flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          )}
         >
           {(Object.keys(MODE_LABELS) as MaintenanceMode[]).map((m) => (
             <option key={m} value={m}>
               {MODE_LABELS[m]}
             </option>
           ))}
-        </Select>
+        </select>
         <p className="text-sm text-muted-foreground">
           {mode === "OFF" && "Site is fully accessible."}
           {mode === "MAINTENANCE_ADMIN_ONLY" &&
@@ -197,7 +204,7 @@ export function MaintenanceForm({ initialState }: MaintenanceFormProps) {
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       {success && (
-        <p className="text-sm font-medium text-going">Saved</p>
+        <p className="text-sm font-medium text-primary">Saved</p>
       )}
 
       <Button type="submit" disabled={saving}>
