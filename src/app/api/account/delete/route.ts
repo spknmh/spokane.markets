@@ -1,7 +1,6 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { compare } from "bcryptjs";
-import { signOut } from "@/auth";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -11,7 +10,7 @@ const deleteAccountSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -25,31 +24,38 @@ export async function POST(request: Request) {
     );
   }
 
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { hashedPassword: true },
+  const credentialAccount = await db.account.findFirst({
+    where: { userId: session.user.id, providerId: "credential" },
+    select: { password: true },
   });
 
-  if (user?.hashedPassword && parsed.data.password) {
-    const valid = await compare(parsed.data.password, user.hashedPassword);
-    if (!valid) {
+  if (credentialAccount?.password) {
+    if (!parsed.data.password) {
+      return NextResponse.json(
+        { error: "Password is required to delete your account" },
+        { status: 400 }
+      );
+    }
+
+    // Verify password by attempting a sign-in check via Better Auth
+    try {
+      await auth.api.signInEmail({
+        body: {
+          email: session.user.email,
+          password: parsed.data.password,
+        },
+      });
+    } catch {
       return NextResponse.json(
         { error: "Password is incorrect" },
         { status: 400 }
       );
     }
-  } else if (user?.hashedPassword && !parsed.data.password) {
-    return NextResponse.json(
-      { error: "Password is required to delete your account" },
-      { status: 400 }
-    );
   }
 
   await db.user.delete({
     where: { id: session.user.id },
   });
-
-  await signOut({ redirect: false });
 
   return NextResponse.json({ success: true });
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { authClient } from "@/lib/auth-client";
 import { useEffect } from "react";
 import { pushDataLayer } from "@/lib/analytics";
 import { identifyUmami, trackUmamiPageview } from "@/lib/umami";
@@ -11,7 +11,7 @@ const UMAMI_PAGEVIEW_DEBOUNCE_MS = 150;
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const session = useSession();
+  const session = authClient.useSession();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -34,15 +34,15 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const user = session.data?.user;
+    const user = session.data?.user as { id?: string; role?: string } | undefined;
     if (user?.id) {
-      identifyUmami(user.id, { role: (user.role as string) ?? undefined });
+      identifyUmami(user.id, { role: user.role ?? undefined });
     } else {
       identifyUmami(null);
     }
 
     if (!GTM_ID) return;
-    const role = (user?.role as string)?.toLowerCase() ?? "consumer";
+    const role = user?.role?.toLowerCase() ?? "consumer";
     const hasVendorProfile =
       !!user && "hasVendorProfile" in user
         ? (user as { hasVendorProfile?: boolean }).hasVendorProfile

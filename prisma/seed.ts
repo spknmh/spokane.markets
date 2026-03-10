@@ -1,7 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import bcrypt from "bcryptjs";
-
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
 });
@@ -33,17 +31,16 @@ async function main() {
     console.log("Sample data already seeded; skipping venues, markets, events.");
   }
 
-  // 1. Admin user
-  const hashedPassword = await bcrypt.hash("admin123", 10);
+  // 1. Admin user (use password reset flow after seeding to set password)
   await prisma.user.upsert({
     where: { email: "admin@spokane.markets" },
     create: {
       name: "Admin",
       email: "admin@spokane.markets",
       role: "ADMIN",
-      hashedPassword,
+      emailVerified: true,
     },
-    update: { hashedPassword },
+    update: {},
   });
 
   // 2. Tags

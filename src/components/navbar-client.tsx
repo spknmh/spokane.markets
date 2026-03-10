@@ -2,15 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 import { Menu, X, Home, Bell, User, Settings, LayoutDashboard, Store, Shield, LogOut } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 import { NotificationBell } from "@/components/notification-bell";
 import { SiteLogo } from "@/components/site-logo";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AuthGate } from "@/components/auth-gate";
-import type { Session } from "next-auth";
+import type { Session } from "@/lib/auth";
 
 function getNavLinks(session: Session | null) {
   const base = [
@@ -220,9 +220,10 @@ function MobileNav({
                   <ThemeToggle showLabel />
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       setOpen(false);
-                      signOut();
+                      await authClient.signOut();
+                      window.location.href = "/";
                     }}
                     className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline text-left"
                   >

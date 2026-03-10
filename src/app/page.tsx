@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { EventCard } from "@/components/event-card";
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   const banners = await getBannerImages();
   const { start, end } = getUpcomingWeekRange();
   const planAheadRange = getPlanAheadRange();

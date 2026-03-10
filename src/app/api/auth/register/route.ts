@@ -1,20 +1,9 @@
 import { NextResponse } from "next/server";
-import { hash } from "bcryptjs";
-import { randomBytes } from "crypto";
+import { headers as getHeaders } from "next/headers";
 import { db } from "@/lib/db";
-import {
-  signUpSchema,
-  signUpSchemaMagicLink,
-} from "@/lib/validations";
+import { auth } from "@/lib/auth";
+import { signUpSchema, signUpSchemaMagicLink } from "@/lib/validations";
 import { checkRateLimit } from "@/lib/rate-limit";
-import {
-  sendVerificationEmail,
-  sendMagicLinkEmail,
-} from "@/lib/send-verification-email";
-
-const magicLinkEnabled = !!(
-  process.env.RESEND_API_KEY || process.env.AUTH_RESEND_KEY
-);
 
 export async function POST(request: Request) {
   try {
@@ -31,8 +20,9 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    const useMagicLink = body.magicLink === true;
 
-    if (magicLinkEnabled && body.magicLink === true) {
+    if (useMagicLink) {
       const parsed = signUpSchemaMagicLink.safeParse(body);
       if (!parsed.success) {
         return NextResponse.json(
@@ -59,24 +49,20 @@ export async function POST(request: Request) {
         );
       }
 
-      await db.user.create({
-        data: {
-          name,
+      await auth.api.signInMagicLink({
+        headers: await getHeaders(),
+        body: {
           email: normalizedEmail,
-          role: role ?? "USER",
+          name,
+          callbackURL: callbackUrl,
         },
       });
 
-      const token = randomBytes(32).toString("hex");
-      await db.verificationToken.create({
-        data: {
-          identifier: normalizedEmail,
-          token,
-          expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        },
+      // Set the role on the created user
+      await db.user.update({
+        where: { email: normalizedEmail },
+        data: { role: role ?? "USER" },
       });
-
-      await sendMagicLinkEmail(normalizedEmail, token, callbackUrl);
 
       return NextResponse.json({
         success: true,
@@ -85,6 +71,7 @@ export async function POST(request: Request) {
       });
     }
 
+    // Password-based registration
     const parsed = signUpSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
@@ -109,27 +96,27 @@ export async function POST(request: Request) {
       );
     }
 
-    const hashedPassword = await hash(password, 10);
-
-    await db.user.create({
-      data: {
+    // Use Better Auth server API to create user with email+password
+    const signUpResult = await auth.api.signUpEmail({
+      body: {
         name,
         email,
-        hashedPassword,
-        role: role ?? "USER",
+        password,
       },
     });
 
-    const token = randomBytes(32).toString("hex");
-    await db.verificationToken.create({
-      data: {
-        identifier: email,
-        token,
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      },
-    });
+    if (!signUpResult?.user) {
+      return NextResponse.json(
+        { error: "Registration failed" },
+        { status: 500 }
+      );
+    }
 
-    await sendVerificationEmail(email, token);
+    // Set the role on the created user
+    await db.user.update({
+      where: { email },
+      data: { role: role ?? "USER" },
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {

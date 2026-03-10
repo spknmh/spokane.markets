@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { trackEvent } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { Session } from "next-auth";
+import type { Session } from "@/lib/auth";
 import {
   submissionSchema,
   submissionSchemaAuthed,

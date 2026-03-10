@@ -1,4 +1,5 @@
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { syncEventToOccurrence } from "@/lib/services/event-sync";
 import { organizerEventSchema } from "@/lib/validations";
@@ -6,7 +7,7 @@ import { parseDateTimeInTimezone } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
 async function requireOrganizerAuth() {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }

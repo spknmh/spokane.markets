@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { authClient } from "@/lib/auth-client";
 import { isValidCallbackUrl } from "@/lib/utils";
 
 /**
@@ -10,20 +10,20 @@ import { isValidCallbackUrl } from "@/lib/utils";
  * Others go to the `next` param or /.
  */
 export default function AuthRedirectPage() {
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = authClient.useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
   const safeNext = isValidCallbackUrl(next) ? next : "/";
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (isPending) return;
     if (!session?.user) {
       router.replace(safeNext);
       return;
     }
 
-    const role = session.user.role ?? "USER";
+    const role = (session.user as { role?: string }).role ?? "USER";
     if (role !== "VENDOR" && role !== "ADMIN") {
       router.replace(safeNext);
       return;
@@ -44,7 +44,7 @@ export default function AuthRedirectPage() {
         }
       })
       .catch(() => router.replace(safeNext));
-  }, [session, status, router, safeNext]);
+  }, [session, isPending, router, safeNext]);
 
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center">

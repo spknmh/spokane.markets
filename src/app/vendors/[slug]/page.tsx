@@ -9,7 +9,8 @@ import {
   getInstagramDisplayUrl,
   normalizeUrlToHttps,
 } from "@/lib/utils";
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -92,7 +93,7 @@ export default async function VendorProfilePage({ params }: PageProps) {
   const { slug } = await params;
   const [vendor, session] = await Promise.all([
     getVendor(slug),
-    auth(),
+    auth.api.getSession({ headers: await headers() }),
   ]);
 
   if (!vendor) {

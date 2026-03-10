@@ -36,7 +36,7 @@ export default async function AccountSecurityPage() {
         <CardContent className="space-y-4">
           {sessions.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Session management uses JWT. For full session control, enable database sessions in the future.
+              No active sessions found.
             </p>
           ) : (
             <ul className="space-y-3">
@@ -51,7 +51,7 @@ export default async function AccountSecurityPage() {
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Created {new Date(s.createdAt).toLocaleString()} · Expires{" "}
-                      {new Date(s.expires).toLocaleString()}
+                      {new Date(s.expiresAt).toLocaleString()}
                     </p>
                   </div>
                 </li>

@@ -1,10 +1,11 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { SITE_NAME } from "@/lib/constants";
 
 export async function GET() {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

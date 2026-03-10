@@ -7,9 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { signIn } from "next-auth/react";
+import { authClient } from "@/lib/auth-client";
 import { signInSchema, type SignInInput } from "@/lib/validations";
-import { getSignInErrorMessage } from "@/lib/auth-errors";
 import { isValidCallbackUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +39,6 @@ export function SignInForm({
   const searchParams = useSearchParams();
   const rawCallbackUrl = searchParams.get("callbackUrl") ?? "/";
   const callbackUrl = isValidCallbackUrl(rawCallbackUrl) ? rawCallbackUrl : "/";
-  const redirectUrl = `/auth/redirect?next=${encodeURIComponent(callbackUrl)}`;
   const needsVerification = searchParams.get("verified") === "0";
   const [error, setError] = useState<string | null>(null);
   const [showMagicLink, setShowMagicLink] = useState(magicLinkEnabled);
@@ -58,32 +56,45 @@ export function SignInForm({
 
   async function onSubmitCredentials(data: SignInInput) {
     setError(null);
-    const result = await signIn("credentials", {
+    const result = await authClient.signIn.email({
       email: data.email,
       password: data.password,
-      redirect: false,
-      callbackUrl,
     });
 
-    if (result?.error) {
+    if (result.error) {
       trackEvent("api_error", { endpoint: "/api/auth/signin", status: 401 });
-      setError(getSignInErrorMessage(result.error, result.code));
+      setError(result.error.message ?? "Sign in failed. Please check your credentials.");
       return;
     }
 
-    if (result?.ok) {
-      trackEvent("login_success", { method: "credentials" });
-      router.push(callbackUrl);
-      router.refresh();
-    }
+    trackEvent("login_success", { method: "credentials" });
+    router.push(callbackUrl);
+    router.refresh();
   }
 
   async function onMagicLinkSubmit(data: z.infer<typeof magicLinkSchema>) {
     setError(null);
-    trackEvent("login_magic_link_request", { method: "resend" });
-    await signIn("resend", {
+    trackEvent("login_magic_link_request", { method: "magic-link" });
+    const result = await authClient.signIn.magicLink({
       email: data.email,
-      callbackUrl: redirectUrl,
+      callbackURL: callbackUrl,
+    });
+
+    if (result.error) {
+      setError(result.error.message ?? "Failed to send magic link.");
+      return;
+    }
+
+    router.push("/auth/verify-request");
+  }
+
+  function handleOAuthSignIn(provider: "google" | "facebook") {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("login_method", "oauth");
+    }
+    authClient.signIn.social({
+      provider,
+      callbackURL: `/auth/redirect?next=${encodeURIComponent(callbackUrl)}`,
     });
   }
 
@@ -167,12 +178,7 @@ export function SignInForm({
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => {
-                            if (typeof window !== "undefined") {
-                              sessionStorage.setItem("login_method", "oauth");
-                            }
-                            signIn("google", { callbackUrl: redirectUrl });
-                          }}
+                          onClick={() => handleOAuthSignIn("google")}
                           disabled={magicLinkForm.formState.isSubmitting}
                         >
                           Google
@@ -182,12 +188,7 @@ export function SignInForm({
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => {
-                            if (typeof window !== "undefined") {
-                              sessionStorage.setItem("login_method", "oauth");
-                            }
-                            signIn("facebook", { callbackUrl: redirectUrl });
-                          }}
+                          onClick={() => handleOAuthSignIn("facebook")}
                           disabled={magicLinkForm.formState.isSubmitting}
                         >
                           Facebook
@@ -282,12 +283,7 @@ export function SignInForm({
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={() => {
-                              if (typeof window !== "undefined") {
-                                sessionStorage.setItem("login_method", "oauth");
-                              }
-                              signIn("google", { callbackUrl: redirectUrl });
-                            }}
+                            onClick={() => handleOAuthSignIn("google")}
                             disabled={credentialsForm.formState.isSubmitting}
                           >
                             Google
@@ -297,12 +293,7 @@ export function SignInForm({
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={() => {
-                              if (typeof window !== "undefined") {
-                                sessionStorage.setItem("login_method", "oauth");
-                              }
-                              signIn("facebook", { callbackUrl: redirectUrl });
-                            }}
+                            onClick={() => handleOAuthSignIn("facebook")}
                             disabled={credentialsForm.formState.isSubmitting}
                           >
                             Facebook

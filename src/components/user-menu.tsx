@@ -3,14 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { ChevronDown, LayoutDashboard, Store, Shield, LogOut, Bell, Home, Settings } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { Session } from "next-auth";
+import type { Session } from "@/lib/auth";
 
 interface UserMenuProps {
-  session: Session;
+  session: NonNullable<Session>;
 }
 
 export function UserMenu({ session }: UserMenuProps) {
@@ -110,7 +110,10 @@ export function UserMenu({ session }: UserMenuProps) {
           </Link>
           <button
             type="button"
-            onClick={() => signOut()}
+            onClick={async () => {
+              await authClient.signOut();
+              window.location.href = "/";
+            }}
             className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
           >
             <LogOut className="h-4 w-4" />

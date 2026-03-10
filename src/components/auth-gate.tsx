@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Session } from "next-auth";
+import type { Session } from "@/lib/auth";
 import { AuthRequiredModal } from "@/components/auth-required-modal";
 
 interface AuthGateProps {

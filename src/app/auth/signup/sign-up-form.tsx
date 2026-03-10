@@ -4,7 +4,6 @@ import { useState } from "react";
 import { trackEvent } from "@/lib/analytics";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -14,6 +13,7 @@ import {
   type SignUpInput,
   type SignUpInputMagicLink,
 } from "@/lib/validations";
+import { authClient } from "@/lib/auth-client";
 import { isValidCallbackUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -145,16 +145,15 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
 
     trackEvent("signup_success", { role: data.role });
 
+    // Sign in immediately after registration
     const vendorRedirectUrl =
       data.role === "VENDOR" ? vendorRedirect : defaultRedirect;
-    const signInResult = await signIn("credentials", {
+    const signInResult = await authClient.signIn.email({
       email: data.email,
       password: data.password,
-      redirect: false,
-      callbackUrl: vendorRedirectUrl,
     });
 
-    if (signInResult?.ok) {
+    if (!signInResult.error) {
       if (data.role === "VENDOR") {
         router.push("/vendor/dashboard");
       } else {

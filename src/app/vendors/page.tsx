@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { Pagination } from "@/components/pagination";
@@ -52,7 +53,7 @@ export default async function VendorsPage({
     : undefined;
 
   const [session, vendors, totalCount, banners] = await Promise.all([
-    auth(),
+    auth.api.getSession({ headers: await headers() }),
     db.vendorProfile.findMany({
       where,
       orderBy: { businessName: "asc" },

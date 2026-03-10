@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Store } from "lucide-react";
+import { headers } from "next/headers";
 import { SITE_NAME, LEGAL_ENTITY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { AuthGate } from "@/components/auth-gate";
 
 export async function Footer() {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   const isAdmin = session?.user?.role === "ADMIN";
 
   return (

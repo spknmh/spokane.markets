@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle } from "lucide-react";
@@ -26,16 +25,14 @@ export default async function VerifyEmailPage({ searchParams }: PageProps) {
     );
   }
 
-  const verification = await db.verificationToken.findUnique({
+  const verification = await db.verification.findFirst({
     where: {
-      identifier_token: {
-        identifier: email,
-        token,
-      },
+      identifier: email,
+      value: token,
     },
   });
 
-  if (!verification || verification.expires < new Date()) {
+  if (!verification || verification.expiresAt < new Date()) {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
         <XCircle className="mx-auto mb-4 h-12 w-12 text-destructive" />
@@ -53,12 +50,10 @@ export default async function VerifyEmailPage({ searchParams }: PageProps) {
   await db.$transaction([
     db.user.update({
       where: { email },
-      data: { emailVerified: new Date() },
+      data: { emailVerified: true },
     }),
-    db.verificationToken.delete({
-      where: {
-        identifier_token: { identifier: email, token },
-      },
+    db.verification.delete({
+      where: { id: verification.id },
     }),
   ]);
 

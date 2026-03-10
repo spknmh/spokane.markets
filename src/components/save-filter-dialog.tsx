@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Session } from "next-auth";
+import type { Session } from "@/lib/auth";
 import { trackEvent } from "@/lib/analytics";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";

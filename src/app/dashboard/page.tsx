@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   Card,
@@ -28,7 +29,7 @@ interface DashboardPageProps {
 }
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   const params = await searchParams;
   const showPendingVerification = params.pendingVerification === "1";
   if (!session?.user) {

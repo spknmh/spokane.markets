@@ -1,6 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { createNotification } from "@/lib/notifications";
 import { logAudit } from "@/lib/audit";
@@ -8,7 +9,7 @@ import { evaluateAndGrantBadges } from "@/lib/badges";
 import { revalidatePath } from "next/cache";
 
 async function requireAdminAction() {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user || session.user.role !== "ADMIN") {
     throw new Error("Unauthorized");
   }

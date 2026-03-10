@@ -1,10 +1,10 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import type { Role } from "@prisma/client";
 import { isValidCallbackUrl } from "@/lib/utils";
 
 export async function requireAuth(callbackPath?: string) {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     if (process.env.NODE_ENV === "development") {
       console.warn("[auth] requireAuth: no session, redirecting to signin", {
@@ -17,7 +17,7 @@ export async function requireAuth(callbackPath?: string) {
   return session;
 }
 
-export async function requireRole(role: Role) {
+export async function requireRole(role: string) {
   const session = await requireAuth();
   if (session.user.role !== role && session.user.role !== "ADMIN") {
     redirect("/unauthorized");
@@ -30,5 +30,5 @@ export async function requireAdmin() {
 }
 
 export async function getSession() {
-  return auth();
+  return auth.api.getSession({ headers: await headers() });
 }

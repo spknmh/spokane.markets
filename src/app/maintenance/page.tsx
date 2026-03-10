@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { getMaintenanceState } from "@/lib/maintenance";
 import { isPrivilegedForMaintenance } from "@/lib/maintenance";
 import { isValidCallbackUrl } from "@/lib/utils";
@@ -11,10 +12,10 @@ interface PageProps {
 }
 
 export default async function MaintenancePage({ searchParams }: PageProps) {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   const state = await getMaintenanceState();
 
-  if (isPrivilegedForMaintenance(session?.user?.role, state.mode)) {
+  if (isPrivilegedForMaintenance(session?.user?.role as import("@prisma/client").Role | undefined, state.mode)) {
     const params = await searchParams;
     const nextVal = params.next;
     const nextStr = Array.isArray(nextVal) ? nextVal[0] : nextVal;

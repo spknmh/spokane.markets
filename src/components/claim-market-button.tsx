@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AuthGate } from "@/components/auth-gate";
 import { trackEvent } from "@/lib/analytics";
-import type { Session } from "next-auth";
+import type { Session } from "@/lib/auth";
 
 interface ClaimMarketButtonProps {
   marketId: string;

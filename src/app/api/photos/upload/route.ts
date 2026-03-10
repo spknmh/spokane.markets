@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { writeFile, mkdir } from "node:fs/promises";
@@ -9,7 +10,7 @@ import crypto from "node:crypto";
 const UPLOAD_DIR = join(process.cwd(), "uploads", "photos");
 
 export async function POST(request: Request) {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

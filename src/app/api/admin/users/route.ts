@@ -1,11 +1,11 @@
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 import { adminCreateUserSchema } from "@/lib/validations";
 
 export async function POST(request: Request) {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -35,16 +35,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const hashedPassword = await hash(password, 10);
+  const signUpResult = await auth.api.signUpEmail({
+    body: { name, email, password },
+  });
 
-  const user = await db.user.create({
-    data: {
-      name,
-      email,
-      hashedPassword,
-      role,
-      emailVerified: new Date(),
-    },
+  if (!signUpResult?.user) {
+    return NextResponse.json(
+      { error: "Failed to create user" },
+      { status: 500 }
+    );
+  }
+
+  const user = await db.user.update({
+    where: { id: signUpResult.user.id },
+    data: { role, emailVerified: true },
   });
 
   return NextResponse.json(user);
