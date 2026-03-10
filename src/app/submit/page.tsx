@@ -7,6 +7,8 @@ import { isBannerUnoptimized } from "@/lib/utils";
 import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `Submit an Event — ${SITE_NAME}`,
   description:

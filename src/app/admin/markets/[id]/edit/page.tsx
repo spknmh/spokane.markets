@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { MarketForm } from "@/components/admin/market-form";
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditMarketPage({
   params,
 }: {

@@ -10,6 +10,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Calendar, Shield, MessageSquare, Store } from "lucide-react";
 import type { ModerationStatus } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const statusVariant: Record<ModerationStatus, "outline" | "default" | "destructive"> = {
   PENDING: "outline",
   APPROVED: "default",

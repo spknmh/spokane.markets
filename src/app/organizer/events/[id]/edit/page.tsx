@@ -6,6 +6,8 @@ import { OrganizerEventForm } from "@/components/organizer-event-form";
 import { notFound, redirect } from "next/navigation";
 import { formatForDateTimeLocal } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `Edit Event — ${SITE_NAME}`,
 };

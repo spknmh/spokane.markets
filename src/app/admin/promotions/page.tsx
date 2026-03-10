@@ -8,6 +8,8 @@ import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import type { PromotionType } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const PROMOTION_TYPE_LABELS: Record<PromotionType, string> = {
   SPONSORED: "Sponsored",
   PARTNERSHIP: "Partner Spotlight",

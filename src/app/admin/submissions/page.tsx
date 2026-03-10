@@ -8,6 +8,8 @@ import { formatDate, formatTime12hr, cn } from "@/lib/utils";
 import Link from "next/link";
 import type { ModerationStatus } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULT_LIMIT = 25;
 
 const STATUS_TABS = [

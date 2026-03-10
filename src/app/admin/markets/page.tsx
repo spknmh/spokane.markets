@@ -8,6 +8,8 @@ import { deleteMarket, verifyMarket } from "../actions";
 import Link from "next/link";
 import type { VerificationStatus } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULT_LIMIT = 25;
 
 const verificationVariant: Record<VerificationStatus, "secondary" | "default" | "outline"> = {

@@ -8,6 +8,8 @@ import { UserFilters } from "@/components/admin/user-filters";
 import Link from "next/link";
 import type { Role } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULT_LIMIT = 25;
 
 const ROLES: { label: string; value: Role | "" }[] = [

@@ -2,6 +2,8 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { ApplicationsClient } from "./applications-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminApplicationsPage() {
   await requireAdmin();
 

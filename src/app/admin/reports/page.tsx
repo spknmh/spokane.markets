@@ -8,6 +8,8 @@ import { formatDate, cn } from "@/lib/utils";
 import { getReportTargetInfo } from "@/lib/report-target";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULT_LIMIT = 25;
 
 const STATUS_TABS = [

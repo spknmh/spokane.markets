@@ -7,6 +7,8 @@ import { DeleteButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
 import { deleteVendor } from "../actions";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULT_LIMIT = 25;
 
 export default async function AdminVendorsPage({

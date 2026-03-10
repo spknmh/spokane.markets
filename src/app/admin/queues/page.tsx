@@ -25,6 +25,8 @@ const VIEW_ALL_HREFS: Record<QueueType, string> = {
   application: "/admin/applications?status=PENDING",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminQueuesPage({
   searchParams,
 }: {

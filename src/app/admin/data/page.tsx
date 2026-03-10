@@ -1,6 +1,8 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { DataImportExport } from "@/components/admin/data-import-export";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Data Import / Export - Admin",
   description: "Import events, markets, and venues from JSON or CSV. Export backup to host.",

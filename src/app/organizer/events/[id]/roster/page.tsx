@@ -8,6 +8,8 @@ import { OrganizerRosterManager } from "@/components/organizer-roster-manager";
 import { Button } from "@/components/ui/button";
 import { notFound, redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `Manage Roster — ${SITE_NAME}`,
 };

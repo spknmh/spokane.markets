@@ -2,6 +2,8 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { FormsEditorClient } from "./forms-editor-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminApplicationFormsPage() {
   await requireAdmin();
 

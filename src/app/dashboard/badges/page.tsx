@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BadgeIcon } from "@/components/badge-icon";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: `My Badges — ${SITE_NAME}`,
   description: "Achievements and badges you've earned",

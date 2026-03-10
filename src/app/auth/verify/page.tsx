@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   searchParams: Promise<{ token?: string; email?: string }>;
 }

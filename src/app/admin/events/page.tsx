@@ -9,6 +9,8 @@ import { deleteEvent } from "../actions";
 import Link from "next/link";
 import type { EventStatus } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULT_LIMIT = 25;
 
 const STATUS_TABS = [

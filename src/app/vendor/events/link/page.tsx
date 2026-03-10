@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { VendorEventLinker } from "@/components/vendor-event-linker";
 import { ArrowLeft } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function VendorEventsLinkPage() {
   const session = await requireAuth("/vendor/events/link");
 

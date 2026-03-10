@@ -1,6 +1,8 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { AdminVendorForm } from "@/components/admin/vendor-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewVendorPage() {
   await requireAdmin();
 

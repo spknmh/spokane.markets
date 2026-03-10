@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { extractSocialHandle } from "@/lib/utils";
 import { VendorProfileForm } from "@/components/vendor/vendor-profile-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function VendorProfileEditPage() {
   const session = await requireAuth("/vendor/profile/edit");
 

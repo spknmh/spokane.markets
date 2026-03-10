@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { Pagination } from "@/components/pagination";
 import { SubscribersPageClient } from "@/components/admin/subscribers-page-client";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULT_LIMIT = 25;
 
 export default async function AdminSubscribersPage({

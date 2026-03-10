@@ -2,6 +2,8 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { EventForm } from "@/components/admin/event-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewEventPage() {
   await requireAdmin();
 

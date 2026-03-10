@@ -16,6 +16,8 @@ const BANNER_LABELS: Record<string, string> = {
   events: "Event detail",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminContentPage() {
   await requireAdmin();
   const [images, siteTheme] = await Promise.all([

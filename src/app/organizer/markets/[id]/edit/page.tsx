@@ -6,6 +6,8 @@ import { SITE_NAME } from "@/lib/constants";
 import { OrganizerMarketForm } from "@/components/organizer-market-form";
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `Edit Market — ${SITE_NAME}`,
 };

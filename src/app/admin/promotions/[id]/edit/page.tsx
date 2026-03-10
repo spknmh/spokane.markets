@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { PromotionForm } from "@/components/admin/promotion-form";
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditPromotionPage({
   params,
 }: {

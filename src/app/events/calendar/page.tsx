@@ -9,6 +9,8 @@ import { isBannerUnoptimized } from "@/lib/utils";
 import { EventTimeLabel } from "@/components/event/event-time-label";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 interface CalendarMetadataProps {
   searchParams: Promise<{ year?: string; month?: string }>;
 }

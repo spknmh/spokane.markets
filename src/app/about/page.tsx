@@ -9,6 +9,8 @@ import { ContactForm } from "@/components/forms/contact-form";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `About & Contact — ${SITE_NAME}`,
   description:

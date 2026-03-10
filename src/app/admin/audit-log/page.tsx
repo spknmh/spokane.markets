@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { Pagination } from "@/components/pagination";
 import { formatDate } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULT_LIMIT = 25;
 
 export default async function AdminAuditLogPage({

@@ -1,6 +1,8 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { VenueForm } from "@/components/admin/venue-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewVenuePage() {
   await requireAdmin();
 

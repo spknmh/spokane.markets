@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/card";
 import { CheckCircle2, Clock } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }

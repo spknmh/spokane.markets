@@ -5,6 +5,8 @@ import { EventForm } from "@/components/admin/event-form";
 import { notFound } from "next/navigation";
 import { formatForDateTimeLocal } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditEventPage({
   params,
 }: {

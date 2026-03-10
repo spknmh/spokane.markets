@@ -2,6 +2,8 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { CategoriesManager } from "@/components/admin/categories-manager";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminCategoriesPage() {
   await requireAdmin();
 

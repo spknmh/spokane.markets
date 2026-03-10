@@ -3,6 +3,8 @@ import { VendorSurveyForm } from "@/components/vendor-survey-form";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function VendorSurveyPage() {
   const banners = await getBannerImages();
   return (

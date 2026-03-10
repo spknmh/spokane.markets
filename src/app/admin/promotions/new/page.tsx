@@ -2,6 +2,8 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { PromotionForm } from "@/components/admin/promotion-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewPromotionPage() {
   await requireAdmin();
 

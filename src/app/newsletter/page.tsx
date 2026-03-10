@@ -3,6 +3,8 @@ import { NewsletterForm } from "@/components/forms/newsletter-form";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewsletterPage() {
   const banners = await getBannerImages();
   return (

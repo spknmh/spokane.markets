@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { VenueForm } from "@/components/admin/venue-form";
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditVenuePage({
   params,
 }: {

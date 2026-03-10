@@ -4,6 +4,8 @@ import { extractSocialHandle } from "@/lib/utils";
 import { AdminVendorForm } from "@/components/admin/vendor-form";
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditVendorPage({
   params,
 }: {

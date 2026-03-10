@@ -9,6 +9,8 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ModerationStatus } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULT_LIMIT = 25;
 
 const STATUS_TABS = [

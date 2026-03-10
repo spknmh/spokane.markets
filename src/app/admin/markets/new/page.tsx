@@ -2,6 +2,8 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { MarketForm } from "@/components/admin/market-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewMarketPage() {
   await requireAdmin();
 

@@ -4,6 +4,8 @@ import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { OrganizerEventForm } from "@/components/organizer-event-form";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `Submit Event — ${SITE_NAME}`,
 };
