@@ -58,23 +58,29 @@ export function MaintenanceForm({ initialState }: MaintenanceFormProps) {
     setSuccess(false);
     setSaving(true);
     try {
+      const payload = {
+        mode,
+        messageTitle,
+        messageBody: messageBody.trim() || null,
+        links: links.filter((l) => l.label.trim() && l.url.trim()),
+        eta: eta || null,
+      };
       const res = await fetch("/api/admin/site-config/maintenance", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode,
-          messageTitle,
-          messageBody: messageBody.trim() || null,
-          links: links.filter((l) => l.label.trim() && l.url.trim()),
-          eta: eta || null,
-        }),
+        credentials: "include",
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        const errMsg =
-          typeof data?.error === "string"
-            ? data.error
-            : data?.error?.message ?? "Failed to save";
+        const text = await res.text();
+        let errMsg = `Save failed (${res.status})`;
+        try {
+          const data = JSON.parse(text);
+          if (typeof data?.error === "string") errMsg = data.error;
+          else if (data?.error?.message) errMsg = data.error.message;
+        } catch {
+          if (text) errMsg = text.slice(0, 200);
+        }
         throw new Error(errMsg);
       }
       router.refresh();

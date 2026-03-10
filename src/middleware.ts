@@ -6,6 +6,7 @@ import type { MaintenanceMode } from "@prisma/client";
 const BYPASS_PATHS = [
   "/api/auth",
   "/api/auth/register",
+  "/api/admin",
   "/auth",
   "/api/site-config/maintenance",
   "/api/health",

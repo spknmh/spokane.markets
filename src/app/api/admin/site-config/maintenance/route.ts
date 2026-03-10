@@ -60,11 +60,15 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const { session, error } = await requireApiAdmin();
-    if (error) return error;
+    if (error) {
+      console.warn("[PATCH /api/admin/site-config/maintenance] auth failed");
+      return error;
+    }
 
     const body = await request.json();
     const parsed = patchMaintenanceSchema.safeParse(body);
     if (!parsed.success) {
+      console.warn("[PATCH /api/admin/site-config/maintenance] validation failed:", parsed.error.issues);
       return apiValidationError(parsed.error.flatten().fieldErrors);
     }
 
@@ -76,7 +80,7 @@ export async function PATCH(request: Request) {
       if (!Number.isNaN(d.getTime())) eta = d;
     }
 
-    await db.siteState.upsert({
+    const result = await db.siteState.upsert({
       where: { id: "default" },
       create: {
         id: "default",
@@ -97,6 +101,11 @@ export async function PATCH(request: Request) {
       },
     });
 
+    console.info("[PATCH /api/admin/site-config/maintenance] saved:", {
+      mode: result.mode,
+      messageTitle: result.messageTitle,
+    });
+
     await logAudit(
       session.user.id,
       "UPDATE_MAINTENANCE_MODE",
@@ -107,6 +116,7 @@ export async function PATCH(request: Request) {
 
     revalidatePath("/");
     revalidatePath("/maintenance");
+    revalidatePath("/admin/maintenance");
 
     return NextResponse.json({ ok: true });
   } catch (err) {
