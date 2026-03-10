@@ -22,6 +22,9 @@ jobs:
     env:
       # Prisma generate needs DATABASE_URL to exist (does not connect); use placeholder for CI
       DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+      # Better Auth checks these at import time during build; placeholders silence warnings
+      BETTER_AUTH_SECRET: ci-placeholder-secret-not-used-at-runtime
+      BETTER_AUTH_URL: http://localhost:3000
 
     steps:
       - name: Checkout
