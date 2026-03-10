@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Mail, Phone } from "lucide-react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -16,12 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FavoriteVendorButton } from "@/components/vendor/favorite-vendor-button";
 import { AuthGate } from "@/components/auth-gate";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { EventCard } from "@/components/event/event-card";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { ReportButton } from "@/components/report-button";
@@ -161,10 +157,13 @@ export default async function VendorProfilePage({ params }: PageProps) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
             {vendor.imageUrl ? (
-              <img
+              <Image
                 src={vendor.imageUrl}
                 alt={vendor.businessName}
+                width={192}
+                height={192}
                 className="h-40 w-40 shrink-0 rounded-xl object-cover sm:h-48 sm:w-48"
+                unoptimized
               />
             ) : (
               <div className="flex h-40 w-40 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-4xl font-bold text-primary sm:h-48 sm:w-48">
@@ -207,10 +206,13 @@ export default async function VendorProfilePage({ params }: PageProps) {
                     rel="noopener noreferrer"
                     className="relative h-48 shrink-0 overflow-hidden rounded-lg border border-border sm:h-40"
                   >
-                    <img
+                    <Image
                       src={url}
                       alt={`${vendor.businessName} gallery ${i + 1}`}
+                      width={400}
+                      height={300}
                       className="h-full w-full object-cover"
+                      unoptimized
                     />
                   </a>
                 ))}

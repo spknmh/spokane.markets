@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -261,10 +262,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                     className="flex min-h-[44px] items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted"
                   >
                     {fv.vendorProfile.imageUrl ? (
-                      <img
+                      <Image
                         src={fv.vendorProfile.imageUrl}
                         alt=""
+                        width={40}
+                        height={40}
                         className="h-10 w-10 shrink-0 rounded-full object-cover"
+                        unoptimized
                       />
                     ) : (
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-primary">

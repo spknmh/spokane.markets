@@ -23,7 +23,7 @@ interface MarketFormProps {
   ownerDisplay?: string;
 }
 
-export function MarketForm({ initialData, venues, users = [], ownerDisplay }: MarketFormProps) {
+export function MarketForm({ initialData, venues, users: _users = [], ownerDisplay }: MarketFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

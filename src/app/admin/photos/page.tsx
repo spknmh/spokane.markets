@@ -6,6 +6,7 @@ import { Pagination } from "@/components/pagination";
 import { updatePhotoStatus } from "../actions";
 import { formatDate, cn } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 import type { ModerationStatus } from "@prisma/client";
 
 const DEFAULT_LIMIT = 25;
@@ -85,13 +86,13 @@ export default async function AdminPhotosPage({
               className="border border-border rounded-lg p-4 space-y-3 flex flex-col sm:flex-row gap-4"
             >
               <div className="shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={photo.url}
                   alt={photo.alt ?? "Photo"}
                   width={200}
                   height={150}
                   className="rounded-md object-cover w-[200px] h-[150px]"
+                  unoptimized
                 />
               </div>
               <div className="flex-1 min-w-0">

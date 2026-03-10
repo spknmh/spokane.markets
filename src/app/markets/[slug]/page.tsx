@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { db } from "@/lib/db";
 import { findMarketBySlug } from "@/lib/services/market-series-service";
 import { getSession } from "@/lib/auth-utils";
-import { AuthGate } from "@/components/auth-gate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,7 +76,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function MarketDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const now = new Date();
 
   const market = await findMarketBySlug(slug);
 

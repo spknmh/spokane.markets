@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       return apiError("Too many requests", 429);
     }
 
-    const { session, error } = await requireApiAuth();
+    const { error } = await requireApiAuth();
     if (error) return error;
 
     const body = await request.json();

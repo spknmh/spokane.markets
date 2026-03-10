@@ -25,17 +25,6 @@ interface UserSearchSelectProps {
   className?: string;
 }
 
-function debounce<T extends (...args: Parameters<T>) => void>(
-  fn: T,
-  ms: number
-): (...args: Parameters<T>) => void {
-  let timeout: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => fn(...args), ms);
-  };
-}
-
 export function UserSearchSelect({
   value,
   onChange,
@@ -54,37 +43,41 @@ export function UserSearchSelect({
   );
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const search = useCallback(
-    debounce(async (q: string) => {
-      if (!q || q.length < 2) {
-        setResults([]);
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ q });
-        if (allowVendorId) params.set("allowVendorId", allowVendorId);
-        const res = await fetch(`/api/admin/users/search?${params}`);
-        if (res.ok) {
-          const data = (await res.json()) as UserOption[];
-          setResults(data);
-        } else {
+    (q: string) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(async () => {
+        if (!q || q.length < 2) {
           setResults([]);
+          setLoading(false);
+          return;
         }
-      } catch {
-        setResults([]);
-      } finally {
-        setLoading(false);
-      }
-    }, 300),
+        setLoading(true);
+        try {
+          const params = new URLSearchParams({ q });
+          if (allowVendorId) params.set("allowVendorId", allowVendorId);
+          const res = await fetch(`/api/admin/users/search?${params}`);
+          if (res.ok) {
+            const data = (await res.json()) as UserOption[];
+            setResults(data);
+          } else {
+            setResults([]);
+          }
+        } catch {
+          setResults([]);
+        } finally {
+          setLoading(false);
+        }
+      }, 300);
+    },
     [allowVendorId]
   );
 
   useEffect(() => {
     setQuery("");
     setSelectedDisplay(initialUser ?? null);
-  }, [initialUser?.id]);
+  }, [initialUser]);
 
   useEffect(() => {
     if (query.trim().length >= 2) {

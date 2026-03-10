@@ -302,7 +302,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
 
   const formContent = (
     <form
-      onSubmit={handleSubmit(onSubmit, (err) => {
+      onSubmit={handleSubmit(onSubmit, (_err) => {
         setError("Please fix the errors below.");
       })}
       className={`space-y-6 ${showJsonImport ? "" : "max-w-2xl"}`}

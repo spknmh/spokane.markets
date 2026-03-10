@@ -1,13 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { isPrivilegedForMaintenance } from "./maintenance-rbac";
-import type { MaintenanceMode, Role } from "@prisma/client";
+import type { Role } from "@prisma/client";
 
 describe("isPrivilegedForMaintenance", () => {
-  const modes: MaintenanceMode[] = [
-    "OFF",
-    "MAINTENANCE_ADMIN_ONLY",
-    "MAINTENANCE_PRIVILEGED",
-  ];
   const roles: (Role | null)[] = ["ADMIN", "VENDOR", "ORGANIZER", "USER", null];
 
   describe("mode OFF", () => {

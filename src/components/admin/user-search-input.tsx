@@ -42,10 +42,10 @@ export function UserSearchInput({
     } else if (!value) {
       setQuery("");
     }
-  }, [value, displayValue]);
+  }, [value, displayValue, setQuery]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
+  const [, setSelectedUser] = useState<UserOption | null>(null);
   const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -105,7 +105,7 @@ export function UserSearchInput({
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [containerRef, setOpen]);
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>

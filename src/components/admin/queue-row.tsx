@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
@@ -33,13 +34,13 @@ export function QueueRow({ item }: { item: QueueItem }) {
       </div>
       {item.imageUrl && (
         <div className="shrink-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={item.imageUrl}
             alt=""
             width={80}
             height={60}
             className="rounded object-cover"
+            unoptimized
           />
         </div>
       )}

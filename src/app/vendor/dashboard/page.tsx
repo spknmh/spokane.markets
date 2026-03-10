@@ -5,14 +5,12 @@ import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { DashboardHeaderCard } from "@/components/dashboard-header-card";
 import { evaluateAndGrantBadges } from "@/lib/badges";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
 } from "@/components/ui/card";
 import { EventCard } from "@/components/event/event-card";
 import { VendorPipelineBoard } from "@/components/vendor-pipeline-board";

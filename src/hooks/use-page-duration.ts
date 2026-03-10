@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { trackEvent } from "@/lib/analytics";
 
 interface UsePageDurationOptions {
@@ -16,20 +16,22 @@ export function usePageDuration(
   eventName: string,
   options?: UsePageDurationOptions
 ): void {
-  const startRef = useRef<number>(Date.now());
+  const startRef = useRef<number>(0);
   const firedRef = useRef(false);
   const minSeconds = options?.minSeconds ?? 0;
 
-  const fire = () => {
+  const fire = useCallback(() => {
     if (firedRef.current) return;
     firedRef.current = true;
     const secondsElapsed = Math.round((Date.now() - startRef.current) / 1000);
     if (secondsElapsed >= minSeconds) {
       trackEvent(eventName, { seconds_elapsed: secondsElapsed });
     }
-  };
+  }, [eventName, minSeconds]);
 
   useEffect(() => {
+    if (startRef.current === 0) startRef.current = Date.now();
+
     const onVisibilityChange = () => {
       if (document.hidden) fire();
     };
@@ -45,5 +47,5 @@ export function usePageDuration(
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("beforeunload", onBeforeUnload);
     };
-  }, [eventName, minSeconds]);
+  }, [eventName, minSeconds, fire]);
 }

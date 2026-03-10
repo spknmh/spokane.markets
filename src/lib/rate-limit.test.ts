@@ -12,7 +12,7 @@ afterEach(() => {
 // Dynamic import so REDIS_URL is unset before module loads
 async function loadRateLimiter() {
   // Clear cached module so each test gets a fresh memory store
-  const modulePath = await vi.importActual<typeof import("node:url")>("node:url");
+  await vi.importActual<typeof import("node:url")>("node:url");
   vi.resetModules();
   const mod = await import("./rate-limit");
   return mod.checkRateLimit;

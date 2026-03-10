@@ -3,7 +3,7 @@
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 interface ThemeToggleProps {
   /** Show "Dark Mode" / "Light Mode" label next to icon (e.g. for mobile nav) */
@@ -12,11 +12,11 @@ interface ThemeToggleProps {
 
 export function ThemeToggle({ showLabel = false }: ThemeToggleProps) {
   const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   if (!mounted) {
     return (

@@ -22,7 +22,7 @@ const patchMaintenanceSchema = z.object({
 
 export async function GET() {
   try {
-    const { session, error } = await requireApiAdmin();
+    const { error } = await requireApiAdmin();
     if (error) return error;
 
     const row = await db.siteState.findUnique({

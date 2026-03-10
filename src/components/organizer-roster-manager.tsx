@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,10 +72,13 @@ function VendorRow({
         className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-80"
       >
         {vendor.imageUrl ? (
-          <img
+          <Image
             src={vendor.imageUrl}
             alt={vendor.businessName}
+            width={40}
+            height={40}
             className="h-10 w-10 shrink-0 rounded-full object-cover"
+            unoptimized
           />
         ) : (
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-primary">
@@ -412,10 +416,13 @@ export function OrganizerRosterManager({
                           className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-80"
                         >
                           {vendor.imageUrl ? (
-                            <img
+                            <Image
                               src={vendor.imageUrl}
                               alt={vendor.businessName}
+                              width={36}
+                              height={36}
                               className="h-9 w-9 shrink-0 rounded-full object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">

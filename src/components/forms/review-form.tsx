@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { StarRating } from "@/components/forms/star-rating";
+import Image from "next/image";
 import { ImagePlus, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
@@ -202,10 +203,13 @@ export function ReviewForm({ eventId, marketId, onSuccess }: ReviewFormProps) {
         <div className="flex flex-wrap gap-2">
           {photos.map((photo, index) => (
             <div key={index} className="relative h-20 w-20 overflow-hidden rounded-md border">
-              <img
+              <Image
                 src={photo.previewUrl}
                 alt={`Preview ${index + 1}`}
+                width={80}
+                height={80}
                 className="h-full w-full object-cover"
+                unoptimized
               />
               <button
                 type="button"

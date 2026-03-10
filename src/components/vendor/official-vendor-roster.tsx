@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 
 interface Vendor {
@@ -48,10 +49,13 @@ export function OfficialVendorRoster({
                 className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted"
               >
                 {v.imageUrl ? (
-                  <img
+                  <Image
                     src={v.imageUrl}
                     alt={v.businessName}
+                    width={40}
+                    height={40}
                     className="h-10 w-10 shrink-0 rounded-full object-cover"
+                    unoptimized
                   />
                 ) : (
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-primary">

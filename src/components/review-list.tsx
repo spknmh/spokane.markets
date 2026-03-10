@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
@@ -111,11 +112,14 @@ export async function ReviewList({ eventId, marketId, isLoggedIn = false }: Revi
             {review.photos.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {review.photos.map((photo) => (
-                  <img
+                  <Image
                     key={photo.id}
                     src={photo.url}
                     alt={photo.alt ?? "Review photo"}
+                    width={80}
+                    height={80}
                     className="h-20 w-20 rounded-md object-cover"
+                    unoptimized
                   />
                 ))}
               </div>

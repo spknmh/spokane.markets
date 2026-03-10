@@ -23,6 +23,17 @@ export function ShareButton({
 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
+  const fallbackCopy = useCallback(async (urlToCopy: string) => {
+    try {
+      await navigator.clipboard.writeText(urlToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback: open in new tab
+      window.open(urlToCopy, "_blank");
+    }
+  }, []);
+
   const handleShare = useCallback(async () => {
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
@@ -39,18 +50,7 @@ export function ShareButton({
     } else {
       await fallbackCopy(url);
     }
-  }, [url, title, text]);
-
-  async function fallbackCopy(urlToCopy: string) {
-    try {
-      await navigator.clipboard.writeText(urlToCopy);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback: open in new tab
-      window.open(urlToCopy, "_blank");
-    }
-  }
+  }, [url, title, text, fallbackCopy]);
 
   return (
     <Button

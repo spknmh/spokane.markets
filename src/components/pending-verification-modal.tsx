@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,16 +21,12 @@ export function PendingVerificationModal({
   emailVerified,
   showPendingVerification,
 }: PendingVerificationModalProps) {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (showPendingVerification && !emailVerified) {
-      setOpen(true);
-    }
-  }, [showPendingVerification, emailVerified]);
+  const shouldShow = showPendingVerification && !emailVerified;
+  const [dismissed, setDismissed] = useState(false);
+  const open = shouldShow && !dismissed;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) setDismissed(true); }}>
       <DialogContent className="w-[calc(100%-2rem)] max-w-lg sm:w-full">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -44,7 +40,7 @@ export function PendingVerificationModal({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button onClick={() => setOpen(false)}>Got it</Button>
+          <Button onClick={() => setDismissed(true)}>Got it</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

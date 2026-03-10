@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     },
   });
 
-  let recipientIds = new Set<string>();
+  const recipientIds = new Set<string>();
   let link: string | null = null;
 
   if (eventId) {

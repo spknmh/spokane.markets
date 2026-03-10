@@ -25,7 +25,7 @@ function toOptionalHandle(
 }
 
 async function generateUniqueSlug(base: string): Promise<string> {
-  let slug = slugify(base) || "vendor";
+  const slug = slugify(base) || "vendor";
   let candidate = slug;
   let n = 0;
   while (await db.vendorProfile.findUnique({ where: { slug: candidate } })) {

@@ -8,23 +8,21 @@ import { updateAnalyticsConsent, trackEvent } from "@/lib/analytics";
 const STORAGE_KEY = "cookie_consent";
 
 export function ConsentBanner() {
-  const [show, setShow] = useState<boolean | null>(null);
-
-  useEffect(() => {
+  const [show, setShow] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
     try {
       const stored = localStorage.getItem(STORAGE_KEY) as "granted" | "denied" | null;
-      if (stored === "granted") {
-        updateAnalyticsConsent(true);
-        setShow(false);
-      } else if (stored === "denied") {
-        updateAnalyticsConsent(false);
-        setShow(false);
-      } else {
-        setShow(true);
-      }
+      if (stored === "granted" || stored === "denied") return false;
+      return true;
     } catch {
-      setShow(true);
+      return true;
     }
+  });
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY) as "granted" | "denied" | null;
+    if (stored === "granted") updateAnalyticsConsent(true);
+    else if (stored === "denied") updateAnalyticsConsent(false);
   }, []);
 
   function handleAccept() {
@@ -49,7 +47,7 @@ export function ConsentBanner() {
     setShow(false);
   }
 
-  if (show !== true) return null;
+  if (!show) return null;
 
   return (
     <div

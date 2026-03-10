@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useCallback } from "react";
 import { trackEvent } from "@/lib/analytics";
 import { useRouter } from "next/navigation";
 import { Lock, CheckCircle2, Star, Send } from "lucide-react";
 import { AuthRequiredModal } from "@/components/auth-required-modal";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { ParticipationMode } from "@/lib/participation-config";
 
 type IntentStatus =
@@ -41,29 +40,32 @@ export function EventVendorActions({
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function setIntent(status: "ATTENDING" | "INTERESTED", visibility: "PUBLIC" | "PRIVATE" = "PUBLIC") {
-    if (!isLoggedIn || !hasVendorProfile) {
-      setAuthModalOpen(true);
-      return;
-    }
-    setError(null);
-    startTransition(async () => {
-      const res = await fetch(`/api/events/${eventId}/intent`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, visibility }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error ?? "Something went wrong");
+  const setIntent = useCallback(
+    async (status: "ATTENDING" | "INTERESTED", visibility: "PUBLIC" | "PRIVATE" = "PUBLIC") => {
+      if (!isLoggedIn || !hasVendorProfile) {
+        setAuthModalOpen(true);
         return;
       }
-      trackEvent("vendor_intent_set", { status, event_id: eventId });
-      router.refresh();
-    });
-  }
+      setError(null);
+      startTransition(async () => {
+        const res = await fetch(`/api/events/${eventId}/intent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status, visibility }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setError(data.error ?? "Something went wrong");
+          return;
+        }
+        trackEvent("vendor_intent_set", { status, event_id: eventId });
+        router.refresh();
+      });
+    },
+    [eventId, isLoggedIn, hasVendorProfile, router]
+  );
 
-  async function removeIntent() {
+  const removeIntent = useCallback(async () => {
     if (!isLoggedIn || !hasVendorProfile) return;
     setError(null);
     startTransition(async () => {
@@ -75,9 +77,9 @@ export function EventVendorActions({
       }
       router.refresh();
     });
-  }
+  }, [eventId, isLoggedIn, hasVendorProfile, router]);
 
-  async function requestRoster() {
+  const requestRoster = useCallback(async () => {
     if (!isLoggedIn || !hasVendorProfile) {
       setAuthModalOpen(true);
       return;
@@ -96,7 +98,7 @@ export function EventVendorActions({
       trackEvent("vendor_roster_request", { event_id: eventId });
       router.refresh();
     });
-  }
+  }, [eventId, isLoggedIn, hasVendorProfile, router]);
 
   if (!hasVendorProfile && isLoggedIn) return null;
 

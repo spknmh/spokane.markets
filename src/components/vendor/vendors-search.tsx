@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -14,11 +14,34 @@ export function VendorsSearch({ defaultValue = "" }: VendorsSearchProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeQuery = searchParams.get("q") ?? "";
-  const [queryInput, setQueryInput] = useState(activeQuery || defaultValue);
+  const syncValue = activeQuery || defaultValue;
 
-  useEffect(() => {
-    setQueryInput(activeQuery || defaultValue);
-  }, [activeQuery, defaultValue]);
+  return (
+    <VendorsSearchInput
+      key={syncValue}
+      syncValue={syncValue}
+      activeQuery={activeQuery}
+      pathname={pathname}
+      searchParams={searchParams}
+      router={router}
+    />
+  );
+}
+
+function VendorsSearchInput({
+  syncValue,
+  activeQuery,
+  pathname,
+  searchParams,
+  router,
+}: {
+  syncValue: string;
+  activeQuery: string;
+  pathname: string;
+  searchParams: URLSearchParams;
+  router: ReturnType<typeof useRouter>;
+}) {
+  const [queryInput, setQueryInput] = useState(syncValue);
 
   const updateFilter = useCallback(
     (value: string) => {

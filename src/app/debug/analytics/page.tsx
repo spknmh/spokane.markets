@@ -1,6 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+function getDebugSnapshot() {
+  if (typeof window === "undefined") return null;
+  const umami = (window as unknown as { umami?: unknown }).umami;
+  const dataLayer = (window as unknown as { dataLayer?: unknown[] }).dataLayer;
+  const script = document.querySelector("script[data-website-id]");
+  return {
+    umamiState: {
+      exists: !!umami,
+      type: typeof umami,
+      keys: umami && typeof umami === "object" ? Object.keys(umami) : [],
+      track:
+        umami && typeof umami === "object" && "track" in umami
+          ? typeof (umami as { track?: unknown }).track
+          : "n/a",
+      trackReady:
+        typeof (umami && typeof umami === "object" && "track" in umami
+          ? (umami as { track?: unknown }).track
+          : null) === "function",
+      scriptLoaded: !!script,
+      scriptSrc: script?.getAttribute("src") ?? null,
+      dataDomains: script?.getAttribute("data-domains") ?? null,
+    },
+    gtmState: {
+      dataLayerExists: !!dataLayer,
+      dataLayerLength: dataLayer?.length ?? 0,
+    },
+  };
+}
 
 /**
  * Debug page for analytics troubleshooting.
@@ -8,45 +37,17 @@ import { useEffect, useState } from "react";
  * Remove or restrict in production.
  */
 export default function AnalyticsDebugPage() {
-  const [mounted, setMounted] = useState(false);
-  const [umamiState, setUmamiState] = useState<Record<string, unknown>>({});
-  const [gtmState, setGtmState] = useState<Record<string, unknown>>({});
+  const debugState = useSyncExternalStore(
+    () => () => {},
+    getDebugSnapshot,
+    () => null,
+  );
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const umami = (window as unknown as { umami?: unknown }).umami;
-    const dataLayer = (window as unknown as { dataLayer?: unknown[] }).dataLayer;
-    setUmamiState({
-      exists: !!umami,
-      type: typeof umami,
-      keys: umami && typeof umami === "object" ? Object.keys(umami) : [],
-      track: umami && typeof umami === "object" && "track" in umami ? typeof (umami as { track?: unknown }).track : "n/a",
-      trackReady: typeof (umami && typeof umami === "object" && "track" in umami ? (umami as { track?: unknown }).track : null) === "function",
-    });
-    setGtmState({
-      dataLayerExists: !!dataLayer,
-      dataLayerLength: dataLayer?.length ?? 0,
-    });
-  }, [mounted]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const script = document.querySelector('script[data-website-id]');
-    setUmamiState((prev) => ({
-      ...prev,
-      scriptLoaded: !!script,
-      scriptSrc: script?.getAttribute("src") ?? null,
-      dataDomains: script?.getAttribute("data-domains") ?? null,
-    }));
-  }, [mounted]);
-
-  if (!mounted) {
+  if (debugState === null) {
     return <div className="p-8">Loading...</div>;
   }
+
+  const { umamiState, gtmState } = debugState;
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 p-8">

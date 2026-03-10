@@ -438,10 +438,9 @@ export function isValidCallbackUrl(url: string | null | undefined): boolean {
  */
 export function formatEventTimeFromSchedule(
   scheduleDays: { date: Date; startTime: string; endTime: string; allDay: boolean }[],
-  timezone?: string | null
+  _timezone?: string | null
 ): string {
   if (!scheduleDays.length) return "";
-  const tz = timezone || PST;
   const first = scheduleDays[0];
   const last = scheduleDays[scheduleDays.length - 1];
   const dateFormat = new Intl.DateTimeFormat("en-US", {

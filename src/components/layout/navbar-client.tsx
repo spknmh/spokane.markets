@@ -33,7 +33,7 @@ interface NavbarClientProps {
 export function NavbarClient({ session, unreadCount = 0 }: NavbarClientProps) {
   const navLinks = React.useMemo(
     () => getNavLinks(session),
-    [session?.user?.role, session?.user]
+    [session]
   );
 
   return (

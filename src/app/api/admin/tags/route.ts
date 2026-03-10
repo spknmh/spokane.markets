@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const { session, error } = await requireApiAdmin();
+    const { error } = await requireApiAdmin();
     if (error) return error;
 
     const tags = await db.tag.findMany({
@@ -22,7 +22,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { session, error } = await requireApiAdmin();
+    const { error } = await requireApiAdmin();
     if (error) return error;
 
     const body = await request.json();

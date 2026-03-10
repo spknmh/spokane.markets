@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { NotificationsList } from "./notifications-list";

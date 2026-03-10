@@ -38,5 +38,5 @@ export function useScrollDepth(
     handleScroll();
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [eventName]);
+  }, [eventName, thresholds]);
 }

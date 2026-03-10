@@ -43,7 +43,7 @@ export function SignInForm({
   const needsVerification = searchParams.get("verified") === "0";
   const [error, setError] = useState<string | null>(null);
   const [showMagicLink, setShowMagicLink] = useState(magicLinkEnabled);
-  const [showCredentials, setShowCredentials] = useState(!magicLinkEnabled);
+  const [, setShowCredentials] = useState(!magicLinkEnabled);
 
   const credentialsForm = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),

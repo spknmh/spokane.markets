@@ -15,11 +15,16 @@ vi.mock("next/headers", () => ({
 import { requireApiAuth, requireApiAdmin, requireApiRole } from "./api-auth";
 import { auth } from "@/lib/auth";
 
-const mockSession = (role: string) =>
+type MockSession = {
+  user: { id: string; name: string; email: string; role: string };
+  session: { id: string };
+};
+
+const mockSession = (role: string): MockSession =>
   ({
     user: { id: "u1", name: "Test User", email: "test@test.com", role },
     session: { id: "s1" },
-  }) as any;
+  });
 
 describe("requireApiAuth", () => {
   beforeEach(() => {

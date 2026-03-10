@@ -23,7 +23,7 @@ const putFormSchema = z.object({
 
 export async function GET() {
   try {
-    const { session, error } = await requireApiAdmin();
+    const { error } = await requireApiAdmin();
     if (error) return error;
 
     const forms = await db.applicationForm.findMany({
@@ -40,7 +40,7 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const { session, error } = await requireApiAdmin();
+    const { error } = await requireApiAdmin();
     if (error) return error;
 
     const body = await request.json();

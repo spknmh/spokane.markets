@@ -22,12 +22,12 @@ function getConfig(action: string) {
 // --- Redis client (lazy singleton) ---
 let redis: Redis | null = null;
 
-function getRedis(): Redis | null {
+async function getRedis(): Promise<Redis | null> {
   if (redis) return redis;
   const url = process.env.REDIS_URL;
   if (!url) return null;
   try {
-    const IORedis = require("ioredis");
+    const { default: IORedis } = await import("ioredis");
     redis = new IORedis(url, {
       maxRetriesPerRequest: 1,
       connectTimeout: 3000,
@@ -104,7 +104,7 @@ export async function checkRateLimit(
   const { windowMs, maxRequests } = getConfig(action);
   const key = `${action}:${identifier}`;
 
-  const client = getRedis();
+  const client = await getRedis();
   if (client) {
     return checkRedis(client, key, windowMs, maxRequests);
   }

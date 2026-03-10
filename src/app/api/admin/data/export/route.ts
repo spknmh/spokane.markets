@@ -7,7 +7,7 @@ import { mkdir, writeFile } from "fs/promises";
 
 const BACKUP_DIR = join(process.cwd(), "uploads", "backups");
 
-export async function POST(request: Request) {
+export async function POST(_request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

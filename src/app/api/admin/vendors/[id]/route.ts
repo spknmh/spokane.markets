@@ -25,7 +25,7 @@ function toOptionalHandle(
 }
 
 async function generateUniqueSlug(base: string, excludeId?: string): Promise<string> {
-  let slug = slugify(base) || "vendor";
+  const slug = slugify(base) || "vendor";
   const candidate_base = slug;
   let candidate = slug;
   let n = 0;
@@ -46,7 +46,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { session, error } = await requireApiAdmin();
+    const { error } = await requireApiAdmin();
     if (error) return error;
 
     const { id } = await params;
@@ -122,7 +122,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { session, error } = await requireApiAdmin();
+    const { error } = await requireApiAdmin();
     if (error) return error;
 
     const { id } = await params;
