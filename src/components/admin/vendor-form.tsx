@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   adminVendorProfileSchema,
@@ -44,7 +44,7 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<AdminVendorProfileInput>({
     resolver: zodResolver(adminVendorProfileSchema),
@@ -66,8 +66,12 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
     },
   });
 
-  const businessName = watch("businessName");
-  const slugValue = watch("slug");
+  const businessName = useWatch({ control, name: "businessName" });
+  const slugValue = useWatch({ control, name: "slug" });
+  const userId = useWatch({ control, name: "userId" });
+  const imageUrl = useWatch({ control, name: "imageUrl" });
+  const contactVisible = useWatch({ control, name: "contactVisible" });
+  const socialLinksVisible = useWatch({ control, name: "socialLinksVisible" });
   const suggestedSlug = slugify(businessName ?? "") || "vendor";
 
   const handleSlugFromName = () => {
@@ -175,7 +179,7 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
           <div className="space-y-2">
             <Label>Official vendor (user account)</Label>
             <UserSearchSelect
-              value={watch("userId") ?? null}
+              value={userId ?? null}
               onChange={(id) => setValue("userId", id)}
               allowVendorId={initialData?.id}
               initialUser={initialData?.user ?? null}
@@ -204,7 +208,7 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
           </div>
 
           <ImageUploadWithUrl
-            value={watch("imageUrl") ?? ""}
+            value={imageUrl ?? ""}
             onChange={(url) => setValue("imageUrl", url)}
             uploadType="vendor"
             disabled={isSubmitting}
@@ -219,7 +223,7 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
-                checked={watch("contactVisible") ?? true}
+                checked={contactVisible ?? true}
                 onChange={(e) => setValue("contactVisible", e.target.checked)}
                 className="rounded border-border"
               />
@@ -228,7 +232,7 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
-                checked={watch("socialLinksVisible") ?? true}
+                checked={socialLinksVisible ?? true}
                 onChange={(e) => setValue("socialLinksVisible", e.target.checked)}
                 className="rounded border-border"
               />
