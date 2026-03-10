@@ -23,7 +23,7 @@ export const auth = betterAuth({
   ],
   database: prismaAdapter(db, { provider: "postgresql" }),
   user: {
-    modelName: "users",
+    modelName: "user",
     additionalFields: {
       role: {
         type: "string" as const,
@@ -34,13 +34,13 @@ export const auth = betterAuth({
     },
   },
   session: {
-    modelName: "sessions",
+    modelName: "session",
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
     cookieCache: { enabled: true, maxAge: 5 * 60 },
   },
   account: {
-    modelName: "accounts",
+    modelName: "account",
   },
   emailAndPassword: {
     enabled: true,
