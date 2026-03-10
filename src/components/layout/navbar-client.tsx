@@ -48,6 +48,7 @@ export function NavbarClient({ session, unreadCount = 0 }: NavbarClientProps) {
             const linkEl = (
               <Link
                 href={link.href}
+                prefetch={false}
                 className="flex items-center gap-2 text-base font-medium text-link transition-colors hover:text-link/90 hover:underline"
               >
                 {Icon && <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />}
@@ -75,10 +76,10 @@ export function NavbarClient({ session, unreadCount = 0 }: NavbarClientProps) {
           ) : (
             <>
               <Button asChild variant="ghost" size="default">
-                <Link href="/auth/signin">Sign In</Link>
+                <Link href="/auth/signin" prefetch={false}>Sign In</Link>
               </Button>
               <Button asChild size="default">
-                <Link href="/auth/signup">Sign Up</Link>
+                <Link href="/auth/signup" prefetch={false}>Sign Up</Link>
               </Button>
             </>
           )}
@@ -123,12 +124,12 @@ function MobileNav({
             {!session && (
               <div className="flex flex-col gap-2 pb-2 border-b border-border">
                 <Button asChild variant="outline" size="sm" className="w-full">
-                  <Link href="/auth/signin" onClick={() => setOpen(false)}>
+                  <Link href="/auth/signin" prefetch={false} onClick={() => setOpen(false)}>
                     Sign In
                   </Link>
                 </Button>
                 <Button asChild size="sm" className="w-full">
-                  <Link href="/auth/signup" onClick={() => setOpen(false)}>
+                  <Link href="/auth/signup" prefetch={false} onClick={() => setOpen(false)}>
                     Sign Up
                   </Link>
                 </Button>
@@ -139,6 +140,7 @@ function MobileNav({
               const linkEl = (
                 <Link
                   href={link.href}
+                  prefetch={false}
                   className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
                   onClick={() => setOpen(false)}
                 >

@@ -111,10 +111,10 @@ export default async function HomePage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Button size="lg" asChild className="shadow-lg">
-              <Link href="/events">View Upcoming Events</Link>
+              <Link href="/events" prefetch={false}>View Upcoming Events</Link>
             </Button>
             <Button size="lg" variant="secondary" asChild className="bg-background/90 text-foreground hover:bg-background shadow-lg border border-border/50">
-              <Link href="/vendors">Browse Vendors</Link>
+              <Link href="/vendors" prefetch={false}>Browse Vendors</Link>
             </Button>
           </div>
         </div>
@@ -168,6 +168,7 @@ export default async function HomePage() {
           </div>
           <Link
             href="/events?dateRange=week"
+            prefetch={false}
             className="hidden text-sm font-medium text-primary transition-colors hover:underline sm:block"
           >
             View all →
@@ -187,6 +188,7 @@ export default async function HomePage() {
             </p>
             <Link
               href="/events?dateRange=all"
+              prefetch={false}
               className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
             >
               Browse all upcoming events →
@@ -196,6 +198,7 @@ export default async function HomePage() {
 
         <Link
           href="/events?dateRange=week"
+          prefetch={false}
           className="mt-4 block text-center text-sm font-medium text-primary hover:underline sm:hidden"
         >
           View all this week&apos;s events →
@@ -215,6 +218,7 @@ export default async function HomePage() {
           </div>
           <Link
             href="/events?dateRange=plan-ahead"
+            prefetch={false}
             className="hidden text-sm font-medium text-primary transition-colors hover:underline sm:block"
           >
             View all →
@@ -234,6 +238,7 @@ export default async function HomePage() {
             </p>
             <Link
               href="/events?dateRange=all"
+              prefetch={false}
               className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
             >
               Browse all upcoming events →
@@ -243,6 +248,7 @@ export default async function HomePage() {
 
         <Link
           href="/events?dateRange=plan-ahead"
+          prefetch={false}
           className="mt-4 block text-center text-sm font-medium text-primary hover:underline sm:hidden"
         >
           View all →
