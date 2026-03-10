@@ -17,6 +17,8 @@ import { formatNeighborhoodLabel } from "@/lib/utils";
 import type { VerificationStatus } from "@prisma/client";
 import { MarketsSearch } from "@/components/markets-search";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `Markets — ${SITE_NAME}`,
   description:

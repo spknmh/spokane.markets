@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canManageEventRoster } from "@/lib/organizer-guard";
 import { logAudit } from "@/lib/audit";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(
   request: Request,
@@ -56,6 +57,20 @@ export async function POST(
         roster.id,
         { vendorId, eventId }
       );
+
+      const vendor = await db.vendorProfile.findUnique({
+        where: { id: vendorId },
+        select: { userId: true },
+      });
+      if (vendor?.userId) {
+        await createNotification(
+          vendor.userId,
+          "ROSTER_REMOVE",
+          `You were removed from the vendor roster for "${event.title}"`,
+          null,
+          `/events/${event.slug}`
+        );
+      }
     }
 
     return NextResponse.json({ success: true });

@@ -5,6 +5,8 @@ import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { PrivacyForm } from "./privacy-form";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `Privacy — ${SITE_NAME}`,
   description: "Manage your privacy preferences.",

@@ -12,12 +12,14 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Filter, Heart, CheckCircle2, Star, User, Shield, Store, LayoutDashboard, KeyRound } from "lucide-react";
-import { EventTimeLabel } from "@/components/event-time-label";
+import { EventTimeLabel } from "@/components/event/event-time-label";
 import { ProfileForm } from "@/components/profile-form";
 import { DashboardHeaderCard } from "@/components/dashboard-header-card";
 import { evaluateAndGrantBadges } from "@/lib/badges";
 import { SITE_NAME } from "@/lib/constants";
 import { PendingVerificationModal } from "@/components/pending-verification-modal";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: `My Account — ${SITE_NAME}`,
@@ -203,7 +205,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                           <EventTimeLabel
                             startDate={a.event.startDate}
                             endDate={a.event.endDate}
-                            timezone={a.event.timezone}
                           />
                         </span>
                       </div>

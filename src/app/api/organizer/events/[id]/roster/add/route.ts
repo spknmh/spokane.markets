@@ -42,38 +42,46 @@ export async function POST(
     }
 
     const config = getParticipationConfig(event);
-    if (config.vendorCapacity != null) {
-      const currentCount = await db.eventVendorRoster.count({
+    const txResult = await db.$transaction(async (tx) => {
+      if (config.vendorCapacity != null) {
+        const currentCount = await tx.eventVendorRoster.count({
+          where: {
+            eventId,
+            status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] },
+          },
+        });
+        if (currentCount >= config.vendorCapacity) {
+          return { error: "Event is at capacity" } as const;
+        }
+      }
+
+      const entry = await tx.eventVendorRoster.upsert({
         where: {
+          eventId_vendorProfileId: { eventId, vendorProfileId: vendorId },
+        },
+        create: {
           eventId,
-          status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] },
+          vendorProfileId: vendorId,
+          status,
+          approvedByUserId: session.user.id,
+          approvedAt: new Date(),
+        },
+        update: {
+          status,
+          approvedByUserId: session.user.id,
+          approvedAt: new Date(),
         },
       });
-      if (currentCount >= config.vendorCapacity) {
-        return NextResponse.json(
-          { error: "Event is at capacity" },
-          { status: 409 }
-        );
-      }
-    }
+      return { entry };
+    }, { isolationLevel: "Serializable" });
 
-    const roster = await db.eventVendorRoster.upsert({
-      where: {
-        eventId_vendorProfileId: { eventId, vendorProfileId: vendorId },
-      },
-      create: {
-        eventId,
-        vendorProfileId: vendorId,
-        status,
-        approvedByUserId: session.user.id,
-        approvedAt: new Date(),
-      },
-      update: {
-        status,
-        approvedByUserId: session.user.id,
-        approvedAt: new Date(),
-      },
-    });
+    if ("error" in txResult) {
+      return NextResponse.json(
+        { error: { message: txResult.error } },
+        { status: 409 }
+      );
+    }
+    const roster = txResult.entry;
 
     await logAudit(
       session.user.id,
@@ -86,7 +94,7 @@ export async function POST(
     const [vendor, favorites] = await Promise.all([
       db.vendorProfile.findUnique({
         where: { id: vendorId },
-        select: { businessName: true, slug: true },
+        select: { userId: true, businessName: true, slug: true },
       }),
       db.favoriteVendor.findMany({
         where: { vendorProfileId: vendorId },
@@ -102,6 +110,16 @@ export async function POST(
     ]);
 
     if (vendor) {
+      if (vendor.userId) {
+        await createNotification(
+          vendor.userId,
+          "ROSTER_ADD",
+          `You were added to the vendor roster for "${event.title}"`,
+          null,
+          `/events/${event.slug}`
+        );
+      }
+
       for (const fav of favorites) {
         const prefs = fav.user.notificationPreference;
         if (prefs?.favoriteVendorEnabled === false) continue;

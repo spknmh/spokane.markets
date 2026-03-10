@@ -169,20 +169,26 @@ export async function updatePhotoStatus(id: string, status: "APPROVED" | "REJECT
 
 export async function updateClaimStatus(id: string, status: "APPROVED" | "REJECTED") {
   const session = await requireAdminAction();
-  const claim = await db.claimRequest.update({
-    where: { id },
-    data: { status, reviewerId: session.user.id },
-    include: { market: true },
+  const claim = await db.$transaction(async (tx) => {
+    const c = await tx.claimRequest.update({
+      where: { id },
+      data: { status, reviewerId: session.user.id },
+      include: { market: true },
+    });
+
+    if (status === "APPROVED") {
+      await tx.market.update({
+        where: { id: c.marketId },
+        data: {
+          verificationStatus: "VERIFIED",
+          ownerId: c.userId,
+        },
+      });
+    }
+    return c;
   });
 
   if (status === "APPROVED") {
-    await db.market.update({
-      where: { id: claim.marketId },
-      data: {
-        verificationStatus: "VERIFIED",
-        ownerId: claim.userId,
-      },
-    });
     evaluateAndGrantBadges(claim.userId).catch(() => {});
     await createNotification(
       claim.userId,
@@ -215,16 +221,20 @@ export async function updateVendorClaimStatus(id: string, status: "APPROVED" | "
     include: { vendorProfile: { select: { businessName: true, slug: true } } },
   });
   if (!claim) return;
-  await db.vendorClaimRequest.update({
-    where: { id },
-    data: { status, reviewerId: session.user.id },
+  await db.$transaction(async (tx) => {
+    await tx.vendorClaimRequest.update({
+      where: { id },
+      data: { status, reviewerId: session.user.id },
+    });
+    if (status === "APPROVED") {
+      await tx.vendorProfile.update({
+        where: { id: claim.vendorProfileId },
+        data: { userId: claim.userId },
+      });
+    }
   });
   const link = `/vendors/${claim.vendorProfile.slug}`;
   if (status === "APPROVED") {
-    await db.vendorProfile.update({
-      where: { id: claim.vendorProfileId },
-      data: { userId: claim.userId },
-    });
     await createNotification(
       claim.userId,
       "VENDOR_CLAIM_APPROVED",

@@ -1,9 +1,9 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { syncEventToOccurrence } from "@/lib/services/event-sync";
 import { organizerEventSchema } from "@/lib/validations";
 import { parseDateTimeInTimezone } from "@/lib/utils";
+import { logAudit } from "@/lib/audit";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -85,7 +85,6 @@ export async function POST(request: Request) {
       description: data.description || null,
       startDate,
       endDate,
-      timezone: null,
       venueId,
       marketId: data.marketId || null,
       imageUrl: data.imageUrl || null,
@@ -112,9 +111,7 @@ export async function POST(request: Request) {
     });
   }
 
-  syncEventToOccurrence(event.id).catch((err) =>
-    console.error("syncEventToOccurrence failed:", err)
-  );
+  await logAudit(session.user.id, "CREATE_EVENT", "EVENT", event.id, { title: event.title });
 
   return NextResponse.json(event, { status: 201 });
 }

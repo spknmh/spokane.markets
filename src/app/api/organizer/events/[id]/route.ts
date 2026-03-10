@@ -1,9 +1,9 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { syncEventToOccurrence } from "@/lib/services/event-sync";
 import { organizerEventSchema } from "@/lib/validations";
 import { parseDateTimeInTimezone } from "@/lib/utils";
+import { logAudit } from "@/lib/audit";
 import { NextResponse } from "next/server";
 
 async function requireOrganizerAuth() {
@@ -104,7 +104,6 @@ export async function PUT(
       description: data.description || null,
       startDate,
       endDate,
-      timezone: null,
       venueId,
       marketId: data.marketId || null,
       imageUrl: data.imageUrl || null,
@@ -128,9 +127,7 @@ export async function PUT(
     });
   }
 
-  syncEventToOccurrence(id).catch((err) =>
-    console.error("syncEventToOccurrence failed:", err)
-  );
+  await logAudit(session.user.id, "UPDATE_EVENT", "EVENT", id, { title: updated.title });
 
   return NextResponse.json(updated);
 }
@@ -166,6 +163,8 @@ export async function DELETE(
   }
 
   await db.event.delete({ where: { id } });
+
+  await logAudit(session.user.id, "DELETE_EVENT", "EVENT", id);
 
   return NextResponse.json({ success: true });
 }

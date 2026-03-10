@@ -11,7 +11,7 @@ export async function POST(request: Request) {
       request.headers.get("x-forwarded-for")?.split(",")[0] ??
       request.headers.get("x-real-ip") ??
       "unknown";
-    const { ok } = checkRateLimit(ip, "register");
+    const { ok } = await checkRateLimit(ip, "register");
     if (!ok) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         );
       }
 
-      const { name, email, role = "USER", website } = parsed.data;
+      const { name, email, website } = parsed.data;
       const callbackUrl = (body.callbackUrl as string) || "/dashboard";
 
       if (website && website.length > 0) {
@@ -58,11 +58,8 @@ export async function POST(request: Request) {
         },
       });
 
-      // Set the role on the created user
-      await db.user.update({
-        where: { email: normalizedEmail },
-        data: { role: role ?? "USER" },
-      });
+      // User is created when they click the magic link; role defaults to USER.
+      // Role selection for magic-link signup can be applied post-verification if needed.
 
       return NextResponse.json({
         success: true,
@@ -80,7 +77,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, email, password, role = "USER", website } = parsed.data;
+    const { name, email, password, website } = parsed.data;
 
     if (website && website.length > 0) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
@@ -115,7 +112,7 @@ export async function POST(request: Request) {
     // Set the role on the created user
     await db.user.update({
       where: { email },
-      data: { role: role ?? "USER" },
+      data: { role: "USER" },
     });
 
     return NextResponse.json({ success: true });

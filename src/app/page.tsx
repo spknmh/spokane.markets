@@ -5,8 +5,8 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
-import { EventCard } from "@/components/event-card";
-import { FeaturedEventCard } from "@/components/featured-event-card";
+import { EventCard } from "@/components/event/event-card";
+import { FeaturedEventCard } from "@/components/event/featured-event-card";
 import { Input } from "@/components/ui/input";
 import { AuthGate } from "@/components/auth-gate";
 import { getBannerImages } from "@/lib/banner-images";
@@ -16,7 +16,9 @@ import {
   getPlanAheadRange,
 } from "@/lib/date-ranges";
 import { SITE_NAME } from "@/lib/constants";
-import { HomeScrollDepth } from "@/components/home-scroll-depth";
+import { HomeScrollDepth } from "@/components/analytics/home-scroll-depth";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Find Local Farmers Markets & Events This Week",

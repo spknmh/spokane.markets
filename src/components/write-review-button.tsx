@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ReviewForm } from "@/components/review-form";
+import { ReviewForm } from "@/components/forms/review-form";
 import { isValidCallbackUrl } from "@/lib/utils";
 
 interface WriteReviewButtonProps {

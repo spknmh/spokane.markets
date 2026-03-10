@@ -1,35 +1,45 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { z } from "zod";
+import { requireApiAdmin } from "@/lib/api-auth";
+import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
+import { evaluateAndGrantBadges } from "@/lib/badges";
 import { NextResponse } from "next/server";
+
+const patchReviewSchema = z.object({
+  status: z.enum(["APPROVED", "REJECTED"]),
+});
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const { session, error } = await requireApiAdmin();
+    if (error) return error;
+
+    const { id } = await params;
+    const body = await request.json();
+    const parsed = patchReviewSchema.safeParse(body);
+    if (!parsed.success) {
+      return apiValidationError(parsed.error.flatten().fieldErrors);
+    }
+
+    const review = await db.review.update({
+      where: { id },
+      data: { status: parsed.data.status },
+    });
+
+    if (parsed.data.status === "APPROVED" && review.userId) {
+      evaluateAndGrantBadges(review.userId).catch(() => {});
+    }
+    await logAudit(session.user.id, "UPDATE_REVIEW_STATUS", "REVIEW", id, {
+      status: parsed.data.status,
+    });
+
+    return NextResponse.json(review);
+  } catch (err) {
+    console.error("[PATCH /api/admin/reviews/:id]", err);
+    return apiError("Internal server error", 500);
   }
-  if (session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const { id } = await params;
-  const body = await request.json();
-  const { status } = body;
-
-  if (status !== "APPROVED" && status !== "REJECTED") {
-    return NextResponse.json(
-      { error: { message: "Status must be APPROVED or REJECTED" } },
-      { status: 400 }
-    );
-  }
-
-  const review = await db.review.update({
-    where: { id },
-    data: { status },
-  });
-
-  return NextResponse.json(review);
 }

@@ -71,6 +71,7 @@ const navGroups: NavGroup[] = [
     label: "Moderation",
     defaultOpen: true,
     items: [
+      { label: "Applications", href: "/admin/applications", icon: FileText },
       { label: "Submissions", href: "/admin/submissions", icon: Inbox },
       { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
       { label: "Photos", href: "/admin/photos", icon: ImageIcon },

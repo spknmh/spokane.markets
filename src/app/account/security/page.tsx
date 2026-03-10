@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SecuritySessionsClient } from "./security-sessions-client";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `Security — ${SITE_NAME}`,
   description: "Manage your account security.",

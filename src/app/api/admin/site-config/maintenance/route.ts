@@ -1,117 +1,116 @@
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { requireApiAdmin } from "@/lib/api-auth";
+import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import type { MaintenanceMode } from "@prisma/client";
 
+const maintenanceLinkSchema = z.object({
+  label: z.string().min(1),
+  url: z.string().min(1),
+});
+
+const patchMaintenanceSchema = z.object({
+  mode: z.enum(["OFF", "MAINTENANCE_ADMIN_ONLY", "MAINTENANCE_PRIVILEGED"]).default("OFF"),
+  messageTitle: z.string().optional().default("We'll be right back"),
+  messageBody: z.string().nullable().optional(),
+  links: z.array(maintenanceLinkSchema).optional().default([]),
+  eta: z.string().nullable().optional(),
+});
+
 export async function GET() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    const { session, error } = await requireApiAdmin();
+    if (error) return error;
 
-  const row = await db.siteState.findUnique({
-    where: { id: "default" },
-  });
-  if (!row) {
-    return NextResponse.json({
-      mode: "OFF",
-      messageTitle: "We'll be right back",
-      messageBody: null,
-      links: [],
-      eta: null,
+    const row = await db.siteState.findUnique({
+      where: { id: "default" },
     });
+    if (!row) {
+      return NextResponse.json({
+        mode: "OFF",
+        messageTitle: "We'll be right back",
+        messageBody: null,
+        links: [],
+        eta: null,
+      });
+    }
+
+    const links = Array.isArray(row.links)
+      ? (row.links as { label?: string; url?: string }[])
+          .filter((x) => x?.label && x?.url)
+          .map((x) => ({ label: x.label!, url: x.url! }))
+      : [];
+
+    return NextResponse.json({
+      mode: row.mode,
+      messageTitle: row.messageTitle,
+      messageBody: row.messageBody,
+      links,
+      eta: row.eta?.toISOString() ?? null,
+    });
+  } catch (err) {
+    console.error("[GET /api/admin/site-config/maintenance]", err);
+    return apiError("Internal server error", 500);
   }
-
-  const links = Array.isArray(row.links)
-    ? (row.links as { label?: string; url?: string }[])
-        .filter((x) => x?.label && x?.url)
-        .map((x) => ({ label: x.label!, url: x.url! }))
-    : [];
-
-  return NextResponse.json({
-    mode: row.mode,
-    messageTitle: row.messageTitle,
-    messageBody: row.messageBody,
-    links,
-    eta: row.eta?.toISOString() ?? null,
-  });
 }
 
-const MODES: MaintenanceMode[] = [
-  "OFF",
-  "MAINTENANCE_ADMIN_ONLY",
-  "MAINTENANCE_PRIVILEGED",
-];
-
 export async function PATCH(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const { session, error } = await requireApiAdmin();
+    if (error) return error;
+
+    const body = await request.json();
+    const parsed = patchMaintenanceSchema.safeParse(body);
+    if (!parsed.success) {
+      return apiValidationError(parsed.error.flatten().fieldErrors);
+    }
+
+    const { mode, messageTitle, messageBody, links } = parsed.data;
+
+    let eta: Date | null = null;
+    if (parsed.data.eta != null && parsed.data.eta !== "") {
+      const d = new Date(parsed.data.eta);
+      if (!Number.isNaN(d.getTime())) eta = d;
+    }
+
+    await db.siteState.upsert({
+      where: { id: "default" },
+      create: {
+        id: "default",
+        mode: mode as MaintenanceMode,
+        messageTitle: messageTitle || "We'll be right back",
+        messageBody: messageBody || null,
+        links: links,
+        eta,
+        updatedByUserId: session.user.id,
+      },
+      update: {
+        mode: mode as MaintenanceMode,
+        messageTitle: messageTitle || "We'll be right back",
+        messageBody: messageBody || null,
+        links,
+        eta,
+        updatedByUserId: session.user.id,
+      },
+    });
+
+    await logAudit(
+      session.user.id,
+      "UPDATE_MAINTENANCE_MODE",
+      "SITE_STATE",
+      "default",
+      { mode, messageTitle }
+    );
+
+    revalidatePath("/");
+    revalidatePath("/maintenance");
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[PATCH /api/admin/site-config/maintenance]", err);
+    return apiError("Internal server error", 500);
   }
-
-  const body = await request.json();
-  const mode = typeof body.mode === "string" && MODES.includes(body.mode as MaintenanceMode)
-    ? (body.mode as MaintenanceMode)
-    : "OFF";
-  const messageTitle =
-    typeof body.messageTitle === "string"
-      ? body.messageTitle.trim() || "We'll be right back"
-      : "We'll be right back";
-  const messageBody =
-    typeof body.messageBody === "string" ? body.messageBody.trim() || null : null;
-  let links: { label: string; url: string }[] = [];
-  if (Array.isArray(body.links)) {
-    links = body.links
-      .filter(
-        (x: unknown): x is { label?: string; url?: string } =>
-          x != null && typeof x === "object"
-      )
-      .map((x: { label?: string; url?: string }) => ({
-        label: typeof x.label === "string" ? x.label.trim() : "",
-        url: typeof x.url === "string" ? x.url.trim() : "",
-      }))
-      .filter((x: { label: string; url: string }) => x.label && x.url);
-  }
-  let eta: Date | null = null;
-  if (body.eta != null && body.eta !== "") {
-    const parsed = new Date(body.eta);
-    if (!Number.isNaN(parsed.getTime())) eta = parsed;
-  }
-
-  await db.siteState.upsert({
-    where: { id: "default" },
-    create: {
-      id: "default",
-      mode,
-      messageTitle,
-      messageBody,
-      links: links,
-      eta,
-      updatedByUserId: session.user.id,
-    },
-    update: {
-      mode,
-      messageTitle,
-      messageBody,
-      links,
-      eta,
-      updatedByUserId: session.user.id,
-    },
-  });
-
-  await logAudit(
-    session.user.id,
-    "UPDATE_MAINTENANCE_MODE",
-    "SITE_STATE",
-    "default",
-    { mode, messageTitle }
-  );
-
-  revalidatePath("/");
-  revalidatePath("/maintenance");
-
-  return NextResponse.json({ ok: true });
 }

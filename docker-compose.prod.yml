@@ -14,6 +14,7 @@ services:
       - |
         echo '0 9 * * 1 cd /app && npx tsx scripts/weekly-digest.ts' > /tmp/crontab
         echo '0 8 * * * cd /app && npx tsx scripts/filter-alerts.ts' >> /tmp/crontab
+        echo '0 2 * * * /app/scripts/pg-backup.sh >> /proc/1/fd/1 2>&1' >> /tmp/crontab
         crontab /tmp/crontab
         exec crond -f -l 2
     env_file: .env.local
@@ -31,11 +32,21 @@ services:
     restart: unless-stopped
     # In production, `docker compose up -d` (without --build) pulls the image.
     # The base `build` key is ignored when pulling a pre-built image.
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
 
   db:
     restart: unless-stopped
     ports: !reset
     # DB port not exposed to host in production; access via internal network only.
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
 
   caddy:
     restart: unless-stopped
@@ -43,3 +54,8 @@ services:
       - "80:80/tcp"
       - "443:443/tcp"
       - "443:443/udp"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'

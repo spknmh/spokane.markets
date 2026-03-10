@@ -97,7 +97,7 @@ export default async function AdminReportsPage({
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground mt-0.5">
-                      Reported by {report.user.name || report.user.email}
+                      Reported by {report.user?.name || report.user?.email || "Unknown"}
                     </p>
                   </div>
                   <span className="text-xs text-muted-foreground">

@@ -16,7 +16,8 @@ type IntentStatus =
   | "ATTENDING"
   | "WAITLISTED"
   | "DECLINED"
-  | "WITHDREW";
+  | "WITHDREW"
+  | "APPROVED";
 
 interface EventVendorActionsProps {
   eventId: string;

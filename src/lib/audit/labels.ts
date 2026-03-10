@@ -3,7 +3,7 @@ export type AuditEntry = {
   targetType: string | null;
   targetId: string | null;
   metadata: unknown;
-  user: { name: string | null; email: string };
+  user: { name: string | null; email: string } | null;
 };
 
 const ACTION_MESSAGES: Record<string, (entry: AuditEntry) => string> = {
@@ -58,7 +58,7 @@ export function formatAuditEntry(
 ): { message: string; href: string | null } {
   const formatter = ACTION_MESSAGES[entry.action];
   const verb = formatter ? formatter(entry) : entry.action.replace(/_/g, " ").toLowerCase();
-  const actor = entry.user.name ?? entry.user.email ?? "Admin";
+  const actor = entry.user?.name ?? entry.user?.email ?? "Admin";
   const message = `${actor} ${verb}`;
   const href = entry.targetType ? TARGET_HREFS[entry.targetType] ?? null : null;
   return { message, href };

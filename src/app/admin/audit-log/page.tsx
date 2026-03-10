@@ -67,7 +67,7 @@ export default async function AdminAuditLogPage({
                     {formatDate(log.createdAt)}
                   </td>
                   <td className="px-4 py-3">
-                    {log.user.name ?? log.user.email}
+                    {log.user?.name ?? log.user?.email ?? "Deleted user"}
                   </td>
                   <td className="px-4 py-3 font-medium">{log.action}</td>
                   <td className="px-4 py-3 text-muted-foreground">

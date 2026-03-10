@@ -3,6 +3,8 @@ import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { NotificationsList } from "./notifications-list";
 
+export const dynamic = "force-dynamic";
+
 export default async function NotificationsPage() {
   const session = await requireAuth("/notifications");
 

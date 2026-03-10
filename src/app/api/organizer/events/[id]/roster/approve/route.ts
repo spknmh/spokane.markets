@@ -48,47 +48,56 @@ export async function POST(
       );
     }
 
-    if (config.vendorCapacity != null) {
-      const currentCount = await db.eventVendorRoster.count({
+    const txResult = await db.$transaction(async (tx) => {
+      if (config.vendorCapacity != null) {
+        const currentCount = await tx.eventVendorRoster.count({
+          where: {
+            eventId,
+            status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] },
+          },
+        });
+        if (currentCount >= config.vendorCapacity) {
+          return { error: "Event is at capacity" } as const;
+        }
+      }
+
+      const entry = await tx.eventVendorRoster.upsert({
         where: {
+          eventId_vendorProfileId: { eventId, vendorProfileId: vendorId },
+        },
+        create: {
           eventId,
-          status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] },
+          vendorProfileId: vendorId,
+          status: "CONFIRMED",
+          approvedByUserId: session.user.id,
+          approvedAt: new Date(),
+        },
+        update: {
+          status: "CONFIRMED",
+          approvedByUserId: session.user.id,
+          approvedAt: new Date(),
         },
       });
-      if (currentCount >= config.vendorCapacity) {
-        return NextResponse.json(
-          { error: "Event is at capacity" },
-          { status: 409 }
-        );
-      }
+
+      await tx.eventVendorIntent.updateMany({
+        where: {
+          eventId,
+          vendorProfileId: vendorId,
+          status: { in: ["REQUESTED", "APPLIED"] },
+        },
+        data: { status: "APPROVED" },
+      });
+
+      return { entry };
+    }, { isolationLevel: "Serializable" });
+
+    if ("error" in txResult) {
+      return NextResponse.json(
+        { error: { message: txResult.error } },
+        { status: 409 }
+      );
     }
-
-    const roster = await db.eventVendorRoster.upsert({
-      where: {
-        eventId_vendorProfileId: { eventId, vendorProfileId: vendorId },
-      },
-      create: {
-        eventId,
-        vendorProfileId: vendorId,
-        status: "CONFIRMED",
-        approvedByUserId: session.user.id,
-        approvedAt: new Date(),
-      },
-      update: {
-        status: "CONFIRMED",
-        approvedByUserId: session.user.id,
-        approvedAt: new Date(),
-      },
-    });
-
-    await db.eventVendorIntent.updateMany({
-      where: {
-        eventId,
-        vendorProfileId: vendorId,
-        status: { in: ["REQUESTED", "APPLIED"] },
-      },
-      data: { status: "DECLINED" },
-    });
+    const roster = txResult.entry;
 
     const vendorProfile = await db.vendorProfile.findUnique({
       where: { id: vendorId },

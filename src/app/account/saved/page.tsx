@@ -5,12 +5,14 @@ import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { FilterDeleteButton } from "@/app/settings/filters/filter-delete-button";
-import { FavoriteVendorButton } from "@/components/favorite-vendor-button";
+import { FavoriteVendorButton } from "@/components/vendor/favorite-vendor-button";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
-import { EventTimeLabel } from "@/components/event-time-label";
+import { EventTimeLabel } from "@/components/event/event-time-label";
 import { SavedPageTabs } from "./saved-page-tabs";
 import { CheckCircle2, Star } from "lucide-react";
 import { SITE_NAME } from "@/lib/constants";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: `Saved — ${SITE_NAME}`,
@@ -170,7 +172,6 @@ export default async function AccountSavedPage({
                               <EventTimeLabel
                                 startDate={a.event.startDate}
                                 endDate={a.event.endDate}
-                                timezone={a.event.timezone}
                               />
                             </span>
                           </div>
@@ -217,7 +218,6 @@ export default async function AccountSavedPage({
                               <EventTimeLabel
                                 startDate={a.event.startDate}
                                 endDate={a.event.endDate}
-                                timezone={a.event.timezone}
                               />
                             </span>
                           </div>

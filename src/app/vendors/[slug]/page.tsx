@@ -14,7 +14,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FavoriteVendorButton } from "@/components/favorite-vendor-button";
+import { FavoriteVendorButton } from "@/components/vendor/favorite-vendor-button";
 import { AuthGate } from "@/components/auth-gate";
 import {
   Card,
@@ -22,10 +22,12 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { EventCard } from "@/components/event-card";
+import { EventCard } from "@/components/event/event-card";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { ReportButton } from "@/components/report-button";
 import { TrackVendorView } from "@/components/track-content-view";
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;

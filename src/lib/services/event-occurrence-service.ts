@@ -5,14 +5,15 @@
 import { db } from "@/lib/db";
 import type { Event, Venue, Market, EventScheduleDay, EventVendorRoster, EventVendorIntent } from "@prisma/client";
 
-/** Event-like shape consumed by pages and components (venue, market, roster, intents, attendances). */
+/** Event-like shape consumed by pages and components (venue, market, roster, intents, attendance count). */
 export type EventForDisplay = Event & {
   venue: Venue;
   market: Market | null;
   tags: { id: string; name: string; slug: string }[];
   features: { id: string; name: string; slug: string; icon: string | null }[];
   scheduleDays: EventScheduleDay[];
-  attendances: { id: string; userId: string; eventId: string; status: string }[];
+  _count: { attendances: number };
+  userAttendance?: { id: string; userId: string; eventId: string; status: string } | null;
   vendorRoster: (EventVendorRoster & {
     vendorProfile: { id: string; businessName: string; slug: string; imageUrl: string | null; specialties: string | null };
   })[];
@@ -24,8 +25,8 @@ export type EventForDisplay = Event & {
 /**
  * Find event by slug.
  */
-export async function findEventBySlug(slug: string): Promise<EventForDisplay | null> {
-  return db.event.findUnique({
+export async function findEventBySlug(slug: string, userId?: string): Promise<EventForDisplay | null> {
+  const event = await db.event.findUnique({
     where: { slug },
     include: {
       venue: true,
@@ -33,7 +34,7 @@ export async function findEventBySlug(slug: string): Promise<EventForDisplay | n
       tags: true,
       features: true,
       scheduleDays: { orderBy: { date: "asc" } },
-      attendances: true,
+      _count: { select: { attendances: true } },
       vendorRoster: {
         where: { status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] } },
         include: {
@@ -54,14 +55,26 @@ export async function findEventBySlug(slug: string): Promise<EventForDisplay | n
         },
       },
     },
-  }) as Promise<EventForDisplay | null>;
+  });
+
+  if (!event) return null;
+
+  let userAttendance = null;
+  if (userId) {
+    userAttendance = await db.attendance.findUnique({
+      where: { userId_eventId: { userId, eventId: event.id } },
+      select: { id: true, userId: true, eventId: true, status: true },
+    });
+  }
+
+  return { ...event, userAttendance } as EventForDisplay;
 }
 
 /**
  * Find event by id or slug (for API routes that accept either).
  */
-export async function findEventByIdOrSlug(idOrSlug: string): Promise<EventForDisplay | null> {
-  return db.event.findFirst({
+export async function findEventByIdOrSlug(idOrSlug: string, userId?: string): Promise<EventForDisplay | null> {
+  const event = await db.event.findFirst({
     where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
     include: {
       venue: true,
@@ -69,7 +82,7 @@ export async function findEventByIdOrSlug(idOrSlug: string): Promise<EventForDis
       tags: true,
       features: true,
       scheduleDays: { orderBy: { date: "asc" } },
-      attendances: true,
+      _count: { select: { attendances: true } },
       vendorRoster: {
         where: { status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] } },
         include: {
@@ -90,5 +103,17 @@ export async function findEventByIdOrSlug(idOrSlug: string): Promise<EventForDis
         },
       },
     },
-  }) as Promise<EventForDisplay | null>;
+  });
+
+  if (!event) return null;
+
+  let userAttendance = null;
+  if (userId) {
+    userAttendance = await db.attendance.findUnique({
+      where: { userId_eventId: { userId, eventId: event.id } },
+      select: { id: true, userId: true, eventId: true, status: true },
+    });
+  }
+
+  return { ...event, userAttendance } as EventForDisplay;
 }

@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import { ProfileForm } from "@/components/profile-form";
 import { AccountSettingsClient } from "./account-settings-client";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `Account Settings — ${SITE_NAME}`,
   description: "Manage your account settings.",

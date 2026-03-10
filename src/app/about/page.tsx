@@ -5,7 +5,7 @@ import { MessageSquare } from "lucide-react";
 import { SITE_NAME, LEGAL_ENTITY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ContactForm } from "@/components/contact-form";
+import { ContactForm } from "@/components/forms/contact-form";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 

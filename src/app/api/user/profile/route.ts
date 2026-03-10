@@ -35,6 +35,16 @@ export async function PATCH(request: Request) {
   const user = await db.user.update({
     where: { id: session.user.id! },
     data,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      role: true,
+      emailVerified: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
   return NextResponse.json(user);

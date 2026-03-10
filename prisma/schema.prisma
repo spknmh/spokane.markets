@@ -57,6 +57,7 @@ enum VendorIntentStatus {
   INTERESTED
   APPLIED
   REQUESTED
+  APPROVED
   ATTENDING
   WAITLISTED
   DECLINED
@@ -80,6 +81,25 @@ enum ParticipationMode {
   REQUEST_TO_JOIN
   INVITE_ONLY
   CAPACITY_LIMITED
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+enum ReportTargetType {
+  EVENT
+  MARKET
+  VENDOR
+  REVIEW
+}
+
+enum ContactMessageStatus {
+  PENDING
+  READ
+  ARCHIVED
 }
 
 // ─── Auth Models (Better Auth) ──────────────────────────────────────
@@ -115,6 +135,7 @@ model User {
   siteStateUpdates       SiteState[]
   userBadges             UserBadge[]
   notificationPreference NotificationPreference?
+  applications           Application[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -153,14 +174,14 @@ model UserBadge {
 
 model AuditLog {
   id         String   @id @default(cuid())
-  userId     String
+  userId     String?
   action     String // e.g. DELETE_EVENT, APPROVE_REVIEW, UPDATE_USER_ROLE
   targetType String? // EVENT, MARKET, USER, REVIEW, etc.
   targetId   String?
   metadata   Json? // extra context
   createdAt  DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@index([action])
@@ -169,15 +190,15 @@ model AuditLog {
 
 model Report {
   id         String   @id @default(cuid())
-  userId     String
-  targetType String // EVENT | MARKET | VENDOR | REVIEW
+  userId     String?
+  targetType ReportTargetType
   targetId   String
   reason     String? // spam | inappropriate | other
   notes      String?  @db.Text
-  status     String   @default("PENDING") // PENDING | RESOLVED | DISMISSED
+  status     ReportStatus @default(PENDING)
   createdAt  DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([status])
   @@index([targetType, targetId])
@@ -203,6 +224,7 @@ model Account {
   updatedAt DateTime @updatedAt
 
   @@unique([providerId, accountId])
+  @@index([userId])
   @@map("accounts")
 }
 
@@ -219,6 +241,7 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId])
   @@map("sessions")
 }
 
@@ -254,6 +277,7 @@ model Venue {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([name, address])
   @@index([neighborhood])
   @@map("venues")
 }
@@ -291,8 +315,8 @@ model Market {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([slug])
   @@index([venueId])
+  @@index([ownerId])
   @@map("markets")
 }
 
@@ -305,10 +329,8 @@ model Event {
   description              String?            @db.Text
   startDate                DateTime
   endDate                  DateTime
-  timezone                 String? // e.g. America/Los_Angeles
   imageUrl                 String?
   status                   EventStatus        @default(DRAFT)
-  recurrenceGroupId        String?
   websiteUrl               String?
   facebookUrl              String?
   participationMode        ParticipationMode?
@@ -338,7 +360,8 @@ model Event {
   @@index([startDate])
   @@index([status])
   @@index([status, startDate])
-  @@index([slug])
+  @@index([marketId])
+  @@index([submittedById])
   @@map("events")
 }
 
@@ -415,7 +438,7 @@ model Attendance {
 
 model Review {
   id                  String           @id @default(cuid())
-  userId              String
+  userId              String?
   eventId             String?
   marketId            String?
   rating              Int
@@ -428,7 +451,7 @@ model Review {
   accessibilityRating Int?
   status              ModerationStatus @default(PENDING)
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
   event  Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
   market Market? @relation(fields: [marketId], references: [id], onDelete: SetNull)
   photos Photo[]
@@ -438,6 +461,9 @@ model Review {
 
   @@index([status])
   @@index([createdAt])
+  @@index([userId])
+  @@index([eventId])
+  @@index([marketId])
   @@map("reviews")
 }
 
@@ -459,6 +485,9 @@ model Photo {
   createdAt DateTime @default(now())
 
   @@index([status])
+  @@index([uploadedById])
+  @@index([eventId])
+  @@index([marketId])
   @@map("photos")
 }
 
@@ -589,7 +618,7 @@ model ContactMessage {
   email     String
   subject   String?
   message   String    @db.Text
-  status    String    @default("PENDING") // PENDING | READ | ARCHIVED
+  status    ContactMessageStatus @default(PENDING)
   readAt    DateTime?
   createdAt DateTime  @default(now())
 
@@ -617,7 +646,7 @@ model VendorProfile {
   contactVisible     Boolean  @default(true)
   socialLinksVisible Boolean  @default(true)
 
-  user            User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
   vendorEvents    VendorEvent[]
   vendorIntents   EventVendorIntent[]
   vendorRoster    EventVendorRoster[]
@@ -627,7 +656,6 @@ model VendorProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([slug])
   @@map("vendor_profiles")
 }
 
@@ -700,6 +728,7 @@ model SavedFilter {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId])
   @@map("saved_filters")
 }
 
@@ -738,6 +767,7 @@ model FavoriteVendor {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, vendorProfileId])
+  @@index([vendorProfileId])
   @@map("favorite_vendors")
 }
 
@@ -749,6 +779,58 @@ model SiteConfig {
   updatedAt DateTime @updatedAt
 
   @@map("site_config")
+}
+
+// ─── Application Forms (admin-configurable) ─────────────────────────
+
+enum ApplicationFormType {
+  VENDOR
+  MARKET
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ApplicationForm {
+  id          String              @id @default(cuid())
+  type        ApplicationFormType @unique
+  title       String
+  description String?             @db.Text
+  fields      Json // Array<{ id, label, type, required, options?, placeholder?, helpText? }>
+  active      Boolean             @default(true)
+
+  applications Application[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("application_forms")
+}
+
+model Application {
+  id        String            @id @default(cuid())
+  formId    String
+  userId    String?
+  status    ApplicationStatus @default(PENDING)
+  answers   Json // Record<fieldId, value>
+  name      String
+  email     String
+  notes     String?           @db.Text
+  reviewedAt DateTime?
+  reviewedBy String?
+
+  form ApplicationForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  user User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([formId, status])
+  @@index([status])
+  @@map("applications")
 }
 
 // Maintenance mode: single row, id = "default"

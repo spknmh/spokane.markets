@@ -49,6 +49,16 @@ export async function POST(request: Request) {
   const user = await db.user.update({
     where: { id: signUpResult.user.id },
     data: { role, emailVerified: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      role: true,
+      emailVerified: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
   return NextResponse.json(user);

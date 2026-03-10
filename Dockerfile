@@ -58,4 +58,4 @@ CMD ["node", "server.js"]
 # Creates upload subdirs so web (nextjs user) can write. Depends on init completing before web starts.
 FROM builder AS init
 WORKDIR /app
-CMD ["sh", "-c", "mkdir -p /app/uploads/banner /app/uploads/avatar /app/uploads/vendor /app/uploads/photos /app/uploads/backups && chmod -R 777 /app/uploads && npx prisma migrate deploy"]
+CMD ["sh", "-c", "mkdir -p /app/uploads/banner /app/uploads/avatar /app/uploads/vendor /app/uploads/photos /app/uploads/backups && chown -R 1001:1001 /app/uploads && chmod -R 775 /app/uploads && npx prisma migrate deploy"]

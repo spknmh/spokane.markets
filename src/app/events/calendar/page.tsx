@@ -6,7 +6,7 @@ import Image from "next/image";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
-import { EventTimeLabel } from "@/components/event-time-label";
+import { EventTimeLabel } from "@/components/event/event-time-label";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CalendarMetadataProps {
@@ -163,7 +163,6 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
                 <EventTimeLabel
                   startDate={event.startDate}
                   endDate={event.endDate}
-                  timezone={event.timezone}
                 />
               </span>
               <p className="mt-1 text-sm text-muted-foreground">{event.venue.name}</p>

@@ -36,7 +36,7 @@ This document catalogs all 60 routes and their accessibility via navigation.
 | `/vendors/[slug]`       | Vendor profile + "Where We'll Be Next"                        | —            | —             | Vendor cards                           |
 | `/submit`               | Public event submission form                                  | ✅ Main nav   | ✅ Quick Links | —                                      |
 | `/vendor-survey`        | Vendor pain-point survey                                      | ✅ Main nav   | ✅ Quick Links | —                                      |
-| `/newsletter`           | Newsletter signup with area preferences                       | —            | —             | Footer form posts to `/api/newsletter` |
+| `/newsletter`           | Newsletter signup with area preferences                       | —            | —             | Footer form posts to `/api/subscribe` |
 | `/auth/signin`          | Sign in                                                       | Auth buttons | —             | Protected route redirect               |
 | `/auth/signup`          | Sign up                                                       | Auth buttons | —             | Sign-in page link                      |
 | `/unauthorized`         | Access denied message                                         | —            | —             | RBAC redirect                          |
@@ -133,7 +133,7 @@ Routes `/admin`, `/api/auth/*`, `/auth/*`, `/api/site-config/maintenance`, `/api
 | POST            | `/api/auth/register`            | User registration                                                  | Public                |
 | POST            | `/api/submissions`              | Public event submission                                            | Public (rate-limited) |
 | POST            | `/api/subscribe`                | Newsletter subscription                                            | Public                |
-| POST            | `/api/newsletter`               | Newsletter subscription (alias)                                    | Public                |
+| ~~POST~~        | ~~`/api/newsletter`~~           | ~~Newsletter subscription (alias)~~ — removed, use `/api/subscribe` | Public                |
 | POST            | `/api/vendor-survey`            | Vendor survey response                                             | Public                |
 | POST            | `/api/events/[slug]/attendance` | Toggle Going/Interested                                            | User                  |
 | POST            | `/api/reviews`                  | Create review                                                      | User                  |

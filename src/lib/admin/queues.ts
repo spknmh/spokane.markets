@@ -7,7 +7,8 @@ export type QueueType =
   | "photo"
   | "market_claim"
   | "vendor_claim"
-  | "report";
+  | "report"
+  | "application";
 
 export type QueueItem = {
   type: QueueType;
@@ -38,6 +39,7 @@ export async function getQueuesSummary(): Promise<QueueSummary[]> {
     marketClaims,
     vendorClaims,
     reports,
+    applications,
   ] = await Promise.all([
     db.submission.findMany({
       where: { status: "PENDING" },
@@ -75,9 +77,15 @@ export async function getQueuesSummary(): Promise<QueueSummary[]> {
       take: 1,
       select: { createdAt: true },
     }),
+    db.application.findMany({
+      where: { status: "PENDING" },
+      orderBy: { createdAt: "asc" },
+      take: 1,
+      select: { createdAt: true },
+    }),
   ]);
 
-  const [subCount, revCount, photoCount, mClaimCount, vClaimCount, reportCount] =
+  const [subCount, revCount, photoCount, mClaimCount, vClaimCount, reportCount, appCount] =
     await Promise.all([
       db.submission.count({ where: { status: "PENDING" } }),
       db.review.count({ where: { status: "PENDING" } }),
@@ -85,6 +93,7 @@ export async function getQueuesSummary(): Promise<QueueSummary[]> {
       db.claimRequest.count({ where: { status: "PENDING" } }),
       db.vendorClaimRequest.count({ where: { status: "PENDING" } }),
       db.report.count({ where: { status: "PENDING" } }),
+      db.application.count({ where: { status: "PENDING" } }),
     ]);
 
   return [
@@ -117,6 +126,11 @@ export async function getQueuesSummary(): Promise<QueueSummary[]> {
       type: "report",
       count: reportCount,
       oldestAt: reports[0]?.createdAt ?? null,
+    },
+    {
+      type: "application",
+      count: appCount,
+      oldestAt: applications[0]?.createdAt ?? null,
     },
   ];
 }
@@ -208,7 +222,7 @@ export async function getQueueItems(opts: {
         id: r.id,
         createdAt: r.createdAt,
         title: r.event ? r.event.title : r.market ? r.market.name : "Review",
-        subtitle: `by ${r.user.name ?? r.user.email}`,
+        subtitle: `by ${r.user?.name ?? r.user?.email ?? "Anonymous"}`,
         status: "pending" as const,
         href: "/admin/reviews?status=PENDING",
       })),
@@ -245,7 +259,7 @@ export async function getQueueItems(opts: {
         id: r.id,
         createdAt: r.createdAt,
         title: `${r.targetType}: ${reportLabels[i]?.label ?? r.targetId}`,
-        subtitle: `by ${r.user.name ?? r.user.email}`,
+        subtitle: `by ${r.user?.name ?? r.user?.email ?? "Unknown"}`,
         status: "pending" as const,
         href: "/admin/reports?status=PENDING",
       })),
@@ -298,7 +312,7 @@ export async function getQueueItems(opts: {
         id: r.id,
         createdAt: r.createdAt,
         title: r.event ? r.event.title : r.market ? r.market.name : "Review",
-        subtitle: `by ${r.user.name ?? r.user.email}`,
+        subtitle: `by ${r.user?.name ?? r.user?.email ?? "Anonymous"}`,
         status: "pending" as const,
         href: "/admin/reviews?status=PENDING",
       }));
@@ -380,7 +394,7 @@ export async function getQueueItems(opts: {
         id: r.id,
         createdAt: r.createdAt,
         title: `${r.targetType}: ${labels[i]?.label ?? r.targetId}`,
-        subtitle: `by ${r.user.name ?? r.user.email}`,
+        subtitle: `by ${r.user?.name ?? r.user?.email ?? "Unknown"}`,
         status: "pending" as const,
         href: "/admin/reports?status=PENDING",
       }));

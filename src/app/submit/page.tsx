@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { SubmissionForm } from "@/components/submission-form";
+import { SubmissionForm } from "@/components/forms/submission-form";
 import { requireAuth } from "@/lib/auth-utils";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";

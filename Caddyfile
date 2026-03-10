@@ -18,7 +18,20 @@ spokane.markets {
 
 	encode zstd gzip
 
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		-Server
+	}
+
 	handle_path /uploads/* {
+		header Content-Disposition "inline"
+		header X-Content-Type-Options "nosniff"
+		@html path *.html *.htm *.svg
+		respond @html 403
 		root * /srv/uploads
 		file_server
 	}

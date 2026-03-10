@@ -1,7 +1,7 @@
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { extractSocialHandle } from "@/lib/utils";
-import { VendorProfileForm } from "@/components/vendor-profile-form";
+import { VendorProfileForm } from "@/components/vendor/vendor-profile-form";
 
 export default async function VendorProfileEditPage() {
   const session = await requireAuth("/vendor/profile/edit");

@@ -15,15 +15,22 @@ import {
 } from "@/components/ui/card";
 import { Calendar, CheckCircle2, ExternalLink, Facebook, Instagram, MapPin, Mail, Phone } from "lucide-react";
 import { formatDateRangeInTimezone, formatNeighborhoodLabel, formatPhoneNumber, getDirectionsUrl } from "@/lib/utils";
-import { MapPreview } from "@/components/map-preview";
+import nextDynamic from "next/dynamic";
+
+const MapPreview = nextDynamic(
+  () => import("@/components/event/map-preview").then((mod) => ({ default: mod.MapPreview })),
+  { ssr: false }
+);
 import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
 import { ReportButton } from "@/components/report-button";
 import { TrackMarketView } from "@/components/track-content-view";
-import { ClaimMarketButton } from "@/components/claim-market-button";
+import { ClaimMarketButton } from "@/components/vendor/claim-market-button";
 import type { Metadata } from "next";
 import type { VerificationStatus } from "@prisma/client";
 import { SITE_NAME } from "@/lib/constants";
+
+export const dynamic = "force-dynamic";
 
 function VerificationBadge({ status }: { status: VerificationStatus }) {
   if (status !== "VERIFIED") return null;
@@ -149,7 +156,7 @@ export default async function MarketDetailPage({ params }: PageProps) {
                       <CardHeader>
                         <CardTitle className="line-clamp-2">{event.title}</CardTitle>
                         <CardDescription>
-                          {formatDateRangeInTimezone(event.startDate, event.endDate, event.timezone)}
+                          {formatDateRangeInTimezone(event.startDate, event.endDate, null)}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>

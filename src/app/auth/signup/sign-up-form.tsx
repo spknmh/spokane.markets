@@ -9,7 +9,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   signUpSchema,
   signUpSchemaMagicLink,
-  SIGNUP_ROLES,
   type SignUpInput,
   type SignUpInputMagicLink,
 } from "@/lib/validations";
@@ -26,6 +25,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+import { FormErrorBanner } from "@/components/ui/form-error-banner";
 
 type SignUpFormProps = {
   magicLinkEnabled?: boolean;
@@ -38,9 +38,6 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
   const callbackUrl = isValidCallbackUrl(rawCallbackUrl) ? rawCallbackUrl : "/";
   const [error, setError] = useState<string | null>(null);
   const [useMagicLink, setUseMagicLink] = useState(magicLinkEnabled);
-
-  const vendorRedirect = "/vendor/dashboard";
-  const defaultRedirect = "/dashboard";
 
   const magicLinkForm = useForm<SignUpInputMagicLink>({
     resolver: zodResolver(signUpSchemaMagicLink),
@@ -59,25 +56,22 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "USER",
       website: "",
     },
   });
 
   async function onSubmitMagicLink(data: SignUpInputMagicLink) {
     setError(null);
-    trackEvent("signup_start", { role: data.role });
-    const redirectAfterSignIn =
-      data.role === "VENDOR" ? vendorRedirect : defaultRedirect;
+    trackEvent("signup_start", { role: "USER" });
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: data.name,
         email: data.email,
-        role: data.role,
+        role: "USER",
         website: data.website,
-        callbackUrl: redirectAfterSignIn,
+        callbackUrl: "/dashboard",
         magicLink: true,
       }),
     });
@@ -101,16 +95,16 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
       return;
     }
 
-    trackEvent("signup_success", { role: data.role });
+    trackEvent("signup_success", { role: "USER" });
     router.push(
-      `/auth/verify-request?callbackUrl=${encodeURIComponent(redirectAfterSignIn)}`
+      `/auth/verify-request?callbackUrl=${encodeURIComponent("/dashboard")}`
     );
     router.refresh();
   }
 
   async function onSubmitCredentials(data: SignUpInput) {
     setError(null);
-    trackEvent("signup_start", { role: data.role });
+    trackEvent("signup_start", { role: "USER" });
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -119,7 +113,7 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
         email: data.email,
         password: data.password,
         confirmPassword: data.confirmPassword,
-        role: data.role,
+        role: "USER",
         website: data.website,
       }),
     });
@@ -143,29 +137,18 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
       return;
     }
 
-    trackEvent("signup_success", { role: data.role });
+    trackEvent("signup_success", { role: "USER" });
 
-    // Sign in immediately after registration
-    const vendorRedirectUrl =
-      data.role === "VENDOR" ? vendorRedirect : defaultRedirect;
     const signInResult = await authClient.signIn.email({
       email: data.email,
       password: data.password,
     });
 
     if (!signInResult.error) {
-      if (data.role === "VENDOR") {
-        router.push("/vendor/dashboard");
-      } else {
-        router.push("/dashboard?pendingVerification=1");
-      }
+      router.push("/dashboard?pendingVerification=1");
       router.refresh();
     } else {
-      const signinCallback =
-        data.role === "VENDOR"
-          ? encodeURIComponent("/vendor/dashboard")
-          : encodeURIComponent(callbackUrl);
-      router.push(`/auth/signin?verified=0&callbackUrl=${signinCallback}`);
+      router.push(`/auth/signin?verified=0&callbackUrl=${encodeURIComponent(callbackUrl)}`);
       router.refresh();
     }
   }
@@ -180,14 +163,7 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {error && (
-            <div
-              role="alert"
-              className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-            >
-              {error}
-            </div>
-          )}
+          <FormErrorBanner message={error} />
 
           {magicLinkEnabled && useMagicLink ? (
             <form
@@ -238,38 +214,6 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
                   autoComplete="off"
                   {...magicLinkForm.register("website")}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label>What brings you here?</Label>
-                <p className="text-xs text-muted-foreground">
-                  This helps us show you the right features.
-                </p>
-                <div className="space-y-2">
-                  {SIGNUP_ROLES.map((r) => (
-                    <label
-                      key={r.value}
-                      className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                    >
-                      <input
-                        type="radio"
-                        value={r.value}
-                        {...magicLinkForm.register("role")}
-                        className="mt-1"
-                      />
-                      <div>
-                        <span className="font-medium">{r.label}</span>
-                        <p className="text-xs text-muted-foreground">
-                          {r.description}
-                        </p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-                {magicLinkForm.formState.errors.role && (
-                  <p className="text-sm text-destructive">
-                    {magicLinkForm.formState.errors.role.message}
-                  </p>
-                )}
               </div>
               <Button
                 type="submit"
@@ -366,38 +310,6 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
                     {
                       credentialsForm.formState.errors.confirmPassword.message
                     }
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>What brings you here?</Label>
-                <p className="text-xs text-muted-foreground">
-                  This helps us show you the right features.
-                </p>
-                <div className="space-y-2">
-                  {SIGNUP_ROLES.map((r) => (
-                    <label
-                      key={r.value}
-                      className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                    >
-                      <input
-                        type="radio"
-                        value={r.value}
-                        {...credentialsForm.register("role")}
-                        className="mt-1"
-                      />
-                      <div>
-                        <span className="font-medium">{r.label}</span>
-                        <p className="text-xs text-muted-foreground">
-                          {r.description}
-                        </p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-                {credentialsForm.formState.errors.role && (
-                  <p className="text-sm text-destructive">
-                    {credentialsForm.formState.errors.role.message}
                   </p>
                 )}
               </div>

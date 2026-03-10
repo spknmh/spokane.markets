@@ -37,7 +37,6 @@ type EventRow = {
   description?: string;
   startDate: string;
   endDate: string;
-  timezone?: string | null;
   venueId?: string;
   venueSlug?: string;
   marketId?: string;
@@ -238,7 +237,6 @@ export async function importData(payload: ImportPayload): Promise<ImportResult> 
             description: row.description || null,
             startDate,
             endDate,
-            timezone: row.timezone ?? null,
             venueId,
             marketId,
             imageUrl: row.imageUrl || null,

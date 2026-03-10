@@ -20,7 +20,7 @@ describe("EventOccurrenceService", () => {
   });
 
   it("findEventBySlug uses db.event", async () => {
-    const mockEvent = {
+    const mockDbResult = {
       id: "ev1",
       slug: "test-event",
       title: "Test",
@@ -29,11 +29,11 @@ describe("EventOccurrenceService", () => {
       tags: [],
       features: [],
       scheduleDays: [],
-      attendances: [],
+      _count: { attendances: 0 },
       vendorRoster: [],
       vendorIntents: [],
     };
-    mockFindUnique.mockResolvedValue(mockEvent);
+    mockFindUnique.mockResolvedValue(mockDbResult);
 
     const { findEventBySlug } = await import("./event-occurrence-service");
     const result = await findEventBySlug("test-event");
@@ -44,6 +44,6 @@ describe("EventOccurrenceService", () => {
         include: expect.any(Object),
       })
     );
-    expect(result).toEqual(mockEvent);
+    expect(result).toEqual({ ...mockDbResult, userAttendance: null });
   });
 });

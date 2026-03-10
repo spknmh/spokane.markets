@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
-import { ConditionalChrome } from "@/components/conditional-chrome";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
+import { ConditionalChrome } from "@/components/layout/conditional-chrome";
+import { Navbar } from "@/components/layout/navbar";
+import { Footer } from "@/components/layout/footer";
 import { Providers } from "@/components/providers";
-import { AnalyticsLoader } from "@/components/analytics-loader";
+import { AnalyticsLoader } from "@/components/analytics/analytics-loader";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
 import { SITE_NAME } from "@/lib/constants";
 import { getSiteTheme } from "@/lib/site-theme";
@@ -38,9 +38,6 @@ const umamiWebsiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
 const umamiScriptUrl =
   process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ||
   "https://analytics.spokane.markets/script.js";
-
-/** Skip static prerender at build time; DB is unavailable in Docker build. */
-export const dynamic = "force-dynamic";
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
@@ -131,7 +128,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             nav={<Navbar />}
             footer={<Footer />}
           >
-            <main id="main" className="min-h-screen">{children}</main>
+            <div id="main" className="min-h-screen">{children}</div>
           </ConditionalChrome>
           </AnalyticsLoader>
         </Providers>

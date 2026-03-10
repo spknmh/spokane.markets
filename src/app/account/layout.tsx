@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-utils";
-import { DashboardSidebar } from "@/components/dashboard-sidebar";
+import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
+
+export const metadata: Metadata = {
+  title: "Account Settings",
+};
 
 const accountNavItems = [
   { label: "Overview", href: "/dashboard", icon: "LayoutDashboard" as const },

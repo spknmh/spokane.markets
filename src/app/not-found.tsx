@@ -1,4 +1,4 @@
-import { NotFoundTracker } from "@/components/not-found-tracker";
+import { NotFoundTracker } from "@/components/analytics/not-found-tracker";
 
 export default function NotFound() {
   return <NotFoundTracker />;

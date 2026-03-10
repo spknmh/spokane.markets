@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth-utils";
-import { DashboardSidebar } from "@/components/dashboard-sidebar";
+import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
+
+export const metadata: Metadata = {
+  title: "Organizer Dashboard",
+};
 
 const organizerNavItems = [
   { label: "Overview", href: "/organizer/dashboard", icon: "LayoutDashboard" as const },

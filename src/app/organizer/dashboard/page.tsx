@@ -22,6 +22,8 @@ const QUEUE_ICONS: Record<string, typeof Users> = {
   events_pending: Clock,
 };
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `Organizer Dashboard — ${SITE_NAME}`,
 };
@@ -375,7 +377,7 @@ export default async function OrganizerDashboardPage() {
                               </Badge>
                             </div>
                             <p className="mt-0.5 text-sm text-muted-foreground">
-                              {formatDateRangeInTimezone(event.startDate, event.endDate, event.timezone)} ·{" "}
+                              {formatDateRangeInTimezone(event.startDate, event.endDate, null)} ·{" "}
                               {event.venue.name}
                             </p>
                           </div>
@@ -438,7 +440,7 @@ export default async function OrganizerDashboardPage() {
                               </Badge>
                             </div>
                             <p className="mt-0.5 text-sm text-muted-foreground">
-                              {formatDateRangeInTimezone(event.startDate, event.endDate, event.timezone)} ·{" "}
+                              {formatDateRangeInTimezone(event.startDate, event.endDate, null)} ·{" "}
                               {event.venue.name}
                             </p>
                           </div>

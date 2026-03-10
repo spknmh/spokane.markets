@@ -110,7 +110,7 @@ export default async function AdminEventsPage({
                 <tr key={event.id} className="hover:bg-muted/30">
                   <td className="p-3 font-medium">{event.title}</td>
                   <td className="p-3 text-muted-foreground">
-                    {formatDateRangeInTimezone(event.startDate, event.endDate, event.timezone)}
+                    {formatDateRangeInTimezone(event.startDate, event.endDate, null)}
                   </td>
                   <td className="p-3 text-muted-foreground">{event.venue.name}</td>
                   <td className="p-3">

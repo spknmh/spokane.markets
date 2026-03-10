@@ -9,7 +9,7 @@ import { Pagination } from "@/components/pagination";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { FavoriteVendorButton } from "@/components/favorite-vendor-button";
+import { FavoriteVendorButton } from "@/components/vendor/favorite-vendor-button";
 import {
   Card,
   CardHeader,
@@ -17,7 +17,9 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
-import { VendorsSearch } from "@/components/vendors-search";
+import { VendorsSearch } from "@/components/vendor/vendors-search";
+
+export const dynamic = "force-dynamic";
 
 const DEFAULT_LIMIT = 24;
 

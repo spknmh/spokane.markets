@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { ok, retryAfter } = checkRateLimit(session.user.id, "reviews");
+  const { ok, retryAfter } = await checkRateLimit(session.user.id, "reviews");
   if (!ok) {
     const headers = retryAfter ? { "Retry-After": String(retryAfter) } : undefined;
     return NextResponse.json(

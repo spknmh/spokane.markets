@@ -22,6 +22,8 @@ import {
   Settings,
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 const QUEUE_LABELS: Record<string, string> = {
   submission: "Pending Submissions",
   review: "Pending Reviews",
@@ -313,7 +315,7 @@ export default async function AdminOverviewPage() {
                         {"☆".repeat(5 - review.rating)}
                       </p>
                       <p className="text-muted-foreground">
-                        by {review.user.name || review.user.email}
+                        by {review.user?.name || review.user?.email || "Anonymous"}
                       </p>
                     </div>
                     <span className="text-xs text-muted-foreground">

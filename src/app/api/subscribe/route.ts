@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { db } from "@/lib/db";
 import { subscriberSchema } from "@/lib/validations";
 import { checkRateLimit } from "@/lib/rate-limit";
+
+export function generateUnsubscribeToken(email: string): string {
+  const secret = process.env.BETTER_AUTH_SECRET || "";
+  return crypto.createHmac("sha256", secret).update(email).digest("hex");
+}
+
+function validateUnsubscribeToken(email: string, token: string): boolean {
+  const expected = generateUnsubscribeToken(email);
+  if (expected.length !== token.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+}
 
 const VALID_SOURCES = ["digest", "filters", "favorites"] as const;
 
@@ -23,7 +35,7 @@ async function getSubscribeBody(request: Request): Promise<{ email: string; area
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? request.headers.get("x-real-ip") ?? "unknown";
-    const { ok, retryAfter } = checkRateLimit(ip, "subscribe");
+    const { ok, retryAfter } = await checkRateLimit(ip, "subscribe");
     if (!ok) {
       const headers = retryAfter ? { "Retry-After": String(retryAfter) } : undefined;
       return NextResponse.json(
@@ -77,10 +89,19 @@ export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email");
+    const token = searchParams.get("token");
     const source = searchParams.get("source") ?? "digest";
 
     if (!email || typeof email !== "string" || email.trim() === "") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    if (!token || typeof token !== "string") {
+      return NextResponse.json({ error: "Token is required" }, { status: 401 });
+    }
+
+    if (!validateUnsubscribeToken(email.toLowerCase().trim(), token)) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     if (!VALID_SOURCES.includes(source as (typeof VALID_SOURCES)[number])) {

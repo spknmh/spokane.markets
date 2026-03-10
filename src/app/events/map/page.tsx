@@ -6,7 +6,14 @@ import Image from "next/image";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
-import { EventsMap } from "@/components/events-map";
+import nextDynamic from "next/dynamic";
+
+const EventsMap = nextDynamic(
+  () => import("@/components/event/events-map").then((mod) => ({ default: mod.EventsMap })),
+  { ssr: false }
+);
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: `Events Map — ${SITE_NAME}`,

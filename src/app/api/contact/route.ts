@@ -9,7 +9,7 @@ export async function POST(request: Request) {
       request.headers.get("x-forwarded-for")?.split(",")[0] ??
       request.headers.get("x-real-ip") ??
       "unknown";
-    const { ok } = checkRateLimit(ip, "contact");
+    const { ok } = await checkRateLimit(ip, "contact");
     if (!ok) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },

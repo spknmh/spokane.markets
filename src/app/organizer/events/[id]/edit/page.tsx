@@ -44,7 +44,7 @@ export default async function OrganizerEditEventPage({
     redirect("/unauthorized");
   }
 
-  const tz = event.timezone || "America/Los_Angeles";
+  const tz = "America/Los_Angeles";
   const scheduleDays =
     event.scheduleDays?.length
       ? event.scheduleDays.map((d) => ({
@@ -62,7 +62,6 @@ export default async function OrganizerEditEventPage({
     description: event.description ?? "",
     startDate: formatForDateTimeLocal(event.startDate, tz),
     endDate: formatForDateTimeLocal(event.endDate, tz),
-    timezone: event.timezone ?? "",
     venueId: event.venueId,
     venueName: "",
     venueAddress: "",

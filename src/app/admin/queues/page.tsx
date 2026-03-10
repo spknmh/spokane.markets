@@ -22,6 +22,7 @@ const VIEW_ALL_HREFS: Record<QueueType, string> = {
   market_claim: "/admin/claims?tab=market&status=PENDING",
   vendor_claim: "/admin/claims?tab=vendor&status=PENDING",
   report: "/admin/reports?status=PENDING",
+  application: "/admin/applications?status=PENDING",
 };
 
 export default async function AdminQueuesPage({

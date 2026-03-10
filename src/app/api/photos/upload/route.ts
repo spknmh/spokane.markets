@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { ok, retryAfter } = checkRateLimit(session.user.id, "uploads");
+  const { ok, retryAfter } = await checkRateLimit(session.user.id, "uploads");
   if (!ok) {
     const headers = retryAfter ? { "Retry-After": String(retryAfter) } : undefined;
     return NextResponse.json(
@@ -47,7 +47,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const ext = file.name.split(".").pop() ?? "jpg";
+  const MIME_TO_EXT: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/gif": "gif",
+    "image/webp": "webp",
+    "image/svg+xml": "svg",
+  };
+  const ext = MIME_TO_EXT[file.type] ?? "jpg";
   const filename = `${crypto.randomUUID()}.${ext}`;
 
   await mkdir(UPLOAD_DIR, { recursive: true });

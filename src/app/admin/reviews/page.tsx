@@ -114,7 +114,7 @@ export default async function AdminReviewsPage({
                     {"☆".repeat(5 - review.rating)}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    by {review.user.name || review.user.email}
+                    by {review.user?.name || review.user?.email || "Anonymous"}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {review.event

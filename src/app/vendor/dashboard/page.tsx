@@ -14,12 +14,14 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { EventCard } from "@/components/event-card";
+import { EventCard } from "@/components/event/event-card";
 import { VendorPipelineBoard } from "@/components/vendor-pipeline-board";
 import { VendorProfileProgress } from "@/components/vendor-profile-progress";
 import { ExternalLink, Heart } from "lucide-react";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { computeVendorProfileCompletion } from "@/lib/vendor-profile";
+
+export const dynamic = "force-dynamic";
 
 export default async function VendorDashboardPage() {
   const session = await requireAuth("/vendor/dashboard");

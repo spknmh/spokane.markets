@@ -4,3 +4,10 @@ node_modules
 *.log
 .env*
 !.env.example
+docs/
+uploads/
+*.test.ts
+*.test.tsx
+*.spec.ts
+vitest.config.ts
+README*.md

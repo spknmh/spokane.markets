@@ -25,7 +25,13 @@ export async function GET() {
     }
 
     const vendorEvents = await db.vendorEvent.findMany({
-      where: { vendorProfileId: profile.id },
+      where: {
+        vendorProfileId: profile.id,
+        event: {
+          startDate: { gte: new Date() },
+          status: "PUBLISHED",
+        },
+      },
       include: {
         event: {
           include: { venue: true, tags: true, features: true },
@@ -34,13 +40,7 @@ export async function GET() {
       orderBy: { event: { startDate: "asc" } },
     });
 
-    const upcoming = vendorEvents.filter(
-      (ve) =>
-        ve.event.startDate >= new Date() &&
-        ve.event.status === "PUBLISHED",
-    );
-
-    return NextResponse.json(upcoming);
+    return NextResponse.json(vendorEvents);
   } catch (err) {
     console.error("Vendor events GET error:", err);
     return NextResponse.json(

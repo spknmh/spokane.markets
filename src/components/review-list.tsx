@@ -73,7 +73,7 @@ export async function ReviewList({ eventId, marketId, isLoggedIn = false }: Revi
               <div>
                 <div className="flex items-center gap-2">
                   <p className="font-medium">
-                    {review.user.name ?? "Anonymous"}
+                    {review.user?.name ?? "Anonymous"}
                   </p>
                   <ReportButton
                     targetType="REVIEW"

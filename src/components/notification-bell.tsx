@@ -55,8 +55,8 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
   async function markAllAsRead() {
     setMarkingAll(true);
     try {
-      const res = await fetch("/api/notifications/mark-all-read", {
-        method: "POST",
+      const res = await fetch("/api/notifications/read-all", {
+        method: "PATCH",
       });
       if (res.ok) {
         setNotifications((prev) =>

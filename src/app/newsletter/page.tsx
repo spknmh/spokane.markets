@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { NewsletterForm } from "@/components/newsletter-form";
+import { NewsletterForm } from "@/components/forms/newsletter-form";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 

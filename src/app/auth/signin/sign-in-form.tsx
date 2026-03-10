@@ -21,6 +21,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+import { FormErrorBanner } from "@/components/ui/form-error-banner";
 
 const magicLinkSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email"),
@@ -116,14 +117,7 @@ export function SignInForm({
               hours.
             </div>
           )}
-          {error && (
-            <div
-              role="alert"
-              className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-            >
-              {error}
-            </div>
-          )}
+          <FormErrorBanner message={error} />
 
           {magicLinkEnabled && showMagicLink ? (
             <form
@@ -320,7 +314,7 @@ export function SignInForm({
             </form>
           )}
         </CardContent>
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link
@@ -334,6 +328,22 @@ export function SignInForm({
               Sign up
             </Link>
           </p>
+
+          <div className="w-full space-y-2 rounded-lg border border-border bg-muted/30 p-3 text-center text-sm">
+            <p className="font-medium text-foreground">Are you a vendor or market organizer?</p>
+            <p className="text-muted-foreground">
+              <Link href="/apply/vendor" className="text-primary hover:underline">
+                Apply for a vendor profile
+              </Link>
+              {" "}to share where you&apos;ll be next and get discovered by shoppers.
+            </p>
+            <p className="text-muted-foreground">
+              <Link href="/apply/market" className="text-primary hover:underline">
+                List your market or event
+              </Link>
+              {" "}to reach visitors planning their weekend.
+            </p>
+          </div>
         </CardFooter>
       </Card>
     </div>

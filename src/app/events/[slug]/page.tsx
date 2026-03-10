@@ -8,8 +8,13 @@ import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
 import { getDirectionsUrl, formatTime12hr, formatEventTimeFromSchedule } from "@/lib/utils";
-import { EventTimeLabel } from "@/components/event-time-label";
-import { MapPreview } from "@/components/map-preview";
+import { EventTimeLabel } from "@/components/event/event-time-label";
+import nextDynamic from "next/dynamic";
+
+const MapPreview = nextDynamic(
+  () => import("@/components/event/map-preview").then((mod) => ({ default: mod.MapPreview })),
+  { ssr: false }
+);
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AttendanceToggle } from "@/components/attendance-toggle";
@@ -18,13 +23,15 @@ import { WriteReviewButton } from "@/components/write-review-button";
 import { ShareButton } from "@/components/share-button";
 import { AddToCalendar } from "@/components/add-to-calendar";
 import { ReportButton } from "@/components/report-button";
-import { OfficialVendorRoster } from "@/components/official-vendor-roster";
-import { SelfReportedVendorList } from "@/components/self-reported-vendor-list";
+import { OfficialVendorRoster } from "@/components/vendor/official-vendor-roster";
+import { SelfReportedVendorList } from "@/components/vendor/self-reported-vendor-list";
 import { EventVendorActions } from "@/components/event-vendor-actions";
 import { TrackEventView } from "@/components/track-content-view";
 import { getParticipationConfig } from "@/lib/participation-config";
 import { SITE_NAME } from "@/lib/constants";
 import { Globe, Facebook } from "lucide-react";
+
+export const dynamic = "force-dynamic";
 
 interface EventDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -78,9 +85,6 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const fullAddress = `${event.venue.address}, ${event.venue.city}, ${event.venue.state} ${event.venue.zip}`;
   const directionsUrl = getDirectionsUrl(fullAddress);
 
-  const goingCount = event.attendances.filter((a) => a.status === "GOING").length;
-  const interestedCount = event.attendances.filter((a) => a.status === "INTERESTED").length;
-
   const session = await getSession();
   const vendorProfile = session?.user
     ? await db.vendorProfile.findUnique({
@@ -89,23 +93,25 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
       })
     : null;
 
-  const [userAttendance, userIntent] = session?.user
-    ? await Promise.all([
-        db.attendance.findUnique({
+  const [goingCount, interestedCount, userAttendance, userIntent] = await Promise.all([
+    db.attendance.count({ where: { eventId: event.id, status: "GOING" } }),
+    db.attendance.count({ where: { eventId: event.id, status: "INTERESTED" } }),
+    session?.user
+      ? db.attendance.findUnique({
           where: { userId_eventId: { userId: session.user.id!, eventId: event.id } },
-        }),
-        vendorProfile
-          ? db.eventVendorIntent.findUnique({
-              where: {
-                eventId_vendorProfileId: {
-                  eventId: event.id,
-                  vendorProfileId: vendorProfile.id,
-                },
-              },
-            })
-          : Promise.resolve(null),
-      ])
-    : [null, null];
+        })
+      : Promise.resolve(null),
+    session?.user && vendorProfile
+      ? db.eventVendorIntent.findUnique({
+          where: {
+            eventId_vendorProfileId: {
+              eventId: event.id,
+              vendorProfileId: vendorProfile.id,
+            },
+          },
+        })
+      : Promise.resolve(null),
+  ]);
 
   const participationConfig = getParticipationConfig(event);
 
@@ -175,10 +181,14 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
           <div className="overflow-hidden rounded-lg ring-1 ring-border">
             {event.imageUrl ? (
-              <img
+              <Image
                 src={event.imageUrl}
                 alt={event.title}
+                width={1200}
+                height={400}
                 className="h-64 w-full object-cover sm:h-80"
+                priority
+                unoptimized={event.imageUrl.startsWith("http")}
               />
             ) : (
               <Image
@@ -252,12 +262,11 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               <p className="text-sm font-medium text-muted-foreground">When</p>
               <p className="mt-0.5 text-lg font-semibold text-foreground">
                 {event.scheduleDays?.length ? (
-                  formatEventTimeFromSchedule(event.scheduleDays, event.timezone)
+                  formatEventTimeFromSchedule(event.scheduleDays)
                 ) : (
                   <EventTimeLabel
                     startDate={event.startDate}
                     endDate={event.endDate}
-                    timezone={event.timezone}
                   />
                 )}
               </p>

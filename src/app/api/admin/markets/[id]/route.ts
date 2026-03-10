@@ -1,86 +1,82 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { requireApiAdmin } from "@/lib/api-auth";
+import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { marketSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
-
-async function requireAdmin() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  }
-  if (session.user.role !== "ADMIN") {
-    return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
-  }
-  return { session };
-}
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const result = await requireAdmin();
-  if ("error" in result && result.error) return result.error;
+  try {
+    const { session, error } = await requireApiAdmin();
+    if (error) return error;
 
-  const { id } = await params;
-  const body = await request.json();
-  const parsed = marketSchema.safeParse(body);
+    const { id } = await params;
+    const body = await request.json();
+    const parsed = marketSchema.safeParse(body);
 
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: { message: "Validation failed", details: parsed.error.flatten() } },
-      { status: 400 }
-    );
+    if (!parsed.success) {
+      return apiValidationError(parsed.error.flatten().fieldErrors);
+    }
+
+    const data = parsed.data;
+    const market = await db.market.update({
+      where: { id },
+      data: {
+        name: data.name,
+        slug: data.slug,
+        venueId: data.venueId,
+        description: data.description || null,
+        imageUrl: data.imageUrl || null,
+        websiteUrl: data.websiteUrl || null,
+        facebookUrl: data.facebookUrl || null,
+        instagramUrl: data.instagramUrl || null,
+        baseArea: data.baseArea || null,
+        typicalSchedule: data.typicalSchedule || null,
+        contactEmail: data.contactEmail || null,
+        contactPhone: data.contactPhone || null,
+        ...(data.verificationStatus && {
+          verificationStatus: data.verificationStatus,
+        }),
+        ...(data.ownerId !== undefined && {
+          ownerId: data.ownerId || null,
+        }),
+        ...(data.participationMode && { participationMode: data.participationMode }),
+        ...(data.vendorCapacity != null && { vendorCapacity: data.vendorCapacity }),
+        ...(data.publicIntentListEnabled !== undefined && {
+          publicIntentListEnabled: data.publicIntentListEnabled,
+        }),
+        ...(data.publicIntentNamesEnabled !== undefined && {
+          publicIntentNamesEnabled: data.publicIntentNamesEnabled,
+        }),
+        ...(data.publicRosterEnabled !== undefined && {
+          publicRosterEnabled: data.publicRosterEnabled,
+        }),
+      },
+    });
+
+    return NextResponse.json(market);
+  } catch (err) {
+    console.error("[PUT /api/admin/markets/:id]", err);
+    return apiError("Internal server error", 500);
   }
-
-  const data = parsed.data;
-  const market = await db.market.update({
-    where: { id },
-    data: {
-      name: data.name,
-      slug: data.slug,
-      venueId: data.venueId,
-      description: data.description || null,
-      imageUrl: data.imageUrl || null,
-      websiteUrl: data.websiteUrl || null,
-      facebookUrl: data.facebookUrl || null,
-      instagramUrl: data.instagramUrl || null,
-      baseArea: data.baseArea || null,
-      typicalSchedule: data.typicalSchedule || null,
-      contactEmail: data.contactEmail || null,
-      contactPhone: data.contactPhone || null,
-      ...(data.verificationStatus && {
-        verificationStatus: data.verificationStatus,
-      }),
-      ...(data.ownerId !== undefined && {
-        ownerId: data.ownerId || null,
-      }),
-      ...(data.participationMode && { participationMode: data.participationMode }),
-      ...(data.vendorCapacity != null && { vendorCapacity: data.vendorCapacity }),
-      ...(data.publicIntentListEnabled !== undefined && {
-        publicIntentListEnabled: data.publicIntentListEnabled,
-      }),
-      ...(data.publicIntentNamesEnabled !== undefined && {
-        publicIntentNamesEnabled: data.publicIntentNamesEnabled,
-      }),
-      ...(data.publicRosterEnabled !== undefined && {
-        publicRosterEnabled: data.publicRosterEnabled,
-      }),
-    },
-  });
-
-  return NextResponse.json(market);
 }
 
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const result = await requireAdmin();
-  if ("error" in result && result.error) return result.error;
+  try {
+    const { session, error } = await requireApiAdmin();
+    if (error) return error;
 
-  const { id } = await params;
-  await db.market.delete({ where: { id } });
+    const { id } = await params;
+    await db.market.delete({ where: { id } });
 
-  return NextResponse.json({ success: true });
+    return new NextResponse(null, { status: 204 });
+  } catch (err) {
+    console.error("[DELETE /api/admin/markets/:id]", err);
+    return apiError("Internal server error", 500);
+  }
 }

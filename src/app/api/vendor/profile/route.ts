@@ -98,17 +98,6 @@ export async function POST(request: Request) {
     const slug = await generateUniqueSlug(data.businessName);
 
     const profile = await db.$transaction(async (tx) => {
-      const user = await tx.user.findUniqueOrThrow({
-        where: { id: session.user.id },
-      });
-
-      if (user.role === "USER") {
-        await tx.user.update({
-          where: { id: session.user.id },
-          data: { role: "VENDOR" },
-        });
-      }
-
       return tx.vendorProfile.create({
         data: {
           userId: session.user.id,

@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { DashboardSidebar } from "@/components/dashboard-sidebar";
+import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
+
+export const metadata: Metadata = {
+  title: "Vendor Dashboard",
+};
 
 function getVendorNavItems(profileSlug: string | null) {
   return [

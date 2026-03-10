@@ -1,5 +1,8 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { requireApiAuth } from "@/lib/api-auth";
+import { apiError, apiValidationError } from "@/lib/api-response";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -9,22 +12,22 @@ const changePasswordSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const body = await request.json();
-  const parsed = changePasswordSchema.safeParse(body);
-  if (!parsed.success) {
-    const first = parsed.error.issues[0];
-    return NextResponse.json(
-      { error: first?.message ?? "Invalid input" },
-      { status: 400 }
-    );
-  }
-
   try {
+    const ip = request.headers.get("x-forwarded-for") ?? "unknown";
+    const rl = await checkRateLimit(ip, "changePassword");
+    if (!rl.ok) {
+      return apiError("Too many requests", 429);
+    }
+
+    const { session, error } = await requireApiAuth();
+    if (error) return error;
+
+    const body = await request.json();
+    const parsed = changePasswordSchema.safeParse(body);
+    if (!parsed.success) {
+      return apiValidationError(parsed.error.flatten().fieldErrors);
+    }
+
     await auth.api.changePassword({
       headers: await headers(),
       body: {
@@ -37,6 +40,7 @@ export async function POST(request: Request) {
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Failed to change password";
-    return NextResponse.json({ error: message }, { status: 400 });
+    console.error("[POST /api/account/change-password]", err);
+    return apiError(message, 400);
   }
 }

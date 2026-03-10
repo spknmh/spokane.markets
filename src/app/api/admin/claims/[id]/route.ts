@@ -1,48 +1,75 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { z } from "zod";
+import { requireApiAdmin } from "@/lib/api-auth";
+import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
+import { createNotification } from "@/lib/notifications";
+import { evaluateAndGrantBadges } from "@/lib/badges";
 import { NextResponse } from "next/server";
+
+const patchClaimSchema = z.object({
+  status: z.enum(["APPROVED", "REJECTED"]),
+});
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  try {
+    const { session, error } = await requireApiAdmin();
+    if (error) return error;
 
-  const { id } = await params;
-  const body = await request.json();
-  const { status } = body;
+    const { id } = await params;
+    const body = await request.json();
+    const parsed = patchClaimSchema.safeParse(body);
+    if (!parsed.success) {
+      return apiValidationError(parsed.error.flatten().fieldErrors);
+    }
 
-  if (status !== "APPROVED" && status !== "REJECTED") {
-    return NextResponse.json(
-      { error: { message: "Status must be APPROVED or REJECTED" } },
-      { status: 400 }
-    );
-  }
+    const { status } = parsed.data;
 
-  const claim = await db.claimRequest.update({
-    where: { id },
-    data: {
-      status,
-      reviewerId: session.user.id,
-    },
-  });
-
-  if (status === "APPROVED") {
-    await db.market.update({
-      where: { id: claim.marketId },
+    const claim = await db.claimRequest.update({
+      where: { id },
       data: {
-        verificationStatus: "VERIFIED",
-        ownerId: claim.userId,
+        status,
+        reviewerId: session.user.id,
       },
+      include: { market: true },
     });
-  }
 
-  return NextResponse.json(claim);
+    if (status === "APPROVED") {
+      await db.market.update({
+        where: { id: claim.marketId },
+        data: {
+          verificationStatus: "VERIFIED",
+          ownerId: claim.userId,
+        },
+      });
+      evaluateAndGrantBadges(claim.userId).catch(() => {});
+      await createNotification(
+        claim.userId,
+        "CLAIM_APPROVED",
+        `Your claim for ${claim.market.name} was approved`,
+        null,
+        `/markets/${claim.market.slug}`
+      );
+    } else {
+      await createNotification(
+        claim.userId,
+        "CLAIM_REJECTED",
+        `Your claim for ${claim.market.name} was rejected`,
+        null,
+        `/markets/${claim.market.slug}`
+      );
+    }
+    await logAudit(session.user.id, "UPDATE_CLAIM_STATUS", "CLAIM", id, {
+      status,
+      type: "MARKET",
+    });
+
+    return NextResponse.json(claim);
+  } catch (err) {
+    console.error("[PATCH /api/admin/claims/:id]", err);
+    return apiError("Internal server error", 500);
+  }
 }

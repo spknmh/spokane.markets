@@ -7,12 +7,14 @@ import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
-import { EventCard } from "@/components/event-card";
-import { EventFilters } from "@/components/event-filters";
+import { EventCard } from "@/components/event/event-card";
+import { EventFilters } from "@/components/event/event-filters";
 import { SaveFilterDialog } from "@/components/save-filter-dialog";
 import { Pagination } from "@/components/pagination";
 import { Badge } from "@/components/ui/badge";
 import { EventsEmptyStateTracker } from "@/components/events-empty-state-tracker";
+
+export const dynamic = "force-dynamic";
 
 interface EventsPageProps {
   searchParams: Promise<{

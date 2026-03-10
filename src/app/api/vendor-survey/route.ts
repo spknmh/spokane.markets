@@ -11,7 +11,7 @@ function toOptional(value: string | undefined): string | undefined {
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? request.headers.get("x-real-ip") ?? "unknown";
-    const { ok, retryAfter } = checkRateLimit(ip, "vendorSurvey");
+    const { ok, retryAfter } = await checkRateLimit(ip, "vendorSurvey");
     if (!ok) {
       const headers = retryAfter ? { "Retry-After": String(retryAfter) } : undefined;
       return NextResponse.json(

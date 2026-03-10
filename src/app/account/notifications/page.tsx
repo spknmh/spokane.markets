@@ -5,6 +5,8 @@ import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { NotificationPreferencesForm } from "./notification-preferences-form";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `Notification Preferences — ${SITE_NAME}`,
   description: "Manage your notification preferences.",
