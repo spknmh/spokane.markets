@@ -19,6 +19,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      # Prisma generate needs DATABASE_URL to exist (does not connect); use placeholder for CI
+      DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
 
     steps:
       - name: Checkout
