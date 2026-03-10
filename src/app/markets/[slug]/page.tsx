@@ -13,12 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Calendar, CheckCircle2, ExternalLink, Facebook, Instagram, MapPin, Mail, Phone } from "lucide-react";
 import { formatDateRangeInTimezone, formatNeighborhoodLabel, formatPhoneNumber, getDirectionsUrl } from "@/lib/utils";
-import nextDynamic from "next/dynamic";
-
-const MapPreview = nextDynamic(
-  () => import("@/components/event/map-preview").then((mod) => ({ default: mod.MapPreview })),
-  { ssr: false }
-);
+import { MapPreviewLazy as MapPreview } from "@/components/event/map-preview-lazy";
 import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
 import { ReportButton } from "@/components/report-button";

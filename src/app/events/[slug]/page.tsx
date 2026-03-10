@@ -9,12 +9,7 @@ import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
 import { getDirectionsUrl, formatTime12hr, formatEventTimeFromSchedule } from "@/lib/utils";
 import { EventTimeLabel } from "@/components/event/event-time-label";
-import nextDynamic from "next/dynamic";
-
-const MapPreview = nextDynamic(
-  () => import("@/components/event/map-preview").then((mod) => ({ default: mod.MapPreview })),
-  { ssr: false }
-);
+import { MapPreviewLazy as MapPreview } from "@/components/event/map-preview-lazy";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AttendanceToggle } from "@/components/attendance-toggle";

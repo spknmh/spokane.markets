@@ -6,12 +6,7 @@ import Image from "next/image";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
-import nextDynamic from "next/dynamic";
-
-const EventsMap = nextDynamic(
-  () => import("@/components/event/events-map").then((mod) => ({ default: mod.EventsMap })),
-  { ssr: false }
-);
+import { EventsMapLazy as EventsMap } from "@/components/event/events-map-lazy";
 
 export const dynamic = "force-dynamic";
 
