@@ -12,7 +12,15 @@ function getResend() {
   return new Resend(key);
 }
 
+const baseUrl = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL;
+
 export const auth = betterAuth({
+  baseURL: baseUrl,
+  trustedOrigins: [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    ...(baseUrl ? [baseUrl.replace(/\/$/, "")] : []),
+  ],
   database: prismaAdapter(db, { provider: "postgresql" }),
   user: {
     modelName: "users",
