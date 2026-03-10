@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth-utils";
 import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
+import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount";
 import { OrganizerEventForm } from "@/components/organizer-event-form";
 import { notFound, redirect } from "next/navigation";
 import { formatForDateTimeLocal } from "@/lib/utils";
@@ -83,6 +84,10 @@ export default async function OrganizerEditEventPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
+      <TrackEventOnMount
+        eventName="event_edit_started"
+        params={{ event_id: event.id, surface: "dashboard" }}
+      />
       <h1 className="text-3xl font-bold tracking-tight">Edit Event</h1>
       <div className="mt-6">
         <OrganizerEventForm

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount";
 import { Button } from "@/components/ui/button";
 import { DashboardHeaderCard } from "@/components/dashboard-header-card";
 import { evaluateAndGrantBadges } from "@/lib/badges";
@@ -80,6 +81,10 @@ export default async function VendorDashboardPage() {
   if (!profile) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+        <TrackEventOnMount
+          eventName="vendor_dashboard_view"
+          params={{ surface: "dashboard" }}
+        />
         <DashboardHeaderCard
           user={{
             name: user.name,
@@ -141,6 +146,10 @@ export default async function VendorDashboardPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <TrackEventOnMount
+        eventName="vendor_dashboard_view"
+        params={{ surface: "dashboard" }}
+      />
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">
           Vendor Dashboard

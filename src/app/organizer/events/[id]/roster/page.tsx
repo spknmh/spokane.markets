@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth-utils";
 import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { canManageEventRoster } from "@/lib/organizer-guard";
+import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount";
 import { OrganizerRosterManager } from "@/components/organizer-roster-manager";
 import { Button } from "@/components/ui/button";
 import { notFound, redirect } from "next/navigation";
@@ -77,6 +78,10 @@ export default async function OrganizerRosterPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      <TrackEventOnMount
+        eventName="roster_review_started"
+        params={{ event_id: id, surface: "dashboard" }}
+      />
       <div className="flex items-center justify-between">
         <div>
           <Link

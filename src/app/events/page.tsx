@@ -6,6 +6,7 @@ import Image from "next/image";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
+import { TrackedLink } from "@/components/analytics/tracked-link";
 import { getSession } from "@/lib/auth-utils";
 import { EventCard } from "@/components/event/event-card";
 import { EventFilters } from "@/components/event/event-filters";
@@ -176,6 +177,15 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   ]);
 
   const totalPages = Math.ceil(totalCount / limit);
+  const hasQuery = query.trim().length > 0;
+  const hasFiltersOnly =
+    !hasQuery &&
+    !!(
+      (dateRange && dateRange !== "all") ||
+      neighborhood ||
+      category ||
+      feature
+    );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -221,12 +231,17 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
             >
               Calendar View
             </Link>
-            <Link
+            <TrackedLink
               href="/events/map"
+              eventName="map_opened"
+              eventParams={{
+                surface: "events_page",
+                query_present: hasQuery,
+              }}
               className="min-h-[44px] inline-flex items-center rounded-lg border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
             >
               Map View
-            </Link>
+            </TrackedLink>
             <SaveFilterDialog
               session={session}
               currentFilters={{ dateRange, neighborhood, category, feature }}
@@ -280,8 +295,23 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
             {events.length > 0 ? (
               <>
                 <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-2">
-                  {events.map((event) => (
-                    <EventCard key={event.id} event={event} />
+                  {events.map((event, index) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      analyticsContext={
+                        hasQuery || hasFiltersOnly
+                          ? {
+                              eventName: hasQuery
+                                ? "search_result_click"
+                                : "filter_result_click",
+                              resultCount: totalCount,
+                              resultIndex: (page - 1) * limit + index + 1,
+                              queryPresent: hasQuery,
+                            }
+                          : undefined
+                      }
+                    />
                   ))}
                 </div>
                 <Pagination

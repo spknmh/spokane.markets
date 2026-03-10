@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import type { Session } from "@/lib/auth";
-import { trackEvent } from "@/lib/analytics";
+import {
+  trackApiError,
+  trackEvent,
+} from "@/lib/analytics";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthRequiredModal } from "@/components/auth-required-modal";
@@ -74,7 +77,7 @@ export function SaveFilterDialog({ session, currentFilters, callbackUrl = "/even
       }
 
       if (!res.ok) {
-        trackEvent("api_error", { endpoint: "/api/filters", status: res.status });
+        trackApiError("filters", res.status, { reason: "server" });
         const body = await res.json();
         throw new Error(body.error?.message || "Failed to save filter");
       }
@@ -101,6 +104,16 @@ export function SaveFilterDialog({ session, currentFilters, callbackUrl = "/even
     }
     trackEvent("save_filter_click");
     setOpen(true);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && open && !success && (name.trim().length > 0 || emailAlerts)) {
+      trackEvent("save_filter_abandon", {
+        form_id: "save_filter",
+        has_email_alerts: emailAlerts,
+      });
+    }
+    setOpen(nextOpen);
   };
 
   return (
@@ -130,7 +143,7 @@ export function SaveFilterDialog({ session, currentFilters, callbackUrl = "/even
         callbackUrl={callbackUrl}
       />
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Save Filter</DialogTitle>

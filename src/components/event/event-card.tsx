@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Event, Venue, Tag, Feature } from "@prisma/client";
 import { EventTimeLabel } from "@/components/event/event-time-label";
+import { TrackedLink } from "@/components/analytics/tracked-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { isMultiDayEvent, formatEventTimeFromSchedule } from "@/lib/utils";
@@ -17,6 +18,12 @@ type EventWithRelations = Event & {
 
 interface EventCardProps {
   event: EventWithRelations;
+  analyticsContext?: {
+    eventName: "search_result_click" | "filter_result_click";
+    resultCount: number;
+    resultIndex?: number;
+    queryPresent: boolean;
+  };
 }
 
 const monthFormatUTC = new Intl.DateTimeFormat("en-US", {
@@ -33,7 +40,7 @@ const shortDateFormatUTC = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
-export function EventCard({ event }: EventCardProps) {
+export function EventCard({ event, analyticsContext }: EventCardProps) {
   const scheduleDays = event.scheduleDays;
   const start = scheduleDays?.length
     ? new Date(scheduleDays[0].date)
@@ -54,8 +61,8 @@ export function EventCard({ event }: EventCardProps) {
     />
   );
 
-  return (
-    <Link href={`/events/${event.slug}`} prefetch={false} className="group block">
+  const content = (
+    <>
       <Card className="h-full min-h-[140px] border-2 transition-all hover:shadow-lg hover:border-primary/50">
         <CardContent className="flex gap-4 p-5">
           <div className="flex shrink-0 flex-col items-center justify-center self-start rounded-lg bg-primary px-3 py-2 text-center">
@@ -110,6 +117,32 @@ export function EventCard({ event }: EventCardProps) {
           </div>
         </CardContent>
       </Card>
+    </>
+  );
+
+  if (analyticsContext) {
+    return (
+      <TrackedLink
+        href={`/events/${event.slug}`}
+        prefetch={false}
+        className="group block"
+        eventName={analyticsContext.eventName}
+        eventParams={{
+          event_id: event.id,
+          result_count: analyticsContext.resultCount,
+          result_index: analyticsContext.resultIndex,
+          query_present: analyticsContext.queryPresent,
+          surface: "card",
+        }}
+      >
+        {content}
+      </TrackedLink>
+    );
+  }
+
+  return (
+    <Link href={`/events/${event.slug}`} prefetch={false} className="group block">
+      {content}
     </Link>
   );
 }

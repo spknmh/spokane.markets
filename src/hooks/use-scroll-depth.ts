@@ -3,11 +3,11 @@
 import { useEffect, useRef } from "react";
 import { trackEvent } from "@/lib/analytics";
 
-const DEFAULT_THRESHOLDS = [25, 50, 75, 100];
+const DEFAULT_THRESHOLDS = [50, 100];
 
 /**
  * Tracks scroll depth. Fires once per threshold when user scrolls past it.
- * Use on event detail, market detail, vendor profile, homepage.
+ * Use on key detail pages where content-depth signal is useful.
  */
 export function useScrollDepth(
   eventName: string,

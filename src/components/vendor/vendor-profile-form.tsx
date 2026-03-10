@@ -1,9 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { trackEvent } from "@/lib/analytics";
+import {
+  trackApiError,
+  trackEvent,
+  trackMilestoneEvent,
+} from "@/lib/analytics";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   vendorProfileSchema,
@@ -35,11 +39,19 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
   const [serverError, setServerError] = React.useState<string | null>(null);
   const isEditing = !!initialData?.id;
 
+  React.useEffect(() => {
+    if (!isEditing) return;
+    trackEvent("vendor_profile_edit", {
+      vendor_profile_id: initialData?.id,
+      surface: "dashboard",
+    });
+  }, [initialData?.id, isEditing]);
+
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<VendorProfileInput>({
     resolver: zodResolver(vendorProfileSchema),
@@ -58,7 +70,8 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
     },
   });
 
-  const businessName = watch("businessName");
+  const businessName = useWatch({ control, name: "businessName" });
+  const imageUrl = useWatch({ control, name: "imageUrl" });
   const previewSlug = isEditing && initialData?.slug
     ? initialData.slug
     : (slugify(businessName ?? "") || "your-business-name");
@@ -86,14 +99,16 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
     });
 
     if (!res.ok) {
-      trackEvent("api_error", { endpoint: "/api/vendor/profile", status: res.status });
+      trackApiError("vendor_profile", res.status, { reason: "server" });
       const body = await res.json().catch(() => ({}));
       setServerError(body.error ?? "Something went wrong");
       return;
     }
 
     if (!isEditing) {
-      trackEvent("vendor_profile_publish");
+      trackMilestoneEvent("vendor_profile_publish", {
+        surface: "dashboard",
+      });
     }
     router.push("/vendor/dashboard");
     router.refresh();
@@ -161,7 +176,7 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
           </div>
 
           <ImageUploadWithUrl
-            value={watch("imageUrl") ?? ""}
+            value={imageUrl ?? ""}
             onChange={(url) => setValue("imageUrl", url)}
             uploadType="vendor"
             disabled={isSubmitting}

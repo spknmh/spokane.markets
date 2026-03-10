@@ -4,6 +4,7 @@ import { useState, useTransition, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { trackApiError, trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -152,9 +153,15 @@ export function OrganizerRosterManager({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        trackApiError("organizer_roster", res.status, { reason: "server" });
         setError(data.error ?? "Failed to approve");
         return;
       }
+      trackEvent("roster_approved", {
+        event_id: eventId,
+        vendor_id: vendorId,
+        surface: "dashboard",
+      });
       router.refresh();
     });
   }
@@ -169,9 +176,15 @@ export function OrganizerRosterManager({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        trackApiError("organizer_roster", res.status, { reason: "server" });
         setError(data.error ?? "Failed to reject");
         return;
       }
+      trackEvent("roster_rejected", {
+        event_id: eventId,
+        vendor_id: vendorId,
+        surface: "dashboard",
+      });
       router.refresh();
     });
   }
@@ -186,6 +199,7 @@ export function OrganizerRosterManager({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        trackApiError("organizer_roster", res.status, { reason: "server" });
         setError(data.error ?? "Failed to remove");
         return;
       }
@@ -246,9 +260,15 @@ export function OrganizerRosterManager({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        trackApiError("organizer_roster", res.status, { reason: "server" });
         setAddError(data.error ?? "Failed to add vendor");
         return;
       }
+      trackEvent("vendor_added_to_roster", {
+        event_id: eventId,
+        vendor_id: vendorId,
+        surface: "dashboard",
+      });
       setAddDialogOpen(false);
       setVendorSearch("");
       setVendorResults([]);

@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { trackEvent } from "@/lib/analytics";
-import { usePageDuration } from "@/hooks/use-page-duration";
 import { Button } from "@/components/ui/button";
 
 interface LandingTrackerProps {
@@ -11,10 +10,8 @@ interface LandingTrackerProps {
   text: string;
 }
 
-/** Client component that tracks landing_view, landing_duration. */
+/** Client component that tracks landing_view. */
 export function LandingTracker({ header, text }: LandingTrackerProps) {
-  usePageDuration("landing_duration", { minSeconds: 1 });
-
   useEffect(() => {
     trackEvent("landing_view");
   }, []);

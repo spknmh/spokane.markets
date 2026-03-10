@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import type { AnalyticsParams } from "@/lib/analytics";
+import { trackEvent } from "@/lib/analytics";
 
 // Fix default marker icon in Next.js
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
@@ -17,13 +19,23 @@ interface MapPreviewProps {
   lng: number;
   address?: string;
   className?: string;
+  analyticsEventName?: string;
+  analyticsParams?: AnalyticsParams;
 }
 
 const DEFAULT_ZOOM = 15;
 
-export function MapPreview({ lat, lng, address, className }: MapPreviewProps) {
+export function MapPreview({
+  lat,
+  lng,
+  address,
+  className,
+  analyticsEventName,
+  analyticsParams,
+}: MapPreviewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const trackedRef = useRef(false);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -62,6 +74,11 @@ export function MapPreview({ lat, lng, address, className }: MapPreviewProps) {
       ref={mapRef}
       className={`min-h-[200px] w-full rounded-lg border border-border sm:min-h-[280px] ${className ?? ""}`}
       aria-label={address ? `Map showing ${address}` : "Map preview"}
+      onClick={() => {
+        if (!analyticsEventName || trackedRef.current) return;
+        trackedRef.current = true;
+        trackEvent(analyticsEventName, analyticsParams);
+      }}
     />
   );
 }

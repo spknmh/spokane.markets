@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { trackEvent } from "@/lib/analytics";
+import {
+  trackApiError,
+  trackFormError,
+  trackEvent,
+} from "@/lib/analytics";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -12,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2 } from "lucide-react";
+import { useAbandonTracking } from "@/hooks/use-abandon-tracking";
 
 interface VendorClaimFormProps {
   vendorProfileId: string;
@@ -28,10 +33,17 @@ export function VendorClaimForm({
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<VendorClaimRequestInput>({
     resolver: zodResolver(vendorClaimRequestSchema),
     defaultValues: { vendorProfileId, proof: "" },
+  });
+
+  useAbandonTracking({
+    eventName: "vendor_verification_abandon",
+    isDirty,
+    isComplete: submitted,
+    params: { form_id: "vendor_verification", vendor_profile_id: vendorProfileId },
   });
 
   async function onSubmit(data: VendorClaimRequestInput) {
@@ -44,7 +56,7 @@ export function VendorClaimForm({
       });
 
       if (!res.ok) {
-        trackEvent("api_error", { endpoint: "/api/vendors/claim", status: res.status });
+        trackApiError("claims", res.status, { reason: "server" });
         const body = await res.json();
         throw new Error(body.error?.message ?? "Something went wrong");
       }
@@ -71,7 +83,14 @@ export function VendorClaimForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form
+      onSubmit={handleSubmit(onSubmit, () =>
+        trackFormError("vendor_verification", "validation", {
+          vendor_profile_id: vendorProfileId,
+        })
+      )}
+      className="space-y-4"
+    >
       <input type="hidden" {...register("vendorProfileId")} />
 
       <div className="space-y-2">

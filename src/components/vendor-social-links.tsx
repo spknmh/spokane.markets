@@ -1,7 +1,7 @@
 "use client";
 
 import { Globe, Facebook, Instagram } from "lucide-react";
-import { trackEvent } from "@/lib/analytics";
+import { trackMilestoneEvent } from "@/lib/analytics";
 import {
   getFacebookDisplayUrl,
   getInstagramDisplayUrl,
@@ -49,7 +49,11 @@ export function VendorSocialLinks({
   const handleClick = (e: React.MouseEvent, platform: "website" | "facebook" | "instagram") => {
     if (stopPropagation) e.stopPropagation();
     if (vendorId) {
-      trackEvent("vendor_external_click", { vendor_id: vendorId, platform });
+      trackMilestoneEvent("vendor_external_click", {
+        vendor_id: vendorId,
+        platform,
+        surface: iconOnly ? "icon" : "detail_page",
+      });
     }
   };
 

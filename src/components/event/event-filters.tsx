@@ -48,6 +48,15 @@ export function EventFilters({ tags, features }: EventFiltersProps) {
       const query = params.get("q") ?? "";
 
       if (key === "q") {
+        if (activeQuery.trim() && query.trim() && activeQuery.trim() !== query.trim()) {
+          trackEvent("search_refine", {
+            query_length: query.length,
+            has_date: !!(dateRange && dateRange !== "all"),
+            has_neighborhood: !!neighborhood,
+            has_category: !!category,
+            has_feature: !!feature,
+          });
+        }
         trackEvent("search_events", {
           query_length: query.length,
           has_date: !!(dateRange && dateRange !== "all"),
@@ -66,7 +75,7 @@ export function EventFilters({ tags, features }: EventFiltersProps) {
 
       router.push(`${pathname}?${params.toString()}`);
     },
-    [router, pathname, searchParams]
+    [activeQuery, router, pathname, searchParams]
   );
 
   return (

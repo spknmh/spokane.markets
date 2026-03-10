@@ -1,8 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { trackEvent } from "@/lib/analytics";
+import { useForm, useWatch } from "react-hook-form";
+import {
+  trackApiError,
+  trackEvent,
+  trackFormError,
+  trackMilestoneEvent,
+} from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Session } from "@/lib/auth";
 import {
@@ -25,6 +30,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { AddressAutofillFields } from "@/components/address-autocomplete";
+import { useAbandonTracking } from "@/hooks/use-abandon-tracking";
 
 interface SubmissionFormProps {
   session: Session | null;
@@ -48,8 +54,8 @@ export function SubmissionForm({
     register,
     handleSubmit,
     setValue,
-    watch,
-    formState: { errors, isSubmitting },
+    control,
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<SubmissionInput | SubmissionInputAuthed>({
     resolver: zodResolver(
       isAuthed ? submissionSchemaAuthed : submissionSchema
@@ -80,9 +86,16 @@ export function SubmissionForm({
     },
   });
 
-  const watchAllDay = watch("allDay");
-  const watchTagIds = (watch("tagIds") ?? []) as string[];
-  const watchFeatureIds = (watch("featureIds") ?? []) as string[];
+  const watchAllDay = useWatch({ control, name: "allDay" });
+  const watchTagIds = (useWatch({ control, name: "tagIds" }) ?? []) as string[];
+  const watchFeatureIds = (useWatch({ control, name: "featureIds" }) ?? []) as string[];
+
+  useAbandonTracking({
+    eventName: "submit_event_abandon",
+    isDirty,
+    isComplete: success,
+    params: { form_id: "submission", surface: "submit_page" },
+  });
 
   const toggleArrayItem = (
     field: "tagIds" | "featureIds",
@@ -111,7 +124,7 @@ export function SubmissionForm({
     const json = await res.json();
 
     if (!res.ok) {
-      trackEvent("api_error", { endpoint: "/api/submissions", status: res.status });
+      trackApiError("submissions", res.status, { reason: "server" });
       const msg =
         typeof json.error === "string"
           ? json.error
@@ -120,7 +133,7 @@ export function SubmissionForm({
       return;
     }
 
-    trackEvent("submit_event_success");
+    trackMilestoneEvent("submit_event_success");
     setSuccess(true);
   }
 
@@ -148,9 +161,10 @@ export function SubmissionForm({
         </CardDescription>
       </CardHeader>
       <form
-        onSubmit={handleSubmit(onSubmit, () =>
-          trackEvent("form_error", { form_id: "submission", reason: "validation" })
-        )}
+        onSubmit={handleSubmit(onSubmit, () => {
+          trackFormError("submission", "validation");
+          trackEvent("submit_event_validation_error", { form_id: "submission" });
+        })}
       >
         <CardContent className="space-y-4">
           {/* Honeypot */}

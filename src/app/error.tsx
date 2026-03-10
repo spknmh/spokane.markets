@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
-import { usePageDuration } from "@/hooks/use-page-duration";
 
 export default function Error({
   error,
@@ -13,8 +12,6 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  usePageDuration("error_duration", { minSeconds: 1 });
-
   useEffect(() => {
     console.error("Application error:", error);
     trackEvent("error_view");

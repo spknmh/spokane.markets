@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount";
 import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
@@ -78,6 +79,14 @@ export default async function AdminClaimsPage({
 
   return (
     <div className="space-y-6">
+      <TrackEventOnMount
+        eventName="admin_claim_review_started"
+        params={{
+          claim_type: tab,
+          status: statusFilter.toLowerCase(),
+          surface: "dashboard",
+        }}
+      />
       <h1 className="text-3xl font-bold tracking-tight">Claim Requests</h1>
 
       <div className="flex flex-col gap-4">

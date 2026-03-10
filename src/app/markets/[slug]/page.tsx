@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { findMarketBySlug } from "@/lib/services/market-series-service";
 import { getSession } from "@/lib/auth-utils";
+import { TrackedExternalLink } from "@/components/analytics/tracked-external-link";
+import { TrackedLink } from "@/components/analytics/tracked-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -142,8 +143,19 @@ export default async function MarketDetailPage({ params }: PageProps) {
             <section>
               <h2 className="mb-4 text-xl font-semibold">Upcoming Events</h2>
               <div className="grid gap-4 sm:grid-cols-2">
-                {market.events.map((event) => (
-                  <Link key={event.id} href={`/events/${event.slug}`} prefetch={false}>
+                {market.events.map((event, index) => (
+                  <TrackedLink
+                    key={event.id}
+                    href={`/events/${event.slug}`}
+                    prefetch={false}
+                    eventName="market_upcoming_event_click"
+                    eventParams={{
+                      market_id: market.id,
+                      event_id: event.id,
+                      result_index: index + 1,
+                      surface: "detail_page",
+                    }}
+                  >
                     <Card className="h-full transition-all hover:shadow-lg hover:border-primary/30">
                       <CardHeader>
                         <CardTitle className="line-clamp-2">{event.title}</CardTitle>
@@ -158,7 +170,7 @@ export default async function MarketDetailPage({ params }: PageProps) {
                         </p>
                       </CardContent>
                     </Card>
-                  </Link>
+                  </TrackedLink>
                 ))}
               </div>
             </section>
@@ -202,6 +214,11 @@ export default async function MarketDetailPage({ params }: PageProps) {
                   lng={market.venue.lng}
                   address={fullAddress}
                   className="mt-2"
+                  analyticsEventName="market_map_click"
+                  analyticsParams={{
+                    market_id: market.id,
+                    surface: "detail_page",
+                  }}
                 />
                 {market.venue.parkingNotes && (
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -209,9 +226,18 @@ export default async function MarketDetailPage({ params }: PageProps) {
                   </p>
                 )}
                 <Button size="sm" variant="outline" className="mt-2 min-h-[44px]" asChild>
-                  <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
+                  <TrackedExternalLink
+                    href={directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    eventName="market_get_directions_click"
+                    eventParams={{
+                      market_id: market.id,
+                      surface: "detail_page",
+                    }}
+                  >
                     Get Directions →
-                  </a>
+                  </TrackedExternalLink>
                 </Button>
               </div>
             </div>

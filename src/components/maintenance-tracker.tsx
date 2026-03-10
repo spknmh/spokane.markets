@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { trackEvent } from "@/lib/analytics";
-import { usePageDuration } from "@/hooks/use-page-duration";
 import { Button } from "@/components/ui/button";
 
 interface MaintenanceLink {
@@ -15,10 +14,8 @@ interface MaintenanceTrackerProps {
   links: MaintenanceLink[];
 }
 
-/** Client component that tracks maintenance_view, maintenance_link_click, maintenance_duration. */
+/** Client component that tracks maintenance_view and maintenance_link_click. */
 export function MaintenanceTracker({ links }: MaintenanceTrackerProps) {
-  usePageDuration("maintenance_duration", { minSeconds: 1 });
-
   useEffect(() => {
     trackEvent("maintenance_view");
   }, []);

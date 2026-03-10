@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth-utils";
 import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
+import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount";
 import { Badge } from "@/components/ui/badge";
 import { DashboardHeaderCard } from "@/components/dashboard-header-card";
 import { evaluateAndGrantBadges } from "@/lib/badges";
@@ -137,6 +138,10 @@ export default async function OrganizerDashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      <TrackEventOnMount
+        eventName="organizer_dashboard_view"
+        params={{ surface: "dashboard" }}
+      />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Organizer Dashboard</h1>

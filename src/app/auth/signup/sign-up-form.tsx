@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { trackEvent } from "@/lib/analytics";
+import {
+  trackApiError,
+  trackEvent,
+  trackFormError,
+  trackMilestoneEvent,
+} from "@/lib/analytics";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -26,6 +31,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
+import { useAbandonTracking } from "@/hooks/use-abandon-tracking";
 
 type SignUpFormProps = {
   magicLinkEnabled?: boolean;
@@ -38,6 +44,7 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
   const callbackUrl = isValidCallbackUrl(rawCallbackUrl) ? rawCallbackUrl : "/";
   const [error, setError] = useState<string | null>(null);
   const [useMagicLink, setUseMagicLink] = useState(magicLinkEnabled);
+  const [submitted, setSubmitted] = useState(false);
 
   const magicLinkForm = useForm<SignUpInputMagicLink>({
     resolver: zodResolver(signUpSchemaMagicLink),
@@ -60,8 +67,21 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
     },
   });
 
+  useAbandonTracking({
+    eventName: "signup_abandon",
+    isDirty: useMagicLink
+      ? magicLinkForm.formState.isDirty
+      : credentialsForm.formState.isDirty,
+    isComplete: submitted,
+    params: {
+      form_id: "signup",
+      method: useMagicLink ? "magic_link" : "credentials",
+    },
+  });
+
   async function onSubmitMagicLink(data: SignUpInputMagicLink) {
     setError(null);
+    setSubmitted(false);
     trackEvent("signup_start", { role: "USER" });
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -79,10 +99,7 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
     const json = await res.json();
 
     if (!res.ok) {
-      trackEvent("api_error", {
-        endpoint: "/api/auth/register",
-        status: res.status,
-      });
+      trackApiError("auth", res.status, { reason: "server" });
       if (typeof json.error === "string") {
         setError(json.error);
       } else if (json.error && typeof json.error === "object") {
@@ -95,7 +112,8 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
       return;
     }
 
-    trackEvent("signup_success", { role: "USER" });
+    setSubmitted(true);
+    trackMilestoneEvent("signup_success", { role: "USER" });
     router.push(
       `/auth/verify-request?callbackUrl=${encodeURIComponent(callbackUrl)}`
     );
@@ -104,6 +122,7 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
 
   async function onSubmitCredentials(data: SignUpInput) {
     setError(null);
+    setSubmitted(false);
     trackEvent("signup_start", { role: "USER" });
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -121,10 +140,7 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
     const json = await res.json();
 
     if (!res.ok) {
-      trackEvent("api_error", {
-        endpoint: "/api/auth/register",
-        status: res.status,
-      });
+      trackApiError("auth", res.status, { reason: "server" });
       if (typeof json.error === "string") {
         setError(json.error);
       } else if (json.error && typeof json.error === "object") {
@@ -137,7 +153,8 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
       return;
     }
 
-    trackEvent("signup_success", { role: "USER" });
+    setSubmitted(true);
+    trackMilestoneEvent("signup_success", { role: "USER" });
 
     const signInResult = await authClient.signIn.email({
       email: data.email,
@@ -168,10 +185,7 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
           {magicLinkEnabled && useMagicLink ? (
             <form
               onSubmit={magicLinkForm.handleSubmit(onSubmitMagicLink, () =>
-                trackEvent("form_error", {
-                  form_id: "signup",
-                  reason: "validation",
-                })
+                trackFormError("signup", "validation", { method: "magic_link" })
               )}
               className="space-y-4"
             >
@@ -236,9 +250,8 @@ export function SignUpForm({ magicLinkEnabled = false }: SignUpFormProps) {
           ) : (
             <form
               onSubmit={credentialsForm.handleSubmit(onSubmitCredentials, () =>
-                trackEvent("form_error", {
-                  form_id: "signup",
-                  reason: "validation",
+                trackFormError("signup", "validation", {
+                  method: "credentials",
                 })
               )}
               className="space-y-4"

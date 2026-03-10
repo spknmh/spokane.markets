@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  trackApiError,
+  trackEvent,
+  trackMilestoneEvent,
+} from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
+import { useAbandonTracking } from "@/hooks/use-abandon-tracking";
 
 export type FormField = {
   id: string;
@@ -47,8 +53,29 @@ export function ApplicationForm({ form, formType }: ApplicationFormProps) {
   const [answers, setAnswers] = useState<Record<string, string | boolean>>({});
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const startedRef = useRef(false);
 
   const fields = (form.fields as FormField[]) ?? [];
+  const eventPrefix = formType.toLowerCase();
+  const isDirty =
+    name.trim().length > 0 ||
+    email.trim().length > 0 ||
+    Object.keys(answers).length > 0;
+
+  useEffect(() => {
+    if (startedRef.current || !isDirty) return;
+    startedRef.current = true;
+    trackEvent(`${eventPrefix}_application_started`, {
+      form_type: eventPrefix,
+    });
+  }, [eventPrefix, isDirty]);
+
+  useAbandonTracking({
+    eventName: `${eventPrefix}_application_abandon`,
+    isDirty,
+    isComplete: success,
+    params: { form_type: eventPrefix },
+  });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -74,10 +101,14 @@ export function ApplicationForm({ form, formType }: ApplicationFormProps) {
       const json = await res.json().catch(() => ({}));
 
       if (!res.ok) {
+        trackApiError("applications", res.status, { reason: "server" });
         setServerError(formatApiError(json.error ?? "Something went wrong"));
         return;
       }
 
+      trackMilestoneEvent(`${eventPrefix}_application_submitted`, {
+        form_type: eventPrefix,
+      });
       setSuccess(true);
     } finally {
       setIsSubmitting(false);

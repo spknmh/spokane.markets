@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { trackEvent } from "@/lib/analytics";
+import {
+  trackApiError,
+  trackEvent,
+  trackFormError,
+} from "@/lib/analytics";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -66,7 +70,11 @@ export function SignInForm({
     });
 
     if (result.error) {
-      trackEvent("api_error", { endpoint: "/api/auth/signin", status: 401 });
+      trackApiError("auth", 401, { reason: "auth", method: "credentials" });
+      trackEvent("login_failure", {
+        method: "credentials",
+        reason: "auth",
+      });
       setError(result.error.message ?? "Sign in failed. Please check your credentials.");
       return;
     }
@@ -86,6 +94,10 @@ export function SignInForm({
     });
 
     if (result.error) {
+      trackEvent("login_failure", {
+        method: "magic-link",
+        reason: "auth",
+      });
       setError(result.error.message ?? "Failed to send magic link.");
       return;
     }
@@ -125,7 +137,9 @@ export function SignInForm({
 
           {magicLinkEnabled && showMagicLink ? (
             <form
-              onSubmit={magicLinkForm.handleSubmit(onMagicLinkSubmit)}
+              onSubmit={magicLinkForm.handleSubmit(onMagicLinkSubmit, () =>
+                trackFormError("signin", "validation", { method: "magic_link" })
+              )}
               className="space-y-4"
             >
               <div className="space-y-2">
@@ -211,9 +225,8 @@ export function SignInForm({
           ) : (
             <form
               onSubmit={credentialsForm.handleSubmit(onSubmitCredentials, () =>
-                trackEvent("form_error", {
-                  form_id: "signin",
-                  reason: "validation",
+                trackFormError("signin", "validation", {
+                  method: "credentials",
                 })
               )}
               className="space-y-4"

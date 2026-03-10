@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { trackEvent } from "@/lib/analytics";
+import {
+  trackApiError,
+  trackFormError,
+  trackMilestoneEvent,
+} from "@/lib/analytics";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { claimRequestSchema, type ClaimRequestInput } from "@/lib/validations";
@@ -9,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2 } from "lucide-react";
+import { useAbandonTracking } from "@/hooks/use-abandon-tracking";
 
 interface ClaimFormProps {
   marketId: string;
@@ -22,10 +27,17 @@ export function ClaimForm({ marketId, marketName }: ClaimFormProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<ClaimRequestInput>({
     resolver: zodResolver(claimRequestSchema),
     defaultValues: { marketId, proof: "" },
+  });
+
+  useAbandonTracking({
+    eventName: "claim_market_abandon",
+    isDirty,
+    isComplete: submitted,
+    params: { market_id: marketId, form_id: "claim_market" },
   });
 
   async function onSubmit(data: ClaimRequestInput) {
@@ -38,12 +50,12 @@ export function ClaimForm({ marketId, marketName }: ClaimFormProps) {
       });
 
       if (!res.ok) {
-        trackEvent("api_error", { endpoint: "/api/markets/claim", status: res.status });
+        trackApiError("claims", res.status, { reason: "server" });
         const body = await res.json();
         throw new Error(body.error?.message ?? "Something went wrong");
       }
 
-      trackEvent("claim_market_success", { market_id: marketId });
+      trackMilestoneEvent("claim_market_success", { market_id: marketId });
       setSubmitted(true);
     } catch (err) {
       setServerError(
@@ -65,7 +77,12 @@ export function ClaimForm({ marketId, marketName }: ClaimFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form
+      onSubmit={handleSubmit(onSubmit, () =>
+        trackFormError("claim_market", "validation", { market_id: marketId })
+      )}
+      className="space-y-4"
+    >
       <input type="hidden" {...register("marketId")} />
 
       <div className="space-y-2">

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import type { AnalyticsParams } from "@/lib/analytics";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
 
@@ -11,6 +13,8 @@ interface ShareButtonProps {
   variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
   size?: "default" | "sm" | "lg" | "icon";
   className?: string;
+  analyticsEventName?: string;
+  analyticsParams?: AnalyticsParams;
 }
 
 export function ShareButton({
@@ -20,6 +24,8 @@ export function ShareButton({
   variant = "outline",
   size = "sm",
   className,
+  analyticsEventName,
+  analyticsParams,
 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
@@ -35,6 +41,9 @@ export function ShareButton({
   }, []);
 
   const handleShare = useCallback(async () => {
+    if (analyticsEventName) {
+      trackEvent(analyticsEventName, analyticsParams);
+    }
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
@@ -50,7 +59,7 @@ export function ShareButton({
     } else {
       await fallbackCopy(url);
     }
-  }, [url, title, text, fallbackCopy]);
+  }, [analyticsEventName, analyticsParams, url, title, text, fallbackCopy]);
 
   return (
     <Button

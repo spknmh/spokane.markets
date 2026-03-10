@@ -1,5 +1,6 @@
 "use client";
 
+import { trackApiError, trackEvent } from "@/lib/analytics";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -187,8 +188,16 @@ export function OrganizerEventForm({
       });
 
       if (!res.ok) {
+        trackApiError("organizer_events", res.status, { reason: "server" });
         const body = await res.json();
         throw new Error(body.error?.message || "Failed to save event");
+      }
+
+      if (initialData?.id) {
+        trackEvent("event_edit_success", {
+          event_id: initialData.id,
+          surface: "dashboard",
+        });
       }
 
       router.push("/organizer/dashboard");

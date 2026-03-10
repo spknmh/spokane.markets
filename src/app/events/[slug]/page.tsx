@@ -8,6 +8,7 @@ import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
 import { getDirectionsUrl, formatTime12hr, formatEventTimeFromSchedule } from "@/lib/utils";
+import { TrackedExternalLink } from "@/components/analytics/tracked-external-link";
 import { EventTimeLabel } from "@/components/event/event-time-label";
 import { MapPreviewLazy as MapPreview } from "@/components/event/map-preview-lazy";
 import { Badge } from "@/components/ui/badge";
@@ -305,6 +306,11 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 lng={event.venue.lng}
                 address={fullAddress}
                 className="mt-2"
+                analyticsEventName="event_map_click"
+                analyticsParams={{
+                  event_id: event.id,
+                  surface: "detail_page",
+                }}
               />
               {event.venue.parkingNotes && (
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -312,9 +318,18 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 </p>
               )}
               <Button size="sm" variant="outline" className="mt-2 min-h-[44px]" asChild>
-                <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
+                <TrackedExternalLink
+                  href={directionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  eventName="event_get_directions_click"
+                  eventParams={{
+                    event_id: event.id,
+                    surface: "detail_page",
+                  }}
+                >
                   Get Directions →
-                </a>
+                </TrackedExternalLink>
               </Button>
             </div>
 
@@ -322,6 +337,11 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               url={`${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/events/${event.slug}`}
               title={event.title}
               text={event.description ?? undefined}
+              analyticsEventName="event_share_click"
+              analyticsParams={{
+                event_id: event.id,
+                surface: "detail_page",
+              }}
             />
 
             <AddToCalendar

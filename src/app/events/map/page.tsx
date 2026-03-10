@@ -6,6 +6,7 @@ import Image from "next/image";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
+import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount";
 import { EventsMapLazy as EventsMap } from "@/components/event/events-map-lazy";
 
 export const dynamic = "force-dynamic";
@@ -97,6 +98,13 @@ export default async function EventsMapPage({ searchParams }: MapPageProps) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <TrackEventOnMount
+        eventName="map_opened"
+        params={{
+          surface: "map_page",
+          date_range: dateRange !== "all" ? dateRange : undefined,
+        }}
+      />
       <div className="relative -mx-4 mb-10 overflow-hidden rounded-xl sm:-mx-6 lg:-mx-8">
         <Image
           src={banners.marketCrowd}

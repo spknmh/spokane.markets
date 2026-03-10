@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { getQueueItems } from "@/lib/admin/queues";
+import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount";
 import { QueueRow } from "@/components/admin/queue-row";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -48,6 +49,14 @@ export default async function AdminQueuesPage({
 
   return (
     <div className="space-y-6">
+      <TrackEventOnMount
+        eventName="admin_review_queue_view"
+        params={{
+          queue_type: type,
+          sort,
+          surface: "dashboard",
+        }}
+      />
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Queues</h1>
         <p className="mt-1 text-muted-foreground">

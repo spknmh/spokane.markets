@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount";
 import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
@@ -56,6 +57,14 @@ export default async function AdminSubmissionsPage({
 
   return (
     <div className="space-y-6">
+      <TrackEventOnMount
+        eventName="admin_review_queue_view"
+        params={{
+          queue_type: "submission",
+          status: statusFilter.toLowerCase(),
+          surface: "dashboard",
+        }}
+      />
       <h1 className="text-3xl font-bold tracking-tight">Submissions</h1>
 
       <div className="flex gap-2 border-b border-border pb-2">
@@ -150,11 +159,21 @@ export default async function AdminSubmissionsPage({
                   <StatusButton
                     action={updateSubmissionStatus.bind(null, sub.id, "APPROVED")}
                     label="Approve"
+                    analyticsEventName="admin_submission_approved"
+                    analyticsParams={{
+                      submission_id: sub.id,
+                      surface: "dashboard",
+                    }}
                   />
                   <StatusButton
                     action={updateSubmissionStatus.bind(null, sub.id, "REJECTED")}
                     label="Reject"
                     variant="destructive"
+                    analyticsEventName="admin_submission_rejected"
+                    analyticsParams={{
+                      submission_id: sub.id,
+                      surface: "dashboard",
+                    }}
                   />
                 </div>
               )}

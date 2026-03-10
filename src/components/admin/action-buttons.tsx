@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTransition } from "react";
+import type { AnalyticsParams } from "@/lib/analytics";
+import { trackEvent } from "@/lib/analytics";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -76,10 +78,16 @@ export function StatusButton({
   action,
   label,
   variant = "default",
+  onSuccess,
+  analyticsEventName,
+  analyticsParams,
 }: {
   action: () => Promise<void>;
   label: string;
   variant?: "default" | "destructive" | "outline";
+  onSuccess?: () => void;
+  analyticsEventName?: string;
+  analyticsParams?: AnalyticsParams;
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -88,7 +96,15 @@ export function StatusButton({
       variant={variant}
       size="sm"
       disabled={isPending}
-      onClick={() => startTransition(() => action())}
+      onClick={() =>
+        startTransition(async () => {
+          await action();
+          if (analyticsEventName) {
+            trackEvent(analyticsEventName, analyticsParams);
+          }
+          onSuccess?.();
+        })
+      }
     >
       {isPending ? "..." : label}
     </Button>

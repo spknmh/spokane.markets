@@ -3,7 +3,11 @@
 import { usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useEffect } from "react";
-import { pushDataLayer } from "@/lib/analytics";
+import {
+  initializeAnalyticsSession,
+  pushDataLayer,
+  setAnalyticsContext,
+} from "@/lib/analytics";
 import { identifyUmami, trackUmamiPageview } from "@/lib/umami";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
@@ -15,6 +19,8 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    initializeAnalyticsSession();
+
     if (GTM_ID) {
       pushDataLayer({
         event: "page_view",
@@ -35,6 +41,11 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
 
     const user = session.data?.user as { id?: string; role?: string } | undefined;
+    setAnalyticsContext({
+      auth_state: user?.id ? "authenticated" : "anonymous",
+      user_role: user?.role ?? undefined,
+    });
+
     if (user?.id) {
       identifyUmami(user.id, { role: user.role ?? undefined });
     } else {

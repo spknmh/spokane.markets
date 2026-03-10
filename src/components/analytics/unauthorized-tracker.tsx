@@ -3,13 +3,10 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { trackEvent } from "@/lib/analytics";
-import { usePageDuration } from "@/hooks/use-page-duration";
 import { Button } from "@/components/ui/button";
 
 /** Client component that tracks unauthorized_view, unauthorized_return_click. */
 export function UnauthorizedTracker() {
-  usePageDuration("unauthorized_duration", { minSeconds: 1 });
-
   useEffect(() => {
     let referrerHost: string | undefined;
     if (typeof document !== "undefined" && document.referrer) {
