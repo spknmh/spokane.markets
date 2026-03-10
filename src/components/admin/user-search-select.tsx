@@ -43,7 +43,7 @@ export function UserSearchSelect({
   );
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const search = useCallback(
     (q: string) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
