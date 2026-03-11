@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { getQueuesSummary } from "@/lib/admin/queues";
+import { getQueuesSummary, type QueueType } from "@/lib/admin/queues";
 import { formatAuditEntry } from "@/lib/audit/labels";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,28 +18,31 @@ import {
   Heart,
   Flag,
   ImageIcon,
+  FileText,
   Plus,
   Settings,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-const QUEUE_LABELS: Record<string, string> = {
+const QUEUE_LABELS: Record<QueueType, string> = {
   submission: "Pending Submissions",
   review: "Pending Reviews",
   photo: "Pending Photos",
   market_claim: "Pending Market Claims",
   vendor_claim: "Pending Vendor Claims",
   report: "Pending Reports",
+  application: "Pending Applications",
 };
 
-const QUEUE_ICONS: Record<string, typeof Inbox> = {
+const QUEUE_ICONS: Record<QueueType, typeof Inbox> = {
   submission: Inbox,
   review: MessageSquare,
   photo: ImageIcon,
   market_claim: Shield,
   vendor_claim: Shield,
   report: Flag,
+  application: FileText,
 };
 
 export default async function AdminOverviewPage() {

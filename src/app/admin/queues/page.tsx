@@ -14,6 +14,7 @@ const TABS: { label: string; value: QueueType | "all" }[] = [
   { label: "Market Claims", value: "market_claim" },
   { label: "Vendor Claims", value: "vendor_claim" },
   { label: "Reports", value: "report" },
+  { label: "Applications", value: "application" },
 ];
 
 const VIEW_ALL_HREFS: Record<QueueType, string> = {

@@ -30,6 +30,7 @@ export type QueueSummary = {
 
 const LIMIT_PER_TYPE = 50;
 const LIMIT_ALL = 50;
+const ALL_QUEUE_TYPE_COUNT = 7;
 
 export async function getQueuesSummary(): Promise<QueueSummary[]> {
   const [
@@ -145,11 +146,12 @@ export async function getQueueItems(opts: {
   const take = type === "all" ? limit : Math.min(limit, LIMIT_PER_TYPE);
 
   if (type === "all") {
-    const [subs, revs, photos, mClaims, vClaims, reports] = await Promise.all([
+    const perTypeTake = Math.ceil(take / ALL_QUEUE_TYPE_COUNT);
+    const [subs, revs, photos, mClaims, vClaims, reports, applications] = await Promise.all([
       db.submission.findMany({
         where: { status: "PENDING" },
         orderBy: { createdAt: orderBy },
-        take: Math.ceil(take / 6),
+        take: perTypeTake,
         select: {
           id: true,
           createdAt: true,
@@ -160,7 +162,7 @@ export async function getQueueItems(opts: {
       db.review.findMany({
         where: { status: "PENDING" },
         orderBy: { createdAt: orderBy },
-        take: Math.ceil(take / 6),
+        take: perTypeTake,
         include: {
           user: { select: { name: true, email: true } },
           event: { select: { title: true } },
@@ -170,7 +172,7 @@ export async function getQueueItems(opts: {
       db.photo.findMany({
         where: { status: "PENDING" },
         orderBy: { createdAt: orderBy },
-        take: Math.ceil(take / 6),
+        take: perTypeTake,
         include: {
           uploadedBy: { select: { name: true, email: true } },
           event: { select: { title: true } },
@@ -180,7 +182,7 @@ export async function getQueueItems(opts: {
       db.claimRequest.findMany({
         where: { status: "PENDING" },
         orderBy: { createdAt: orderBy },
-        take: Math.ceil(take / 6),
+        take: perTypeTake,
         include: {
           market: { select: { name: true } },
           user: { select: { name: true, email: true } },
@@ -189,7 +191,7 @@ export async function getQueueItems(opts: {
       db.vendorClaimRequest.findMany({
         where: { status: "PENDING" },
         orderBy: { createdAt: orderBy },
-        take: Math.ceil(take / 6),
+        take: perTypeTake,
         include: {
           vendorProfile: { select: { businessName: true } },
           user: { select: { name: true, email: true } },
@@ -198,8 +200,17 @@ export async function getQueueItems(opts: {
       db.report.findMany({
         where: { status: "PENDING" },
         orderBy: { createdAt: orderBy },
-        take: Math.ceil(take / 6),
+        take: perTypeTake,
         include: { user: { select: { name: true, email: true } } },
+      }),
+      db.application.findMany({
+        where: { status: "PENDING" },
+        orderBy: { createdAt: orderBy },
+        take: perTypeTake,
+        include: {
+          form: { select: { title: true, type: true } },
+          user: { select: { name: true, email: true } },
+        },
       }),
     ]);
 
@@ -262,6 +273,15 @@ export async function getQueueItems(opts: {
         subtitle: `by ${r.user?.name ?? r.user?.email ?? "Unknown"}`,
         status: "pending" as const,
         href: "/admin/reports?status=PENDING",
+      })),
+      ...applications.map((a) => ({
+        type: "application" as const,
+        id: a.id,
+        createdAt: a.createdAt,
+        title: a.form.title,
+        subtitle: `by ${a.user?.name ?? a.user?.email ?? a.name} (${a.form.type.toLowerCase()})`,
+        status: "pending" as const,
+        href: "/admin/applications?status=PENDING",
       })),
     ];
 
@@ -397,6 +417,26 @@ export async function getQueueItems(opts: {
         subtitle: `by ${r.user?.name ?? r.user?.email ?? "Unknown"}`,
         status: "pending" as const,
         href: "/admin/reports?status=PENDING",
+      }));
+    }
+    case "application": {
+      const applications = await db.application.findMany({
+        where: { status: "PENDING" },
+        orderBy: { createdAt: orderBy },
+        take,
+        include: {
+          form: { select: { title: true, type: true } },
+          user: { select: { name: true, email: true } },
+        },
+      });
+      return applications.map((a) => ({
+        type: "application" as const,
+        id: a.id,
+        createdAt: a.createdAt,
+        title: a.form.title,
+        subtitle: `by ${a.user?.name ?? a.user?.email ?? a.name} (${a.form.type.toLowerCase()})`,
+        status: "pending" as const,
+        href: "/admin/applications?status=PENDING",
       }));
     }
     default:
