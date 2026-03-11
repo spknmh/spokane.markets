@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireApiAdmin } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
-import { isValidTheme } from "@/lib/site-theme";
+import { isValidTheme, SITE_THEME_CACHE_TAG } from "@/lib/site-theme";
 
 const SITE_THEME_KEY = "site_theme";
 
@@ -48,7 +48,9 @@ export async function PUT(request: Request) {
       update: { value: theme },
     });
 
-    revalidatePath("/");
+    revalidateTag(SITE_THEME_CACHE_TAG, "max");
+    revalidatePath("/", "layout");
+    revalidatePath("/admin/settings");
 
     return NextResponse.json({ ok: true, theme });
   } catch (err) {

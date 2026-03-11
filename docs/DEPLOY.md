@@ -35,14 +35,23 @@ git clone https://github.com/redkeysh/spokane.markets.git
 cd spokane.markets
 ```
 
-### Create uploads directory
+### Upload storage
+
+Uploads now use a shared Docker named volume (`uploads_data`) instead of a host bind mount. The `init` container creates the upload subdirectories on first run, and the same volume is mounted into `web` for writes and `caddy` for read-only file serving.
+
+If you are migrating from an older deployment that used `./uploads`, copy the existing files into the named volume before switching traffic:
 
 ```bash
-mkdir -p uploads/banner uploads/avatar uploads/vendor uploads/photos
-chmod -R 777 uploads
+docker compose up -d db
+VOLUME_NAME="$(docker compose config --volumes | tail -n 1)"
+docker volume create "$VOLUME_NAME"
+docker run --rm \
+  -v "$VOLUME_NAME":/to \
+  -v "$(pwd)/uploads:/from:ro" \
+  alpine sh -c 'mkdir -p /to && cp -R /from/. /to/'
 ```
 
-The init container also creates these subdirs on first run. If you see `EACCES` on upload, ensure the web process can write to `uploads/`.
+If you prefer, you can also inspect the created volume name with `docker volume ls`.
 
 ### Create `.env.local`
 
@@ -145,6 +154,7 @@ docker compose run --rm init npx prisma db seed
 - https://your-domain → app loads
 - https://your-domain/admin → admin login works
 - Uploads: create a review with a photo, confirm `/uploads/photos/...` serves
+- Banner uploads: update a banner in `/admin/settings` and confirm the new file serves from `/uploads/banner/...`
 
 **Admin operations:** See [docs/ADMIN-GUIDE.md](docs/ADMIN-GUIDE.md) for markets vs venues, events, vendors, and workflows.
 
@@ -212,7 +222,8 @@ Note: The web image is standalone and may not include tsx. Use the init image in
 |-------|-------|
 | 502 Bad Gateway | `docker compose ps` — is `web` running? `docker compose logs web` |
 | Migrations fail | `DATABASE_URL` correct? DB healthy? `docker compose logs init` for migrate output; `docker compose exec db pg_isready -U postgres` |
-| Uploads 404 | `uploads/` exists? Caddy volume `./uploads:/srv/uploads:ro` |
+| Uploads 404 | Check `docker volume ls` for the uploads volume and verify `caddy` mounts the same uploads volume read-only |
+| Uploads `EACCES` | Confirm `web` and `init` use the shared named uploads volume, not a host bind mount |
 | Auth redirect wrong | `AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match your domain |
 | SSH deploy fails | `SERVER_SSH_KEY` includes full key; server allows key auth |
 | **TLS cert error** (`remote error: tls: internal error`) | Caddyfile uses `disable_tlsalpn_challenge` to force HTTP-01. Ensure ports 80 and 443 are open (`ufw status`), DNS points to server IP, and no proxy/load balancer terminates TLS before Caddy. If behind Cloudflare or similar, use DNS-01 challenge instead. |

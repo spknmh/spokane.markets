@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Script from "next/script";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
@@ -71,6 +72,22 @@ export const metadata: Metadata = {
   },
 };
 
+function NavbarFallback() {
+  return (
+    <div className="sticky top-0 z-50 w-full border-b border-border bg-nav/95 backdrop-blur supports-[backdrop-filter]:bg-nav/95">
+      <div className="mx-auto h-20 max-w-7xl px-4 sm:px-6 lg:px-8" />
+    </div>
+  );
+}
+
+function FooterFallback() {
+  return (
+    <div className="border-t border-primary/30 bg-primary" aria-hidden>
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8" />
+    </div>
+  );
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [theme, siteAnnouncement] = await Promise.all([
     getSiteTheme(),
@@ -129,13 +146,23 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </a>
         <Providers>
           <AnalyticsLoader>
-          <ConditionalChrome
-            nav={<Navbar />}
-            announcement={<SiteAnnouncementBar announcement={siteAnnouncement} />}
-            footer={<Footer />}
-          >
-            <div id="main" className="min-h-screen">{children}</div>
-          </ConditionalChrome>
+            <ConditionalChrome
+              nav={
+                <Suspense fallback={<NavbarFallback />}>
+                  <Navbar />
+                </Suspense>
+              }
+              announcement={<SiteAnnouncementBar announcement={siteAnnouncement} />}
+              footer={
+                <Suspense fallback={<FooterFallback />}>
+                  <Footer />
+                </Suspense>
+              }
+            >
+              <div id="main" className="min-h-screen">
+                {children}
+              </div>
+            </ConditionalChrome>
           </AnalyticsLoader>
         </Providers>
       </body>

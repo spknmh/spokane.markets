@@ -127,10 +127,10 @@ npx prisma db seed
 For image uploads (banners, avatars, vendor images, photos):
 
 ```bash
-mkdir -p uploads/banner uploads/avatar uploads/vendor uploads/photos
+docker compose up -d
 ```
 
-Docker/production: ensure the web process can write to `uploads/`.
+Docker now uses a shared named volume for uploads, so no host `uploads/` directory is required for normal operation. The `init` container creates the upload subdirectories, `web` writes into the same volume, and Caddy serves it read-only.
 
 ### 4. First admin user
 
@@ -163,11 +163,13 @@ Seed creates `admin@spokane.markets` / `admin123`. **Change the password** after
 2. Name, full address, lat/lng (for maps), neighborhood, parking notes.
 3. Venues are shared — create once, reuse for many events.
 
-### Content (banners)
+### Site settings (banners and announcements)
 
-1. **Admin → Content**
+1. **Admin → Site Settings**
 2. Upload images or paste external URLs for each page banner (hero, markets, vendors, events, etc.).
-3. File uploads go to `/uploads/banner/`; external URLs work for any domain.
+3. Adjust focal points to keep cropped banner previews centered correctly across layouts.
+4. Use the **Announcement Bar** section for a short site-wide message with an optional CTA link.
+5. File uploads go to `/uploads/banner/`; external URLs work for any domain.
 
 ### Submissions & claims
 
@@ -186,7 +188,7 @@ Seed creates `admin@spokane.markets` / `admin123`. **Change the password** after
 
 ### Maintenance mode
 
-Admin → Content → Maintenance Mode. Control site-wide access with three modes: Off (normal), Admins only, or Privileged (admins + vendors + organizers). Non-privileged visitors see a configurable maintenance page. See `docs/MAINTENANCE-MODE.md` for details.
+Admin → Site Settings → Maintenance Mode. Control site-wide access with three modes: Off (normal), Admins only, or Privileged (admins + vendors + organizers). Non-privileged visitors see a configurable maintenance page. See `docs/MAINTENANCE-MODE.md` for details.
 
 Requires `NEXT_PUBLIC_APP_URL` in `.env.local`.
 

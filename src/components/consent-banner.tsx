@@ -1,29 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { updateAnalyticsConsent, trackEvent } from "@/lib/analytics";
 
 const STORAGE_KEY = "cookie_consent";
 
+type ConsentValue = "granted" | "denied" | null;
+
+function subscribeToConsent() {
+  return () => {};
+}
+
+function getClientConsentSnapshot(): ConsentValue {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored === "granted" || stored === "denied" ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
 export function ConsentBanner() {
-  const [show, setShow] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) as "granted" | "denied" | null;
-      if (stored === "granted" || stored === "denied") return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  const [dismissed, setDismissed] = useState(false);
+  const storedConsent = useSyncExternalStore(
+    subscribeToConsent,
+    getClientConsentSnapshot,
+    () => null
+  );
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as "granted" | "denied" | null;
-    if (stored === "granted") updateAnalyticsConsent(true);
-    else if (stored === "denied") updateAnalyticsConsent(false);
-  }, []);
+    if (storedConsent === "granted") updateAnalyticsConsent(true);
+    else if (storedConsent === "denied") updateAnalyticsConsent(false);
+  }, [storedConsent]);
 
   function handleAccept() {
     trackEvent("consent_accept");
@@ -33,7 +43,7 @@ export function ConsentBanner() {
     } catch {
       /* ignore */
     }
-    setShow(false);
+    setDismissed(true);
   }
 
   function handleDecline() {
@@ -44,8 +54,10 @@ export function ConsentBanner() {
     } catch {
       /* ignore */
     }
-    setShow(false);
+    setDismissed(true);
   }
+
+  const show = storedConsent === null && !dismissed;
 
   if (!show) return null;
 

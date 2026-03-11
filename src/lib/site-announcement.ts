@@ -1,9 +1,12 @@
+import { unstable_cache } from "next/cache";
+
 const SITE_ANNOUNCEMENT_KEYS = [
   "site_announcement_enabled",
   "site_announcement_text",
   "site_announcement_link_label",
   "site_announcement_link_url",
 ] as const;
+export const SITE_ANNOUNCEMENT_CACHE_TAG = "site-config:announcement";
 
 export interface SiteAnnouncement {
   enabled: boolean;
@@ -46,26 +49,34 @@ export function normalizeSiteAnnouncement(input: Partial<SiteAnnouncement>): Sit
 }
 
 /** Returns the admin-managed site announcement from DB. */
-export async function getSiteAnnouncement(): Promise<SiteAnnouncement> {
-  try {
-    const { db } = await import("@/lib/db");
-    const rows = await db.siteConfig.findMany({
-      where: {
-        key: {
-          in: [...SITE_ANNOUNCEMENT_KEYS],
+const getCachedSiteAnnouncement = unstable_cache(
+  async (): Promise<SiteAnnouncement> => {
+    try {
+      const { db } = await import("@/lib/db");
+      const rows = await db.siteConfig.findMany({
+        where: {
+          key: {
+            in: [...SITE_ANNOUNCEMENT_KEYS],
+          },
         },
-      },
-    });
+      });
 
-    const values = Object.fromEntries(rows.map((row) => [row.key, row.value]));
+      const values = Object.fromEntries(rows.map((row) => [row.key, row.value]));
 
-    return normalizeSiteAnnouncement({
-      enabled: values.site_announcement_enabled === "true",
-      text: values.site_announcement_text ?? DEFAULTS.text,
-      linkLabel: values.site_announcement_link_label ?? DEFAULTS.linkLabel,
-      linkUrl: values.site_announcement_link_url ?? DEFAULTS.linkUrl,
-    });
-  } catch {
-    return DEFAULTS;
-  }
+      return normalizeSiteAnnouncement({
+        enabled: values.site_announcement_enabled === "true",
+        text: values.site_announcement_text ?? DEFAULTS.text,
+        linkLabel: values.site_announcement_link_label ?? DEFAULTS.linkLabel,
+        linkUrl: values.site_announcement_link_url ?? DEFAULTS.linkUrl,
+      });
+    } catch {
+      return DEFAULTS;
+    }
+  },
+  ["site-config-announcement"],
+  { tags: [SITE_ANNOUNCEMENT_CACHE_TAG] }
+);
+
+export async function getSiteAnnouncement(): Promise<SiteAnnouncement> {
+  return getCachedSiteAnnouncement();
 }
