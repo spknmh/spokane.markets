@@ -9,7 +9,7 @@ services:
     volumes:
       - .:/app
       - app_node_modules:/app/node_modules
-      - ./uploads:/app/uploads
+      - uploads_data:/app/uploads
     command: sh -c "if [ ! -f node_modules/.package-lock.json ]; then echo 'Installing dependencies...' && npm ci && npx prisma generate; fi && exec npm run dev"
     environment:
       - NODE_ENV=development
@@ -19,3 +19,4 @@ services:
 
 volumes:
   app_node_modules:
+  uploads_data:
