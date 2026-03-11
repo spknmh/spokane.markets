@@ -12,12 +12,13 @@ export default async function AuthLayout({
     <div className="relative min-h-[calc(100vh-4rem)]">
       <div className="absolute inset-0 -z-10">
         <Image
-          src={banners.community}
+          src={banners.community.url}
           alt="Spokane community markets"
           fill
           className="object-cover opacity-20"
+          style={{ objectPosition: banners.community.objectPosition }}
           priority
-          unoptimized={isBannerUnoptimized(banners.community)}
+          unoptimized={isBannerUnoptimized(banners.community.url)}
         />
         <div className="absolute inset-0 bg-background/80" />
       </div>

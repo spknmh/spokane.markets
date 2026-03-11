@@ -116,7 +116,7 @@ export async function PATCH(request: Request) {
 
     revalidatePath("/");
     revalidatePath("/maintenance");
-    revalidatePath("/admin/maintenance");
+    revalidatePath("/admin/settings");
 
     return NextResponse.json({ ok: true });
   } catch (err) {

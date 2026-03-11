@@ -25,7 +25,6 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardList,
-  Settings,
   Database,
   Megaphone,
   Tag,
@@ -46,6 +45,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "Overview", href: "/admin", icon: LayoutDashboard },
       { label: "Queues", href: "/admin/queues", icon: ClipboardList },
+      { label: "Promotions", href: "/admin/promotions", icon: Megaphone },
     ],
   },
   {
@@ -83,9 +83,7 @@ const navGroups: NavGroup[] = [
     label: "System",
     defaultOpen: true,
     items: [
-      { label: "Promotions", href: "/admin/promotions", icon: Megaphone },
-      { label: "Site", href: "/admin/content", icon: LayoutTemplate },
-      { label: "Maintenance", href: "/admin/maintenance", icon: Settings },
+      { label: "Site Settings", href: "/admin/settings", icon: LayoutTemplate },
       { label: "Data", href: "/admin/data", icon: Database },
       { label: "Audit Log", href: "/admin/audit-log", icon: FileText },
     ],
@@ -103,8 +101,8 @@ export function AdminSidebar() {
 
   const isActive = (href: string) => {
     if (href === "/admin") return pathname === "/admin";
-    if (href === "/admin/content") {
-      return pathname === "/admin/content";
+    if (href === "/admin/settings") {
+      return pathname === "/admin/settings";
     }
     return pathname.startsWith(href);
   };

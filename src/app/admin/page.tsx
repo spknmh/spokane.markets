@@ -132,9 +132,9 @@ export default async function AdminOverviewPage() {
             </Link>
           </Button>
           <Button asChild size="sm" variant="outline">
-            <Link href="/admin/maintenance">
+            <Link href="/admin/settings">
               <Settings className="mr-2 h-4 w-4" />
-              Maintenance
+              Site Settings
             </Link>
           </Button>
           <Button asChild size="sm" variant="outline">

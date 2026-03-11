@@ -11,12 +11,13 @@ export default async function VendorSurveyPage() {
     <div className="mx-auto max-w-2xl px-4 py-12">
       <div className="mb-8 overflow-hidden rounded-xl">
         <Image
-          src={banners.localVendor}
+          src={banners.localVendor.url}
           alt="Local vendor at Spokane markets"
           width={800}
           height={200}
           className="h-40 w-full object-cover"
-          unoptimized={isBannerUnoptimized(banners.localVendor)}
+          style={{ objectPosition: banners.localVendor.objectPosition }}
+          unoptimized={isBannerUnoptimized(banners.localVendor.url)}
         />
       </div>
       <div className="mb-8 text-center">

@@ -4,27 +4,49 @@ import { revalidatePath } from "next/cache";
 import { requireApiAdmin } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
-
-const BANNER_KEYS = [
-  "hero",
-  "farmersMarket",
-  "produce",
-  "craftStall",
-  "community",
-  "localVendor",
-  "marketCrowd",
-  "events",
-] as const;
-
-export type BannerKey = (typeof BANNER_KEYS)[number];
+import {
+  BANNER_KEYS,
+  getBannerFocalXKey,
+  getBannerFocalYKey,
+  isBannerConfigKey,
+} from "@/lib/banner-images";
 
 const patchConfigSchema = z.object({
-  key: z.enum(BANNER_KEYS),
-  value: z.string().min(1, "Value must be a non-empty URL").refine(
-    (v) => v.startsWith("http://") || v.startsWith("https://") || v.startsWith("/uploads/"),
-    { message: "Invalid URL format" }
-  ),
+  key: z.string().min(1, "Key is required"),
+  value: z.string().min(1, "Value must be provided"),
 });
+
+function validateConfigValue(key: string, value: string): string | null {
+  if (!isBannerConfigKey(key)) return "Invalid key";
+
+  if ((BANNER_KEYS as readonly string[]).includes(key)) {
+    return value.startsWith("http://") ||
+      value.startsWith("https://") ||
+      value.startsWith("/uploads/")
+      ? null
+      : "Invalid URL format";
+  }
+
+  const numeric = Number.parseFloat(value);
+  if (!Number.isFinite(numeric) || numeric < 0 || numeric > 100) {
+    return "Focal point must be between 0 and 100";
+  }
+
+  return null;
+}
+
+function revalidateBannerPages() {
+  revalidatePath("/");
+  revalidatePath("/markets");
+  revalidatePath("/events");
+  revalidatePath("/vendors");
+  revalidatePath("/submit");
+  revalidatePath("/vendor-survey");
+  revalidatePath("/newsletter");
+  revalidatePath("/about");
+  revalidatePath("/auth");
+  revalidatePath("/admin/settings");
+}
 
 export async function GET() {
   try {
@@ -32,7 +54,15 @@ export async function GET() {
     if (error) return error;
 
     const rows = await db.siteConfig.findMany({
-      where: { key: { in: [...BANNER_KEYS] } },
+      where: {
+        key: {
+          in: [
+            ...BANNER_KEYS,
+            ...BANNER_KEYS.map((key) => getBannerFocalXKey(key)),
+            ...BANNER_KEYS.map((key) => getBannerFocalYKey(key)),
+          ],
+        },
+      },
     });
     const config: Record<string, string> = {};
     for (const row of rows) {
@@ -57,6 +87,10 @@ export async function PATCH(request: Request) {
     }
 
     const { key, value } = parsed.data;
+    const validationError = validateConfigValue(key, value);
+    if (validationError) {
+      return apiError(validationError, 400);
+    }
 
     await db.siteConfig.upsert({
       where: { key },
@@ -64,15 +98,7 @@ export async function PATCH(request: Request) {
       update: { value },
     });
 
-    revalidatePath("/");
-    revalidatePath("/markets");
-    revalidatePath("/events");
-    revalidatePath("/vendors");
-    revalidatePath("/submit");
-    revalidatePath("/vendor-survey");
-    revalidatePath("/newsletter");
-    revalidatePath("/about");
-    revalidatePath("/auth");
+    revalidateBannerPages();
 
     return NextResponse.json({ ok: true });
   } catch (err) {
@@ -89,21 +115,13 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");
 
-    if (!key || !BANNER_KEYS.includes(key as BannerKey)) {
+    if (!key || !isBannerConfigKey(key)) {
       return apiError("Invalid key", 400);
     }
 
     await db.siteConfig.deleteMany({ where: { key } });
 
-    revalidatePath("/");
-    revalidatePath("/markets");
-    revalidatePath("/events");
-    revalidatePath("/vendors");
-    revalidatePath("/submit");
-    revalidatePath("/vendor-survey");
-    revalidatePath("/newsletter");
-    revalidatePath("/about");
-    revalidatePath("/auth");
+    revalidateBannerPages();
 
     return new NextResponse(null, { status: 204 });
   } catch (err) {

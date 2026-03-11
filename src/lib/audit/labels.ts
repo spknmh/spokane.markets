@@ -50,7 +50,7 @@ const TARGET_HREFS: Record<string, string> = {
   CLAIM: "/admin/claims",
   VENDOR_CLAIM: "/admin/claims",
   REPORT: "/admin/reports",
-  SITE_STATE: "/admin/maintenance",
+  SITE_STATE: "/admin/settings",
 };
 
 export function formatAuditEntry(

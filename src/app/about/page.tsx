@@ -23,12 +23,13 @@ export default async function AboutPage() {
     <div className="mx-auto max-w-3xl px-4 py-12">
       <div className="mb-8 overflow-hidden rounded-xl">
         <Image
-          src={banners.produce}
+          src={banners.produce.url}
           alt="Fresh produce at local Spokane markets"
           width={800}
           height={300}
           className="h-48 w-full object-cover"
-          unoptimized={isBannerUnoptimized(banners.produce)}
+          style={{ objectPosition: banners.produce.objectPosition }}
+          unoptimized={isBannerUnoptimized(banners.produce.url)}
         />
       </div>
       <h1 className="text-3xl font-bold tracking-tight">About {SITE_NAME}</h1>

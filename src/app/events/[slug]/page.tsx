@@ -188,12 +188,13 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               />
             ) : (
               <Image
-                src={banners.events}
+                src={banners.events.url}
                 alt={event.title}
                 width={800}
                 height={320}
                 className="h-64 w-full object-cover sm:h-80"
-                unoptimized={isBannerUnoptimized(banners.events)}
+                style={{ objectPosition: banners.events.objectPosition }}
+                unoptimized={isBannerUnoptimized(banners.events.url)}
               />
             )}
           </div>

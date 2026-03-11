@@ -56,7 +56,7 @@ describe("middleware allowlist", () => {
     });
     it("allows /admin and subpaths", () => {
       expect(shouldBypass("/admin")).toBe(true);
-      expect(shouldBypass("/admin/content")).toBe(true);
+      expect(shouldBypass("/admin/settings")).toBe(true);
     });
     it("allows /_next and static assets", () => {
       expect(shouldBypass("/_next")).toBe(true);

@@ -105,12 +105,13 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="relative -mx-4 mb-10 overflow-hidden rounded-xl sm:-mx-6 lg:-mx-8">
         <Image
-          src={banners.marketCrowd}
+          src={banners.marketCrowd.url}
           alt="Markets and events calendar"
           width={1200}
           height={400}
           className="h-52 w-full object-cover sm:h-64"
-          unoptimized={isBannerUnoptimized(banners.marketCrowd)}
+          style={{ objectPosition: banners.marketCrowd.objectPosition }}
+          unoptimized={isBannerUnoptimized(banners.marketCrowd.url)}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6">

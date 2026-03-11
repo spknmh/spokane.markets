@@ -6,23 +6,44 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, Link2, RotateCcw } from "lucide-react";
+import {
+  getBannerFocalXKey,
+  getBannerFocalYKey,
+  type BannerKey,
+} from "@/lib/banner-images";
+import { Upload, Link2, RotateCcw, Focus } from "lucide-react";
 import { isBannerUnoptimized } from "@/lib/utils";
 
 interface BannerEditorProps {
-  bannerKey: string;
+  bannerKey: BannerKey;
   label: string;
   currentUrl: string;
+  currentFocalX: number;
+  currentFocalY: number;
   isCustom?: boolean;
 }
 
-export function BannerEditor({ bannerKey, label, currentUrl, isCustom }: BannerEditorProps) {
+export function BannerEditor({
+  bannerKey,
+  label,
+  currentUrl,
+  currentFocalX,
+  currentFocalY,
+  isCustom,
+}: BannerEditorProps) {
   const router = useRouter();
   const [urlInput, setUrlInput] = React.useState("");
+  const [focalX, setFocalX] = React.useState(currentFocalX);
+  const [focalY, setFocalY] = React.useState(currentFocalY);
   const [uploading, setUploading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    setFocalX(currentFocalX);
+    setFocalY(currentFocalY);
+  }, [currentFocalX, currentFocalY]);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -71,16 +92,22 @@ export function BannerEditor({ bannerKey, label, currentUrl, isCustom }: BannerE
     }
   }
 
-    async function handleReset() {
+  async function handleReset() {
     setError(null);
     setSaving(true);
     try {
-      const res = await fetch(`/api/admin/site-config?key=${encodeURIComponent(bannerKey)}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Failed to reset");
+      for (const key of [
+        bannerKey,
+        getBannerFocalXKey(bannerKey),
+        getBannerFocalYKey(bannerKey),
+      ]) {
+        const res = await fetch(`/api/admin/site-config?key=${encodeURIComponent(key)}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error ?? "Failed to reset");
+        }
       }
       router.refresh();
     } catch (err) {
@@ -91,33 +118,63 @@ export function BannerEditor({ bannerKey, label, currentUrl, isCustom }: BannerE
   }
 
   async function saveBanner(url: string) {
+    await saveConfigValue(bannerKey, url);
+    router.refresh();
+  }
+
+  async function saveFocalPoint() {
+    setError(null);
+    setSaving(true);
+    try {
+      await saveConfigValue(
+        getBannerFocalXKey(bannerKey),
+        String(Math.round(focalX))
+      );
+      await saveConfigValue(
+        getBannerFocalYKey(bannerKey),
+        String(Math.round(focalY))
+      );
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save focal point");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveConfigValue(key: string, value: string) {
     const res = await fetch("/api/admin/site-config", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: bannerKey, value: url }),
+      body: JSON.stringify({ key, value }),
     });
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       throw new Error(data.error ?? "Failed to save");
     }
-
-    router.refresh();
   }
 
   const useUnoptimized = isBannerUnoptimized(currentUrl);
+  const hasFocalChanges = focalX !== currentFocalX || focalY !== currentFocalY;
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-3">
-      <Label className="text-sm font-medium">{label}</Label>
-      <div className="relative aspect-[2/1] overflow-hidden rounded-md bg-muted">
+    <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+      <div className="space-y-1">
+        <Label className="text-sm font-medium">{label}</Label>
+        <p className="text-xs text-muted-foreground">
+          Compact preview with adjustable focal point for crop-heavy layouts.
+        </p>
+      </div>
+      <div className="relative h-28 overflow-hidden rounded-md bg-muted">
         <Image
           src={currentUrl}
           alt={label}
           fill
           className="object-cover"
+          style={{ objectPosition: `${focalX}% ${focalY}%` }}
           unoptimized={useUnoptimized}
-          sizes="(max-width: 640px) 100vw, 50vw"
+          sizes="(max-width: 768px) 100vw, 33vw"
         />
       </div>
       <div className="flex flex-wrap gap-2">
@@ -167,6 +224,57 @@ export function BannerEditor({ bannerKey, label, currentUrl, isCustom }: BannerE
           onClick={handleSaveUrl}
         >
           <Link2 className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="space-y-3 rounded-md border border-border/70 bg-muted/30 p-3">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Focus className="h-4 w-4" />
+          Focal point
+        </div>
+        <div className="grid gap-3">
+          <div className="grid grid-cols-[3rem_1fr_3rem] items-center gap-3">
+            <Label htmlFor={`${bannerKey}-focal-x`} className="text-xs text-muted-foreground">
+              X
+            </Label>
+            <input
+              id={`${bannerKey}-focal-x`}
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={focalX}
+              onChange={(e) => setFocalX(Number(e.target.value))}
+            />
+            <span className="text-right text-xs text-muted-foreground">
+              {Math.round(focalX)}%
+            </span>
+          </div>
+          <div className="grid grid-cols-[3rem_1fr_3rem] items-center gap-3">
+            <Label htmlFor={`${bannerKey}-focal-y`} className="text-xs text-muted-foreground">
+              Y
+            </Label>
+            <input
+              id={`${bannerKey}-focal-y`}
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={focalY}
+              onChange={(e) => setFocalY(Number(e.target.value))}
+            />
+            <span className="text-right text-xs text-muted-foreground">
+              {Math.round(focalY)}%
+            </span>
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          disabled={!hasFocalChanges || saving}
+          onClick={saveFocalPoint}
+        >
+          Save focal point
         </Button>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}

@@ -91,13 +91,14 @@ export default async function HomePage() {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src={banners.hero}
+            src={banners.hero.url}
             alt="Local farmers market"
             fill
             className="object-cover"
+            style={{ objectPosition: banners.hero.objectPosition }}
             priority
             sizes="100vw"
-            unoptimized={isBannerUnoptimized(banners.hero)}
+            unoptimized={isBannerUnoptimized(banners.hero.url)}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" />
         </div>

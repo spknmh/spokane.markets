@@ -29,12 +29,13 @@ export default async function SubmitPage() {
     <div className="mx-auto max-w-2xl px-4 py-12">
       <div className="mb-8 overflow-hidden rounded-xl">
         <Image
-          src={banners.craftStall}
+          src={banners.craftStall.url}
           alt="Craft stall at a local market"
           width={800}
           height={200}
           className="h-40 w-full object-cover"
-          unoptimized={isBannerUnoptimized(banners.craftStall)}
+          style={{ objectPosition: banners.craftStall.objectPosition }}
+          unoptimized={isBannerUnoptimized(banners.craftStall.url)}
         />
       </div>
       <div className="mb-8 text-center">

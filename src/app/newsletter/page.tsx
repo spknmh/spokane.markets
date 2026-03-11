@@ -11,12 +11,13 @@ export default async function NewsletterPage() {
     <div className="mx-auto max-w-xl px-4 py-12">
       <div className="mb-8 overflow-hidden rounded-xl">
         <Image
-          src={banners.marketCrowd}
+          src={banners.marketCrowd.url}
           alt="Community at a farmers market"
           width={800}
           height={200}
           className="h-40 w-full object-cover"
-          unoptimized={isBannerUnoptimized(banners.marketCrowd)}
+          style={{ objectPosition: banners.marketCrowd.objectPosition }}
+          unoptimized={isBannerUnoptimized(banners.marketCrowd.url)}
         />
       </div>
       <div className="mb-8 text-center">
