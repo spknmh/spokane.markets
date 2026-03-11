@@ -4,11 +4,24 @@ import { headers } from "next/headers";
 import { SITE_NAME, LEGAL_ENTITY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { AuthGate } from "@/components/auth-gate";
 
 export async function Footer() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const [session, applicationForms] = await Promise.all([
+    auth.api.getSession({ headers: await headers() }),
+    db.applicationForm.findMany({
+      where: { type: { in: ["VENDOR", "MARKET"] } },
+      select: { type: true, active: true },
+    }),
+  ]);
   const isAdmin = session?.user?.role === "ADMIN";
+  const vendorApplicationsOpen = applicationForms.some(
+    (form) => form.type === "VENDOR" && form.active
+  );
+  const marketApplicationsOpen = applicationForms.some(
+    (form) => form.type === "MARKET" && form.active
+  );
 
   return (
     <footer className="border-t border-primary/30 bg-primary">
@@ -75,6 +88,26 @@ export async function Footer() {
                   </Link>
                 </AuthGate>
               </li>
+              {vendorApplicationsOpen && (
+                <li>
+                  <Link
+                    href="/apply/vendor"
+                    className="text-sm text-primary-foreground/90 transition-colors hover:text-primary-foreground"
+                  >
+                    Apply as a Vendor
+                  </Link>
+                </li>
+              )}
+              {marketApplicationsOpen && (
+                <li>
+                  <Link
+                    href="/apply/market"
+                    className="text-sm text-primary-foreground/90 transition-colors hover:text-primary-foreground"
+                  >
+                    List Your Market
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link
                   href="/vendor-survey"

@@ -1,11 +1,32 @@
 import type { MetadataRoute } from "next";
-import { db } from "@/lib/db";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export const dynamic = "force-dynamic";
 
+export function getStaticSitemapRoutes(
+  baseUrl: string,
+  now: Date = new Date()
+): MetadataRoute.Sitemap {
+  return [
+    { url: baseUrl, lastModified: now, changeFrequency: "weekly", priority: 1 },
+    { url: `${baseUrl}/events`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${baseUrl}/events/map`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${baseUrl}/events/calendar`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${baseUrl}/markets`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${baseUrl}/vendors`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${baseUrl}/apply/vendor`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/apply/market`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/submit`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/about/backstory`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${baseUrl}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${baseUrl}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+  ];
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { db } = await import("@/lib/db");
   const [events, markets, vendors] = await Promise.all([
     db.event.findMany({
       where: { status: "PUBLISHED" },
@@ -19,19 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   ]);
 
-  const staticRoutes: MetadataRoute.Sitemap = [
-    { url: BASE_URL, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
-    { url: `${BASE_URL}/events`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-    { url: `${BASE_URL}/events/map`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${BASE_URL}/events/calendar`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${BASE_URL}/markets`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE_URL}/vendors`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE_URL}/submit`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE_URL}/about/backstory`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
-    { url: `${BASE_URL}/terms`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
-    { url: `${BASE_URL}/privacy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
-  ];
+  const staticRoutes = getStaticSitemapRoutes(BASE_URL);
 
   const eventRoutes: MetadataRoute.Sitemap = events.map((e) => ({
     url: `${BASE_URL}/events/${e.slug}`,

@@ -3,9 +3,11 @@ import { type BannerKey } from "@/lib/banner-config";
 import { getBannerImages } from "@/lib/banner-images";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
 import { getMaintenanceState } from "@/lib/maintenance";
+import { getSiteAnnouncement } from "@/lib/site-announcement";
 import { getSiteTheme } from "@/lib/site-theme";
 import { BannerEditor } from "@/components/admin/banner-editor";
 import { MaintenanceForm } from "@/components/admin/maintenance-form";
+import { SiteAnnouncementForm } from "@/components/admin/site-announcement-form";
 import { SiteThemeSelector } from "@/components/admin/site-theme-selector";
 
 const BANNER_LABELS: Record<BannerKey, string> = {
@@ -23,10 +25,11 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
   await requireAdmin();
-  const [images, maintenanceState, siteTheme] = await Promise.all([
+  const [images, maintenanceState, siteTheme, siteAnnouncement] = await Promise.all([
     getBannerImages(),
     getMaintenanceState(),
     getSiteTheme(),
+    getSiteAnnouncement(),
   ]);
 
   return (
@@ -92,6 +95,16 @@ export default async function AdminSettingsPage() {
             );
           })}
         </div>
+      </section>
+
+      <section className="space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold">Announcement Bar</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Publish a short site-wide message with an optional CTA link below the main header.
+          </p>
+        </div>
+        <SiteAnnouncementForm initialAnnouncement={siteAnnouncement} />
       </section>
     </div>
   );

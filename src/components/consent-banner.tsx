@@ -52,12 +52,13 @@ export function ConsentBanner() {
   return (
     <div
       role="dialog"
-      aria-label="Cookie consent"
+      aria-label="Analytics consent"
       className="fixed bottom-0 left-0 right-0 z-[100] border-t border-border bg-background px-4 py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] sm:px-6"
     >
       <div className="mx-auto flex max-w-4xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          We use cookies to understand how visitors use our site and improve your experience.{" "}
+          We collect anonymous usage analytics on our own infrastructure to improve this
+          site. No data is shared with third parties.{" "}
           <Link href="/privacy" className="text-primary underline underline-offset-4 hover:no-underline">
             Privacy Policy
           </Link>
@@ -67,7 +68,7 @@ export function ConsentBanner() {
             Decline
           </Button>
           <Button size="sm" onClick={handleAccept}>
-            Accept
+            Allow analytics
           </Button>
         </div>
       </div>

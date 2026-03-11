@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { SITE_NAME } from "@/lib/constants";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -48,18 +49,30 @@ export default async function MarketsPage({
   const params = await searchParams;
   const q = (params.q ?? "").trim();
 
-  const banners = await getBannerImages();
-  const markets = await db.market.findMany({
-    where: q
-      ? {
-          OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } },
-          ],
-        }
-      : undefined,
-    orderBy: { name: "asc" },
-  });
+  const [banners, markets, applicationForms] = await Promise.all([
+    getBannerImages(),
+    db.market.findMany({
+      where: q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { description: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : undefined,
+      orderBy: { name: "asc" },
+    }),
+    db.applicationForm.findMany({
+      where: { type: { in: ["VENDOR", "MARKET"] } },
+      select: { type: true, active: true },
+    }),
+  ]);
+  const vendorApplicationsOpen = applicationForms.some(
+    (form) => form.type === "VENDOR" && form.active
+  );
+  const marketApplicationsOpen = applicationForms.some(
+    (form) => form.type === "MARKET" && form.active
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -89,6 +102,52 @@ export default async function MarketsPage({
       <div className="mb-6">
         <MarketsSearch defaultValue={q} />
       </div>
+
+      <section className="mb-8 grid gap-4 lg:grid-cols-2">
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="text-xl">Run a market or recurring event?</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Organizers can apply for a market profile to publish their listing and improve discovery across the site.
+            </p>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-3">
+            {marketApplicationsOpen ? (
+              <Button asChild>
+                <Link href="/apply/market" prefetch={false}>
+                  List Your Market
+                </Link>
+              </Button>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Market applications are currently closed. Please check back soon.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Vend at local markets?</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Vendors can also apply for a profile to share their business and connect with upcoming events.
+            </p>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-3">
+            {vendorApplicationsOpen ? (
+              <Button asChild variant="outline">
+                <Link href="/apply/vendor" prefetch={false}>
+                  Apply for a Vendor Profile
+                </Link>
+              </Button>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Vendor applications are currently closed. Please check back soon.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
       {markets.length === 0 ? (
         <p className="py-12 text-center text-muted-foreground">

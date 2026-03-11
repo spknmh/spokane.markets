@@ -5,6 +5,7 @@ import { SITE_NAME } from "@/lib/constants";
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { getBannerImages } from "@/lib/banner-images";
+import { eventOccursInMonth, getEventDaysInMonth } from "@/lib/calendar-events";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { EventTimeLabel } from "@/components/event/event-time-label";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -61,30 +62,11 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
     include: { venue: true, tags: true, features: true, scheduleDays: { orderBy: { date: "asc" } } },
     orderBy: { startDate: "asc" },
   });
+  const visibleEvents = events.filter((event) => eventOccursInMonth(event, year, month));
 
   const eventsByDay = new Map<number, typeof events>();
-  for (const event of events) {
-    const daysToShow = new Set<number>();
-    if (event.scheduleDays.length > 0) {
-      for (const sd of event.scheduleDays) {
-        const d = new Date(sd.date);
-        if (d.getFullYear() === year && d.getMonth() === month) {
-          daysToShow.add(d.getDate());
-        }
-      }
-    }
-    if (daysToShow.size === 0) {
-      const start = new Date(event.startDate);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(event.endDate);
-      end.setHours(23, 59, 59, 999);
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        if (d.getFullYear() === year && d.getMonth() === month) {
-          daysToShow.add(d.getDate());
-        }
-      }
-    }
-    for (const day of daysToShow) {
+  for (const event of visibleEvents) {
+    for (const day of getEventDaysInMonth(event, year, month)) {
       if (!eventsByDay.has(day)) eventsByDay.set(day, []);
       eventsByDay.get(day)!.push(event);
     }
@@ -152,17 +134,17 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
 
       {/* Mobile: list view */}
       <div className="sm:hidden space-y-4">
-        {events.length === 0 ? (
+        {visibleEvents.length === 0 ? (
           <p className="py-8 text-center text-muted-foreground">No events this month</p>
         ) : (
-          events.map((event) => (
+          visibleEvents.map((event) => (
             <Link
               key={event.id}
               href={`/events/${event.slug}`}
               className="block rounded-lg border border-border p-4 transition-colors hover:bg-muted"
             >
-              <span className="font-medium">{event.title}</span>
-              <span className="ml-2 text-sm text-muted-foreground">
+              <span className="block font-medium">{event.title}</span>
+              <span className="mt-1 block text-sm text-muted-foreground">
                 <EventTimeLabel
                   startDate={event.startDate}
                   endDate={event.endDate}

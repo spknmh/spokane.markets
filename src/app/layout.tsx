@@ -5,10 +5,12 @@ import "./globals.css";
 import { ConditionalChrome } from "@/components/layout/conditional-chrome";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { SiteAnnouncementBar } from "@/components/layout/site-announcement";
 import { Providers } from "@/components/providers";
 import { AnalyticsLoader } from "@/components/analytics/analytics-loader";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
 import { SITE_NAME } from "@/lib/constants";
+import { getSiteAnnouncement } from "@/lib/site-announcement";
 import { getSiteTheme } from "@/lib/site-theme";
 
 const fraunces = Fraunces({
@@ -70,7 +72,10 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const theme = await getSiteTheme();
+  const [theme, siteAnnouncement] = await Promise.all([
+    getSiteTheme(),
+    getSiteAnnouncement(),
+  ]);
   const themeAttr = theme === "cedar" ? undefined : theme;
 
   return (
@@ -126,6 +131,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           <AnalyticsLoader>
           <ConditionalChrome
             nav={<Navbar />}
+            announcement={<SiteAnnouncementBar announcement={siteAnnouncement} />}
             footer={<Footer />}
           >
             <div id="main" className="min-h-screen">{children}</div>

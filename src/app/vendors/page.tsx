@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { Pagination } from "@/components/pagination";
+import { Button } from "@/components/ui/button";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -54,7 +55,7 @@ export default async function VendorsPage({
       }
     : undefined;
 
-  const [session, vendors, totalCount, banners] = await Promise.all([
+  const [session, vendors, totalCount, banners, applicationForms] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
     db.vendorProfile.findMany({
       where,
@@ -65,9 +66,19 @@ export default async function VendorsPage({
     }),
     db.vendorProfile.count({ where }),
     getBannerImages(),
+    db.applicationForm.findMany({
+      where: { type: { in: ["VENDOR", "MARKET"] } },
+      select: { type: true, active: true },
+    }),
   ]);
 
   const totalPages = Math.ceil(totalCount / limit);
+  const vendorApplicationsOpen = applicationForms.some(
+    (form) => form.type === "VENDOR" && form.active
+  );
+  const marketApplicationsOpen = applicationForms.some(
+    (form) => form.type === "MARKET" && form.active
+  );
 
   const favoriteIds = session?.user
     ? (
@@ -109,6 +120,52 @@ export default async function VendorsPage({
       <div className="mb-6">
         <VendorsSearch defaultValue={q} />
       </div>
+
+      <section className="mb-8 grid gap-4 lg:grid-cols-2">
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="text-xl">Own this kind of profile?</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Vendors can apply for a profile to showcase their business and share where they&apos;ll be next.
+            </p>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-3">
+            {vendorApplicationsOpen ? (
+              <Button asChild>
+                <Link href="/apply/vendor" prefetch={false}>
+                  Apply for a Vendor Profile
+                </Link>
+              </Button>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Vendor applications are currently closed. Please check back soon.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Run a market or event series?</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Market organizers can request a listing so shoppers and vendors can find recurring markets more easily.
+            </p>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-3">
+            {marketApplicationsOpen ? (
+              <Button asChild variant="outline">
+                <Link href="/apply/market" prefetch={false}>
+                  List Your Market
+                </Link>
+              </Button>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Market applications are currently closed. Please check back soon.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
       {vendors.length === 0 ? (
         <p className="py-12 text-center text-muted-foreground">

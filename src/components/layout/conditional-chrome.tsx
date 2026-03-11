@@ -6,10 +6,12 @@ import { usePathname } from "next/navigation";
 export function ConditionalChrome({
   children,
   nav,
+  announcement,
   footer,
 }: {
   children: React.ReactNode;
   nav: React.ReactNode;
+  announcement?: React.ReactNode;
   footer: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -23,6 +25,7 @@ export function ConditionalChrome({
   return (
     <>
       {nav}
+      {announcement}
       {children}
       {footer}
     </>
