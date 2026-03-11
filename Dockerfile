@@ -41,7 +41,10 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN addgroup --system nodejs && adduser --system --ingroup nodejs nextjs
+# Keep the runtime UID/GID stable so the shared uploads volume can be
+# prepared by the init container with matching ownership.
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 --ingroup nodejs nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
