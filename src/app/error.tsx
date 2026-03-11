@@ -10,12 +10,21 @@ export default function Error({
   reset,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  reset?: () => void;
 }) {
   useEffect(() => {
     console.error("Application error:", error);
     trackEvent("error_view");
   }, [error]);
+
+  function handleTryAgain() {
+    trackEvent("error_try_again_click");
+    if (typeof reset === "function") {
+      reset();
+      return;
+    }
+    window.location.reload();
+  }
 
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center px-4">
@@ -24,12 +33,7 @@ export default function Error({
         We encountered an unexpected error. Please try again.
       </p>
       <div className="mt-6 flex gap-4">
-        <Button
-          onClick={() => {
-            trackEvent("error_try_again_click");
-            reset();
-          }}
-        >
+        <Button onClick={handleTryAgain}>
           Try again
         </Button>
         <Button variant="outline" asChild>

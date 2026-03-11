@@ -8,11 +8,20 @@ export default function GlobalError({
   reset,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  reset?: () => void;
 }) {
   useEffect(() => {
     trackEvent("error_view");
   }, [error]);
+
+  function handleTryAgain() {
+    trackEvent("error_try_again_click");
+    if (typeof reset === "function") {
+      reset();
+      return;
+    }
+    window.location.reload();
+  }
 
   return (
     <html lang="en">
@@ -23,10 +32,7 @@ export default function GlobalError({
             A critical error occurred. Please try again.
           </p>
           <button
-            onClick={() => {
-              trackEvent("error_try_again_click");
-              reset();
-            }}
+            onClick={handleTryAgain}
             className="mt-6 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Try again
