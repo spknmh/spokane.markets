@@ -10,7 +10,7 @@ import {
   getBannerFocalXKey,
   getBannerFocalYKey,
   type BannerKey,
-} from "@/lib/banner-images";
+} from "@/lib/banner-config";
 import { Upload, Link2, RotateCcw, Focus } from "lucide-react";
 import { isBannerUnoptimized } from "@/lib/utils";
 

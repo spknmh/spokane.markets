@@ -9,7 +9,7 @@ import {
   getBannerFocalXKey,
   getBannerFocalYKey,
   isBannerConfigKey,
-} from "@/lib/banner-images";
+} from "@/lib/banner-config";
 
 const patchConfigSchema = z.object({
   key: z.string().min(1, "Key is required"),

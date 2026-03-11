@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { getMaintenanceState } from "@/lib/maintenance";
 
 /**
- * Public API for maintenance config. Used by middleware.
- * Cached 10s to reduce DB load. No auth required so middleware can fetch it.
+ * Public API for maintenance config. Used by the proxy.
+ * Cached 10s to reduce DB load. No auth required so the proxy can fetch it.
  */
 export async function GET() {
   try {

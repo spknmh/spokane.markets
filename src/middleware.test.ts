@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 
 /**
- * Unit tests for middleware allowlist logic.
- * The actual allowlist is in middleware.ts - we test the same logic here.
+ * Unit tests for proxy allowlist logic.
+ * The actual allowlist is in proxy.ts - we test the same logic here.
  */
 const BYPASS_PATHS = [
   "/api/auth",
@@ -30,7 +30,7 @@ function isStaticFile(pathname: string): boolean {
   );
 }
 
-describe("middleware allowlist", () => {
+describe("proxy allowlist", () => {
   describe("shouldBypass", () => {
     it("allows /api/auth and subpaths", () => {
       expect(shouldBypass("/api/auth")).toBe(true);

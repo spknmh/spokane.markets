@@ -49,7 +49,7 @@ function getApiBase(request: NextRequest): string {
  * Privileged users (admin, vendor, organizer) bypass via the maintenance page
  * which runs on Node.js and can use auth() with database sessions.
  */
-export default async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (isStaticFile(pathname)) {

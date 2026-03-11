@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth-utils";
-import { getBannerImages, type BannerKey } from "@/lib/banner-images";
+import { type BannerKey } from "@/lib/banner-config";
+import { getBannerImages } from "@/lib/banner-images";
 import { COMMUNITY_IMAGES } from "@/lib/community-images";
 import { getMaintenanceState } from "@/lib/maintenance";
 import { getSiteTheme } from "@/lib/site-theme";
@@ -49,7 +50,7 @@ export default async function AdminSettingsPage() {
             Control site-wide access and the public maintenance message from one place.
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
-            Set <code className="rounded bg-muted px-1">NEXT_PUBLIC_APP_URL</code> for maintenance middleware when running behind a reverse proxy.
+            Set <code className="rounded bg-muted px-1">NEXT_PUBLIC_APP_URL</code> for the maintenance proxy when running behind a reverse proxy.
           </p>
         </div>
         <MaintenanceForm
