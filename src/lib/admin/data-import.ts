@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getNeighborhoodSlugSet } from "@/lib/neighborhoods";
 import { slugify } from "@/lib/utils";
 import { venueSchema } from "@/lib/validations";
 
@@ -101,6 +102,22 @@ export async function importData(payload: ImportPayload): Promise<ImportResult> 
   const venueIdBySlug = new Map<string, string>();
   const venueIdByName = new Map<string, string>();
   const marketIdBySlug = new Map<string, string>();
+  const allowedNeighborhoods = await getNeighborhoodSlugSet();
+
+  const normalizeNeighborhood = (
+    value: string | undefined,
+    field: "neighborhood" | "baseArea",
+    rowLabel: string
+  ): string | null => {
+    const trimmed = value?.trim();
+    if (!trimmed) return null;
+    if (!allowedNeighborhoods.has(trimmed)) {
+      throw new Error(
+        `${rowLabel}: invalid ${field} slug "${trimmed}". Create it in Admin → Neighborhoods first.`
+      );
+    }
+    return trimmed;
+  };
 
   // Pre-load existing venues and markets for resolution
   const [existingVenues, existingMarkets] = await Promise.all([
@@ -125,10 +142,15 @@ export async function importData(payload: ImportPayload): Promise<ImportResult> 
           result.errors.push(`Venue ${i + 1}: ${parsed.error.message}`);
           continue;
         }
+        const neighborhood = normalizeNeighborhood(
+          parsed.data.neighborhood,
+          "neighborhood",
+          `Venue ${i + 1}`
+        );
         const venue = await db.venue.create({
           data: {
             ...parsed.data,
-            neighborhood: parsed.data.neighborhood || null,
+            neighborhood,
             parkingNotes: parsed.data.parkingNotes || null,
           },
         });
@@ -160,6 +182,11 @@ export async function importData(payload: ImportPayload): Promise<ImportResult> 
           continue;
         }
         const slug = row.slug || slugify(row.name) || `market-${Date.now()}-${i}`;
+        const baseArea = normalizeNeighborhood(
+          row.baseArea,
+          "baseArea",
+          `Market ${i + 1} (${row.name})`
+        );
         const market = await db.market.upsert({
           where: { slug },
           create: {
@@ -171,7 +198,7 @@ export async function importData(payload: ImportPayload): Promise<ImportResult> 
             websiteUrl: row.websiteUrl || null,
             facebookUrl: row.facebookUrl || null,
             instagramUrl: row.instagramUrl || null,
-            baseArea: row.baseArea || null,
+            baseArea,
             typicalSchedule: row.typicalSchedule || null,
             contactEmail: row.contactEmail || null,
             contactPhone: row.contactPhone || null,
@@ -184,7 +211,7 @@ export async function importData(payload: ImportPayload): Promise<ImportResult> 
             websiteUrl: row.websiteUrl ?? undefined,
             facebookUrl: row.facebookUrl ?? undefined,
             instagramUrl: row.instagramUrl ?? undefined,
-            baseArea: row.baseArea ?? undefined,
+            baseArea: baseArea ?? undefined,
             typicalSchedule: row.typicalSchedule ?? undefined,
             contactEmail: row.contactEmail ?? undefined,
             contactPhone: row.contactPhone ?? undefined,

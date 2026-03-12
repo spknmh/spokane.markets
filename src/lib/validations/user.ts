@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { neighborhoodSlugSchema } from "./common";
 
 export const signInSchema = z.object({
   email: z.string().email("Valid email is required"),
@@ -84,7 +85,7 @@ export type UserProfilePatchInput = z.infer<typeof userProfilePatchSchema>;
 export const savedFilterSchema = z.object({
   name: z.string().min(1, "Filter name is required"),
   dateRange: z.string().optional(),
-  neighborhoods: z.array(z.string()).optional(),
+  neighborhoods: z.array(neighborhoodSlugSchema).optional(),
   categories: z.array(z.string()).optional(),
   features: z.array(z.string()).optional(),
   emailAlerts: z.boolean().optional(),

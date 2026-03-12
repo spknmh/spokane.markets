@@ -163,6 +163,13 @@ Seed creates `admin@spokane.markets` / `admin123`. **Change the password** after
 2. Name, full address, lat/lng (for maps), neighborhood, parking notes.
 3. Venues are shared — create once, reuse for many events.
 
+### Managing neighborhoods
+
+1. **Admin → Neighborhoods**
+2. Add/edit labels, slugs, sort order, and active status.
+3. If a neighborhood is in use, deleting it requires reassigning references to another slug.
+4. Neighborhood definitions feed markets, venues, event filters, and newsletter area subscriptions.
+
 ### Site settings (banners and announcements)
 
 1. **Admin → Site Settings**
@@ -203,7 +210,7 @@ Requires `NEXT_PUBLIC_APP_URL` in `.env.local`.
 
 ### Neighborhoods
 
-Used for filtering events and markets. Defined in `src/lib/constants.ts` (NEIGHBORHOODS). Venues and markets use `baseArea` / `neighborhood` slugs (e.g. `downtown`, `south-hill`).
+Used for filtering events and markets. Managed in **Admin → Neighborhoods** and stored in the `neighborhoods` table. Venues and markets use `baseArea` / `neighborhood` slugs (e.g. `downtown`, `south-hill`).
 
 ### Tags & features
 

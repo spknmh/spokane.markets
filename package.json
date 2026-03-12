@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:backfill-participation": "tsx scripts/backfill-vendor-participation.ts",
+    "db:audit-neighborhoods": "tsx scripts/audit-neighborhoods.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",

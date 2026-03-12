@@ -14,6 +14,7 @@ import { SaveFilterDialog } from "@/components/save-filter-dialog";
 import { Pagination } from "@/components/pagination";
 import { Badge } from "@/components/ui/badge";
 import { EventsEmptyStateTracker } from "@/components/events-empty-state-tracker";
+import { getNeighborhoodOptions } from "@/lib/neighborhoods";
 
 export const dynamic = "force-dynamic";
 
@@ -121,7 +122,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   const limit = Math.min(50, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
 
   const session = await getSession();
-  const [savedFilters, tags, features] = await Promise.all([
+  const [savedFilters, tags, features, neighborhoods] = await Promise.all([
     session?.user
       ? db.savedFilter.findMany({
           where: { userId: session.user.id },
@@ -130,6 +131,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
       : Promise.resolve([]),
     db.tag.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, slug: true } }),
     db.feature.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, slug: true, icon: true } }),
+    getNeighborhoodOptions(),
   ]);
 
   const { gte, lt } = getDateRange(dateRange);
@@ -219,7 +221,11 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Filters
             </h2>
-            <EventFilters tags={tags} features={features} />
+            <EventFilters
+              tags={tags}
+              features={features}
+              neighborhoods={neighborhoods}
+            />
           </div>
         </aside>
 

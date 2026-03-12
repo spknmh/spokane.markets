@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { MarketForm } from "@/components/admin/market-form";
+import { getNeighborhoodOptions } from "@/lib/neighborhoods";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export default async function EditMarketPage({
   await requireAdmin();
   const { id } = await params;
 
-  const [market, venues] = await Promise.all([
+  const [market, venues, neighborhoods] = await Promise.all([
     db.market.findUnique({
       where: { id },
       include: { owner: { select: { name: true, email: true } } },
@@ -22,6 +23,7 @@ export default async function EditMarketPage({
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
+    getNeighborhoodOptions(),
   ]);
   if (!market) notFound();
 
@@ -55,7 +57,12 @@ export default async function EditMarketPage({
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Edit Market</h1>
-      <MarketForm initialData={initialData} venues={venues} ownerDisplay={ownerDisplay} />
+      <MarketForm
+        initialData={initialData}
+        venues={venues}
+        neighborhoods={neighborhoods}
+        ownerDisplay={ownerDisplay}
+      />
     </div>
   );
 }

@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { imageUrlSchema, participationModeEnum } from "./common";
+import {
+  imageUrlSchema,
+  neighborhoodSlugSchema,
+  participationModeEnum,
+} from "./common";
 
 export const marketSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -10,7 +14,7 @@ export const marketSchema = z.object({
   websiteUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   instagramUrl: z.string().url().optional().or(z.literal("")),
-  baseArea: z.string().optional(),
+  baseArea: neighborhoodSlugSchema.optional(),
   typicalSchedule: z.string().optional(),
   contactEmail: z.string().email().optional().or(z.literal("")),
   contactPhone: z.string().optional(),
@@ -33,7 +37,7 @@ export const organizerMarketPatchSchema = z.object({
   websiteUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   instagramUrl: z.string().url().optional().or(z.literal("")),
-  baseArea: z.string().optional(),
+  baseArea: neighborhoodSlugSchema.optional(),
   typicalSchedule: z.string().optional(),
   contactEmail: z.string().email().optional().or(z.literal("")),
   contactPhone: z.string().optional(),

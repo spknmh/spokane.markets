@@ -1,6 +1,7 @@
 import { requireApiAdmin } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
+import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
 import { marketSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
 
@@ -21,6 +22,15 @@ export async function PUT(
     }
 
     const data = parsed.data;
+    let baseArea: string | null;
+    try {
+      baseArea = await assertNeighborhoodSlug(data.baseArea, "baseArea");
+    } catch (err) {
+      return apiError(
+        err instanceof Error ? err.message : "Invalid baseArea value",
+        400
+      );
+    }
     const market = await db.market.update({
       where: { id },
       data: {
@@ -32,7 +42,7 @@ export async function PUT(
         websiteUrl: data.websiteUrl || null,
         facebookUrl: data.facebookUrl || null,
         instagramUrl: data.instagramUrl || null,
-        baseArea: data.baseArea || null,
+        baseArea,
         typicalSchedule: data.typicalSchedule || null,
         contactEmail: data.contactEmail || null,
         contactPhone: data.contactPhone || null,

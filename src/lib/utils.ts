@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { NEIGHBORHOODS } from "@/lib/constants";
+import { DEFAULT_NEIGHBORHOODS } from "@/lib/neighborhoods-config";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -14,7 +14,7 @@ export function isBannerUnoptimized(url: string): boolean {
 /** Returns display label for a neighborhood/baseArea slug, or title-cased fallback. */
 export function formatNeighborhoodLabel(slug: string | null | undefined): string {
   if (!slug) return "";
-  const found = NEIGHBORHOODS.find((n) => n.value === slug);
+  const found = DEFAULT_NEIGHBORHOODS.find((n) => n.value === slug);
   if (found) return found.label;
   return slug
     .split("-")

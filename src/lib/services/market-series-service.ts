@@ -3,10 +3,11 @@
  */
 
 import { db } from "@/lib/db";
-import type { Market, Venue, Event } from "@prisma/client";
+import type { Market, Venue, Event, Neighborhood } from "@prisma/client";
 
 /** Market-like shape with venue and events. */
 export type MarketForDisplay = Market & {
+  baseAreaRef: Neighborhood | null;
   venue: Venue;
   events: (Event & { venue: Venue })[];
 };
@@ -18,6 +19,7 @@ export async function findMarketBySlug(slug: string): Promise<MarketForDisplay |
   return db.market.findUnique({
     where: { slug },
     include: {
+      baseAreaRef: true,
       venue: true,
       events: {
         where: { status: "PUBLISHED", startDate: { gte: new Date() } },

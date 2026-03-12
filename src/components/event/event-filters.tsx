@@ -2,11 +2,12 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { DATE_FILTERS, NEIGHBORHOODS } from "@/lib/constants";
+import { DATE_FILTERS } from "@/lib/constants";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { trackEvent } from "@/lib/analytics";
+import type { NeighborhoodOption } from "@/lib/neighborhoods-config";
 
 type TagOption = { id: string; name: string; slug: string };
 type FeatureOption = { id: string; name: string; slug: string; icon: string | null };
@@ -14,9 +15,10 @@ type FeatureOption = { id: string; name: string; slug: string; icon: string | nu
 interface EventFiltersProps {
   tags: TagOption[];
   features: FeatureOption[];
+  neighborhoods: NeighborhoodOption[];
 }
 
-export function EventFilters({ tags, features }: EventFiltersProps) {
+export function EventFilters({ tags, features, neighborhoods }: EventFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -137,7 +139,7 @@ export function EventFilters({ tags, features }: EventFiltersProps) {
           onChange={(e) => updateFilter("neighborhood", e.target.value)}
         >
           <option value="">All neighborhoods</option>
-          {NEIGHBORHOODS.map((n) => (
+          {neighborhoods.map((n) => (
             <option key={n.value} value={n.value}>
               {n.label}
             </option>

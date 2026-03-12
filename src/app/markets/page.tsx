@@ -61,6 +61,11 @@ export default async function MarketsPage({
           }
         : undefined,
       orderBy: { name: "asc" },
+      include: {
+        baseAreaRef: {
+          select: { label: true },
+        },
+      },
     }),
     db.applicationForm.findMany({
       where: { type: { in: ["VENDOR", "MARKET"] } },
@@ -167,7 +172,8 @@ export default async function MarketsPage({
                   <CardTitle className="font-sans text-lg font-bold text-foreground">{market.name}</CardTitle>
                   {market.baseArea && (
                     <Badge variant="outline" className="mt-2">
-                      {formatNeighborhoodLabel(market.baseArea)}
+                      {market.baseAreaRef?.label ??
+                        formatNeighborhoodLabel(market.baseArea)}
                     </Badge>
                   )}
                 </div>

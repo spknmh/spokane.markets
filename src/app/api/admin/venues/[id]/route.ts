@@ -1,6 +1,7 @@
 import { requireApiAdmin } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
+import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
 import { venueSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
 
@@ -20,11 +21,24 @@ export async function PUT(
       return apiValidationError(parsed.error.flatten().fieldErrors);
     }
 
+    let neighborhood: string | null;
+    try {
+      neighborhood = await assertNeighborhoodSlug(
+        parsed.data.neighborhood,
+        "neighborhood"
+      );
+    } catch (err) {
+      return apiError(
+        err instanceof Error ? err.message : "Invalid neighborhood value",
+        400
+      );
+    }
+
     const venue = await db.venue.update({
       where: { id },
       data: {
         ...parsed.data,
-        neighborhood: parsed.data.neighborhood || null,
+        neighborhood,
         parkingNotes: parsed.data.parkingNotes || null,
       },
     });

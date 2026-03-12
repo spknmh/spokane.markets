@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
 import { organizerMarketPatchSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
 
@@ -51,6 +52,19 @@ export async function PUT(
   }
 
   const data = parsed.data;
+  let baseArea: string | null;
+  try {
+    baseArea = await assertNeighborhoodSlug(data.baseArea, "baseArea");
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: {
+          message: err instanceof Error ? err.message : "Invalid baseArea value",
+        },
+      },
+      { status: 400 }
+    );
+  }
 
   const updated = await db.market.update({
     where: { id },
@@ -61,7 +75,7 @@ export async function PUT(
       websiteUrl: data.websiteUrl || null,
       facebookUrl: data.facebookUrl || null,
       instagramUrl: data.instagramUrl || null,
-      baseArea: data.baseArea ?? null,
+      baseArea,
       typicalSchedule: data.typicalSchedule ?? null,
       contactEmail: data.contactEmail || null,
       contactPhone: data.contactPhone ?? null,

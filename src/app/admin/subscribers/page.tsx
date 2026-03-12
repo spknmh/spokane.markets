@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Pagination } from "@/components/pagination";
 import { SubscribersPageClient } from "@/components/admin/subscribers-page-client";
+import { getNeighborhoodOptions } from "@/lib/neighborhoods";
 
 export const dynamic = "force-dynamic";
 
@@ -18,13 +19,14 @@ export default async function AdminSubscribersPage({
   const page = Math.max(1, parseInt(params.page ?? "1", 10));
   const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
 
-  const [total, subscribers] = await Promise.all([
+  const [total, subscribers, neighborhoods] = await Promise.all([
     db.subscriber.count(),
     db.subscriber.findMany({
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,
     }),
+    getNeighborhoodOptions(),
   ]);
   const totalPages = Math.ceil(total / limit);
 
@@ -34,7 +36,10 @@ export default async function AdminSubscribersPage({
         Newsletter subscribers receive the weekly digest. Add manually or they
         sign up via the site.
       </p>
-      <SubscribersPageClient subscribers={subscribers} />
+      <SubscribersPageClient
+        subscribers={subscribers}
+        neighborhoods={neighborhoods}
+      />
       <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
     </div>
   );

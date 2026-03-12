@@ -21,9 +21,13 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { NEIGHBORHOODS } from "@/lib/constants";
+import type { NeighborhoodOption } from "@/lib/neighborhoods-config";
 
-export function NewsletterForm() {
+interface NewsletterFormProps {
+  neighborhoods: NeighborhoodOption[];
+}
+
+export function NewsletterForm({ neighborhoods }: NewsletterFormProps) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -117,7 +121,7 @@ export function NewsletterForm() {
               Select neighborhoods you&apos;re most interested in
             </p>
             <div className="flex flex-wrap gap-2">
-              {NEIGHBORHOODS.map(({ value, label }) => (
+              {neighborhoods.map(({ value, label }) => (
                 <label
                   key={value}
                   className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-muted/50"

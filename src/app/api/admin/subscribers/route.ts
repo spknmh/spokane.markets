@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { assertNeighborhoodSlugList } from "@/lib/neighborhoods";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -24,7 +25,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const { email, areas } = parsed.data;
+  const { email } = parsed.data;
+  let areas: string[];
+  try {
+    areas = await assertNeighborhoodSlugList(parsed.data.areas, "areas");
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: err instanceof Error ? err.message : "Invalid areas values",
+      },
+      { status: 400 }
+    );
+  }
   const normalizedEmail = email.toLowerCase();
 
   const existing = await db.subscriber.findUnique({

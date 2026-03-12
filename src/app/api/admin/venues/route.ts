@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
 import { venueSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
 
@@ -22,10 +23,28 @@ export async function POST(request: Request) {
     );
   }
 
+  let neighborhood: string | null;
+  try {
+    neighborhood = await assertNeighborhoodSlug(
+      parsed.data.neighborhood,
+      "neighborhood"
+    );
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: {
+          message:
+            err instanceof Error ? err.message : "Invalid neighborhood value",
+        },
+      },
+      { status: 400 }
+    );
+  }
+
   const venue = await db.venue.create({
     data: {
       ...parsed.data,
-      neighborhood: parsed.data.neighborhood || null,
+      neighborhood,
       parkingNotes: parsed.data.parkingNotes || null,
     },
   });

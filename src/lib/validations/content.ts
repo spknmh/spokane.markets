@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { imageUrlSchema } from "./common";
+import { imageUrlSchema, neighborhoodSlugSchema } from "./common";
 
 const submissionSchemaBase = z.object({
   submitterName: z.string().min(1, "Name is required"),
@@ -63,7 +63,7 @@ export type ContactInput = z.infer<typeof contactSchema>;
 
 export const subscriberSchema = z.object({
   email: z.string().email("Valid email is required"),
-  areas: z.array(z.string()).optional(),
+  areas: z.array(neighborhoodSlugSchema).optional(),
   /** Honeypot */
   company: z.string().max(0).optional(),
 });

@@ -8,15 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { NEIGHBORHOODS } from "@/lib/constants";
+import type { NeighborhoodOption } from "@/lib/neighborhoods-config";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface VenueFormProps {
   initialData?: VenueInput & { id: string };
+  neighborhoods: NeighborhoodOption[];
 }
 
-export function VenueForm({ initialData }: VenueFormProps) {
+export function VenueForm({ initialData, neighborhoods }: VenueFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -139,7 +140,7 @@ export function VenueForm({ initialData }: VenueFormProps) {
         <Label htmlFor="neighborhood">Neighborhood</Label>
         <Select id="neighborhood" {...register("neighborhood")}>
           <option value="">Select neighborhood...</option>
-          {NEIGHBORHOODS.map((n) => (
+          {neighborhoods.map((n) => (
             <option key={n.value} value={n.value}>
               {n.label}
             </option>

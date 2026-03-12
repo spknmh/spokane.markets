@@ -1,12 +1,16 @@
 import Image from "next/image";
 import { NewsletterForm } from "@/components/forms/newsletter-form";
 import { getBannerImages } from "@/lib/banner-images";
+import { getNeighborhoodOptions } from "@/lib/neighborhoods";
 import { isBannerUnoptimized } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewsletterPage() {
-  const banners = await getBannerImages();
+  const [banners, neighborhoods] = await Promise.all([
+    getBannerImages(),
+    getNeighborhoodOptions(),
+  ]);
   return (
     <div className="mx-auto max-w-xl px-4 py-12">
       <div className="mb-8 overflow-hidden rounded-xl">
@@ -27,7 +31,7 @@ export default async function NewsletterPage() {
           delivered to your inbox every Thursday. No spam, ever.
         </p>
       </div>
-      <NewsletterForm />
+      <NewsletterForm neighborhoods={neighborhoods} />
     </div>
   );
 }

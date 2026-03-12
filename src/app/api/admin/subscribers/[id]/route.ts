@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { assertNeighborhoodSlugList } from "@/lib/neighborhoods";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -46,7 +47,18 @@ export async function PATCH(
       );
     }
   }
-  if (parsed.data.areas !== undefined) data.areas = parsed.data.areas;
+  if (parsed.data.areas !== undefined) {
+    try {
+      data.areas = await assertNeighborhoodSlugList(parsed.data.areas, "areas");
+    } catch (err) {
+      return NextResponse.json(
+        {
+          error: err instanceof Error ? err.message : "Invalid areas values",
+        },
+        { status: 400 }
+      );
+    }
+  }
 
   const subscriber = await db.subscriber.update({
     where: { id },

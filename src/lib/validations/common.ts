@@ -43,3 +43,10 @@ export const participationModeEnum = z.enum([
   "INVITE_ONLY",
   "CAPACITY_LIMITED",
 ]);
+
+export const neighborhoodSlugSchema = z
+  .string()
+  .regex(
+    /^[a-z0-9-]+$/,
+    "Neighborhood must be lowercase letters, numbers, and hyphens only"
+  );

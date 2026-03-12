@@ -12,18 +12,25 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { UserSearchInput } from "@/components/admin/user-search-input";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
-import { NEIGHBORHOODS } from "@/lib/constants";
+import type { NeighborhoodOption } from "@/lib/neighborhoods-config";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface MarketFormProps {
   initialData?: MarketInput & { id: string };
   venues: Array<{ id: string; name: string }>;
+  neighborhoods: NeighborhoodOption[];
   users?: Array<{ id: string; name: string | null; email: string }>;
   ownerDisplay?: string;
 }
 
-export function MarketForm({ initialData, venues, users: _users = [], ownerDisplay }: MarketFormProps) {
+export function MarketForm({
+  initialData,
+  venues,
+  neighborhoods,
+  users: _users = [],
+  ownerDisplay,
+}: MarketFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,7 +180,7 @@ export function MarketForm({ initialData, venues, users: _users = [], ownerDispl
         <Label htmlFor="baseArea">Base Area</Label>
         <Select id="baseArea" {...register("baseArea")}>
           <option value="">Select area...</option>
-          {NEIGHBORHOODS.map((n) => (
+          {neighborhoods.map((n) => (
             <option key={n.value} value={n.value}>
               {n.label}
             </option>

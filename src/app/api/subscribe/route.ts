@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
+import { assertNeighborhoodSlugList } from "@/lib/neighborhoods";
 import { subscriberSchema } from "@/lib/validations";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -53,12 +54,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
 
-    const { email, areas, company } = parsed.data;
+    const { email, company } = parsed.data;
     if (company && company.length > 0) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
     const normalizedEmail = email.toLowerCase();
-    const areasArray = areas ?? [];
+    let areasArray: string[];
+    try {
+      areasArray = await assertNeighborhoodSlugList(parsed.data.areas, "areas");
+    } catch (err) {
+      return NextResponse.json(
+        {
+          error: err instanceof Error ? err.message : "Invalid areas values",
+        },
+        { status: 400 }
+      );
+    }
 
     await db.subscriber.upsert({
       where: { email: normalizedEmail },

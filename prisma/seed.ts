@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { DEFAULT_NEIGHBORHOODS } from "../src/lib/neighborhoods-config";
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
 });
@@ -42,6 +43,24 @@ async function main() {
     },
     update: {},
   });
+
+  // 1b. Neighborhoods (source-of-truth for venue/market/subscriber area slugs)
+  for (const [index, neighborhood] of DEFAULT_NEIGHBORHOODS.entries()) {
+    await prisma.neighborhood.upsert({
+      where: { slug: neighborhood.value },
+      create: {
+        slug: neighborhood.value,
+        label: neighborhood.label,
+        sortOrder: (index + 1) * 10,
+        isActive: true,
+      },
+      update: {
+        label: neighborhood.label,
+        sortOrder: (index + 1) * 10,
+        isActive: true,
+      },
+    });
+  }
 
   // 2. Tags
   await prisma.tag.createMany({

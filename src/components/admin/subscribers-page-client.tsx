@@ -7,6 +7,7 @@ import { SubscriberForm } from "./subscriber-form";
 import { SubscriberDeleteButton } from "./subscriber-delete-button";
 import { formatDate } from "@/lib/utils";
 import { Plus, Pencil } from "lucide-react";
+import type { NeighborhoodOption } from "@/lib/neighborhoods-config";
 
 interface Subscriber {
   id: string;
@@ -17,10 +18,12 @@ interface Subscriber {
 
 interface SubscribersPageClientProps {
   subscribers: Subscriber[];
+  neighborhoods: NeighborhoodOption[];
 }
 
 export function SubscribersPageClient({
   subscribers,
+  neighborhoods,
 }: SubscribersPageClientProps) {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Subscriber | null>(null);
@@ -120,6 +123,7 @@ export function SubscribersPageClient({
       <SubscriberForm
         open={formOpen}
         onOpenChange={handleFormClose}
+        neighborhoods={neighborhoods}
         initialData={
           editing
             ? { id: editing.id, email: editing.email, areas: editing.areas }

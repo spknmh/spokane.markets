@@ -259,6 +259,22 @@ model Verification {
 
 // ─── Core Domain Models ──────────────────────────────────────────────
 
+model Neighborhood {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  label     String
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  venues  Venue[]  @relation("VenueNeighborhood")
+  markets Market[] @relation("MarketBaseArea")
+
+  @@index([isActive, sortOrder])
+  @@map("neighborhoods")
+}
+
 model Venue {
   id           String  @id @default(cuid())
   name         String
@@ -270,6 +286,8 @@ model Venue {
   lng          Float
   neighborhood String?
   parkingNotes String?
+
+  neighborhoodRef Neighborhood? @relation("VenueNeighborhood", fields: [neighborhood], references: [slug], onDelete: SetNull, onUpdate: Cascade)
 
   events  Event[]
   markets Market[]
@@ -306,6 +324,7 @@ model Market {
   rosterClaimRequired      Boolean            @default(false)
 
   owner         User?          @relation("MarketOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  baseAreaRef   Neighborhood?  @relation("MarketBaseArea", fields: [baseArea], references: [slug], onDelete: SetNull, onUpdate: Cascade)
   venue         Venue          @relation(fields: [venueId], references: [id], onDelete: Restrict)
   events        Event[]
   reviews       Review[]

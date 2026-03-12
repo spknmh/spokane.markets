@@ -12,18 +12,20 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { NEIGHBORHOODS } from "@/lib/constants";
+import type { NeighborhoodOption } from "@/lib/neighborhoods-config";
 
 interface SubscriberFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialData?: { id: string; email: string; areas: string[] };
+  neighborhoods: NeighborhoodOption[];
 }
 
 export function SubscriberForm({
   open,
   onOpenChange,
   initialData,
+  neighborhoods,
 }: SubscriberFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState(initialData?.email ?? "");
@@ -105,7 +107,7 @@ export function SubscriberForm({
             <div className="space-y-2">
               <Label>Areas of interest (optional)</Label>
               <div className="flex flex-wrap gap-2">
-                {NEIGHBORHOODS.map(({ value, label }) => (
+                {neighborhoods.map(({ value, label }) => (
                   <label
                     key={value}
                     className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-muted/50"

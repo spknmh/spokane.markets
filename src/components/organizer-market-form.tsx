@@ -12,18 +12,20 @@ import { PhoneInput } from "@/components/phone-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
-import { NEIGHBORHOODS } from "@/lib/constants";
+import type { NeighborhoodOption } from "@/lib/neighborhoods-config";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface OrganizerMarketFormProps {
   marketId: string;
   initialData: OrganizerMarketPatchInput;
+  neighborhoods: NeighborhoodOption[];
 }
 
 export function OrganizerMarketForm({
   marketId,
   initialData,
+  neighborhoods,
 }: OrganizerMarketFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -124,7 +126,7 @@ export function OrganizerMarketForm({
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <option value="">Select area...</option>
-          {NEIGHBORHOODS.map((n) => (
+          {neighborhoods.map((n) => (
             <option key={n.value} value={n.value}>
               {n.label}
             </option>

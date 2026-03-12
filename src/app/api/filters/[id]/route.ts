@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { assertNeighborhoodSlugList } from "@/lib/neighborhoods";
 import { savedFilterSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
 
@@ -36,12 +37,30 @@ export async function PUT(
     );
   }
 
+  let neighborhoods: string[];
+  try {
+    neighborhoods = await assertNeighborhoodSlugList(
+      parsed.data.neighborhoods,
+      "neighborhoods"
+    );
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: {
+          message:
+            err instanceof Error ? err.message : "Invalid neighborhoods values",
+        },
+      },
+      { status: 400 }
+    );
+  }
+
   const filter = await db.savedFilter.update({
     where: { id },
     data: {
       name: parsed.data.name,
       dateRange: parsed.data.dateRange ?? null,
-      neighborhoods: parsed.data.neighborhoods ?? [],
+      neighborhoods,
       categories: parsed.data.categories ?? [],
       features: parsed.data.features ?? [],
       emailAlerts: parsed.data.emailAlerts ?? false,

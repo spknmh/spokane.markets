@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { SITE_NAME } from "@/lib/constants";
 import { OrganizerMarketForm } from "@/components/organizer-market-form";
+import { getNeighborhoodOptions } from "@/lib/neighborhoods";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -20,10 +21,13 @@ export default async function OrganizerMarketEditPage({
   const session = await requireRole("ORGANIZER");
   const { id } = await params;
 
-  const market = await db.market.findUnique({
-    where: { id },
-    include: { venue: { select: { name: true } } },
-  });
+  const [market, neighborhoods] = await Promise.all([
+    db.market.findUnique({
+      where: { id },
+      include: { venue: { select: { name: true } } },
+    }),
+    getNeighborhoodOptions(),
+  ]);
 
   if (!market) notFound();
   if (market.ownerId !== session.user.id) notFound();
@@ -61,7 +65,11 @@ export default async function OrganizerMarketEditPage({
         </p>
       </div>
 
-      <OrganizerMarketForm marketId={id} initialData={initialData} />
+      <OrganizerMarketForm
+        marketId={id}
+        initialData={initialData}
+        neighborhoods={neighborhoods}
+      />
     </div>
   );
 }

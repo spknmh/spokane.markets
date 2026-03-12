@@ -126,7 +126,10 @@ export default async function MarketDetailPage({ params }: PageProps) {
             <h1 className="text-3xl font-bold tracking-tight">{market.name}</h1>
             <VerificationBadge status={market.verificationStatus} />
             {market.baseArea && (
-              <Badge variant="outline">{formatNeighborhoodLabel(market.baseArea)}</Badge>
+              <Badge variant="outline">
+                {market.baseAreaRef?.label ??
+                  formatNeighborhoodLabel(market.baseArea)}
+              </Badge>
             )}
           </div>
 
