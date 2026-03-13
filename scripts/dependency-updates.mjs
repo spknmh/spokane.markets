@@ -68,7 +68,24 @@ function classifyUpdates(outdated, kindMap) {
 
   const safe = all.filter((u) => !u.majorBump);
   const major = all.filter((u) => u.majorBump);
-  return { all, safe, major };
+
+  // Major upgrades for these packages are intentionally manual.
+  // They frequently require coordinated config/framework changes.
+  const manualMajorPackages = new Set([
+    "eslint",
+    "eslint-config-next",
+    "next",
+    "react",
+    "react-dom",
+    "typescript",
+    "prisma",
+    "@prisma/client",
+    "@prisma/adapter-pg",
+  ]);
+
+  const manualMajor = major.filter((u) => manualMajorPackages.has(u.name));
+  const majorAuto = major.filter((u) => !manualMajorPackages.has(u.name));
+  return { all, safe, major, majorAuto, manualMajor };
 }
 
 function printGroup(title, updates) {
@@ -108,7 +125,10 @@ async function main() {
 
   const kindMap = getDependencyKindMap();
   const outdated = getOutdated();
-  const { all, safe, major } = classifyUpdates(outdated, kindMap);
+  const { all, safe, major, majorAuto, manualMajor } = classifyUpdates(
+    outdated,
+    kindMap
+  );
 
   if (all.length === 0) {
     console.log("All dependencies are up to date.");
@@ -118,6 +138,10 @@ async function main() {
   console.log(`Found ${all.length} outdated package(s).`);
   printGroup("Safe updates (same major):", safe);
   printGroup("Major updates (may contain breaking changes):", major);
+  printGroup(
+    "Major updates that are manual-only (not auto-applied):",
+    manualMajor
+  );
 
   const rl = createInterface({ input, output });
   try {
@@ -137,17 +161,23 @@ async function main() {
     }
 
     let applyMajor = autoMajor;
-    if (!autoMajor && major.length > 0) {
+    if (!autoMajor && majorAuto.length > 0) {
       applyMajor = await askYesNo(
         rl,
-        "Apply all major updates to @latest now? [y/N]",
+        "Apply auto-eligible major updates to @latest now? [y/N]",
         true
       );
     }
 
-    if (applyMajor && major.length > 0) {
-      updateToLatest(major);
+    if (applyMajor && majorAuto.length > 0) {
+      updateToLatest(majorAuto);
       console.log("\nApplied major updates to latest.");
+    }
+
+    if (manualMajor.length > 0) {
+      console.log(
+        "\nSkipped manual-only major updates. Upgrade these intentionally after review."
+      );
     }
   } finally {
     rl.close();
