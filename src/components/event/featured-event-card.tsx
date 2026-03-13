@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Event, Venue, Tag, Feature } from "@prisma/client";
 import type { PromotionType } from "@prisma/client";
-import { isMultiDayEvent, formatEventTime, formatEventTimeFromSchedule } from "@/lib/utils";
+import { isMultiDayEvent, formatTime12hr } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Megaphone, Handshake, Star } from "lucide-react";
@@ -44,6 +44,18 @@ const shortDateFormatUTC = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   timeZone: "UTC",
 });
+const fullDateFormatUTC = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+const timeFormatPST = new Intl.DateTimeFormat("en-US", {
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+  timeZone: "America/Los_Angeles",
+});
 
 export function FeaturedEventCard({
   event,
@@ -62,9 +74,28 @@ export function FeaturedEventCard({
   const multiDay = scheduleDays?.length
     ? scheduleDays.length > 1
     : isMultiDayEvent(new Date(event.startDate), new Date(event.endDate));
-  const timeLabel = scheduleDays?.length
-    ? formatEventTimeFromSchedule(scheduleDays)
-    : formatEventTime(event.startDate, event.endDate);
+  const dateLine = multiDay
+    ? `${fullDateFormatUTC.format(start)} - ${fullDateFormatUTC.format(end)}`
+    : fullDateFormatUTC.format(start);
+  let timeLine = `${timeFormatPST.format(new Date(event.startDate))} - ${timeFormatPST.format(
+    new Date(event.endDate)
+  )}`;
+  if (scheduleDays?.length) {
+    const first = scheduleDays[0];
+    const allSameTime = scheduleDays.every(
+      (d) =>
+        d.startTime === first.startTime &&
+        d.endTime === first.endTime &&
+        d.allDay === first.allDay
+    );
+    if (allSameTime && first.allDay) {
+      timeLine = "All day";
+    } else if (allSameTime && !first.allDay) {
+      timeLine = `${formatTime12hr(first.startTime)} - ${formatTime12hr(first.endTime)}`;
+    } else {
+      timeLine = "Various times";
+    }
+  }
 
   return (
     <Link href={`/events/${event.slug}`} prefetch={false} className="group block">
@@ -97,15 +128,17 @@ export function FeaturedEventCard({
                 </span>
               </>
             )}
-            <span className="mt-2 max-w-24 text-[10px] font-medium leading-tight text-primary-foreground/95">
-              {timeLabel}
-            </span>
           </div>
 
           <div className="min-w-0 flex-1 space-y-2 pt-8">
             <h3 className="font-sans line-clamp-4 text-lg font-bold leading-tight text-foreground group-hover:text-primary">
               {event.title}
             </h3>
+            <p className="text-sm font-semibold leading-snug text-foreground">
+              <span>{dateLine}</span>
+              <br />
+              <span>{timeLine}</span>
+            </p>
 
             <p className="text-sm font-medium text-foreground">
               {event.venue.name}

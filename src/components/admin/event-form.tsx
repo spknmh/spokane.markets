@@ -25,6 +25,22 @@ type ScheduleDay = {
   endTime?: string;
 };
 
+function buildTimeOptions(): { value: string; label: string }[] {
+  const options: { value: string; label: string }[] = [];
+  for (let hour = 0; hour < 24; hour += 1) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+      const labelHour = hour % 12 || 12;
+      const labelMinute = String(minute).padStart(2, "0");
+      const period = hour >= 12 ? "PM" : "AM";
+      options.push({ value, label: `${labelHour}:${labelMinute} ${period}` });
+    }
+  }
+  return options;
+}
+
+const TIME_OPTIONS = buildTimeOptions();
+
 function toScheduleDay(start: Date, end: Date): ScheduleDay {
   const d = new Date(start);
   const date = formatDateOnlyUTC(d);
@@ -382,17 +398,25 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
               <>
                 <div className="space-y-2">
                   <Label>Start</Label>
-                  <Input
-                    type="time"
-                    {...register(`scheduleDays.${i}.startTime`)}
-                  />
+                  <Select {...register(`scheduleDays.${i}.startTime`)}>
+                    <option value="">Select start time</option>
+                    {TIME_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>End</Label>
-                  <Input
-                    type="time"
-                    {...register(`scheduleDays.${i}.endTime`)}
-                  />
+                  <Select {...register(`scheduleDays.${i}.endTime`)}>
+                    <option value="">Select end time</option>
+                    {TIME_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
               </>
             )}
