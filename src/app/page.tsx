@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { EventCard } from "@/components/event/event-card";
 import { FeaturedEventCard } from "@/components/event/featured-event-card";
+import { VendorOfWeekCard } from "@/components/vendor/vendor-of-week-card";
 import { Input } from "@/components/ui/input";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
@@ -14,6 +15,7 @@ import {
 } from "@/lib/date-ranges";
 import { SITE_NAME } from "@/lib/constants";
 import { HomeScrollDepth } from "@/components/analytics/home-scroll-depth";
+import { getVendorOfWeek } from "@/lib/vendor-of-week";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +30,7 @@ export default async function HomePage() {
   const { start, end } = getUpcomingWeekRange();
   const planAheadRange = getPlanAheadRange();
 
-  const [promotions, weekEvents, planAheadEvents] = await Promise.all([
+  const [promotions, weekEvents, planAheadEvents, vendorOfWeek] = await Promise.all([
     db.promotion.findMany({
       where: {
         eventId: { not: null },
@@ -82,6 +84,7 @@ export default async function HomePage() {
       orderBy: { startDate: "asc" },
       take: 6,
     }),
+    getVendorOfWeek(),
   ]);
 
   return (
@@ -155,6 +158,18 @@ export default async function HomePage() {
                 )
             )}
           </div>
+        </section>
+      )}
+
+      {vendorOfWeek && (
+        <section className="mx-auto max-w-6xl px-4 py-6 md:py-8">
+          <div className="mb-4">
+            <h2 className="text-2xl font-bold tracking-tight">Vendor of the Week</h2>
+            <p className="mt-1 text-muted-foreground">
+              Meet a standout local vendor from the Spokane community
+            </p>
+          </div>
+          <VendorOfWeekCard vendor={vendorOfWeek} />
         </section>
       )}
 
