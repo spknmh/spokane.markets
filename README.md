@@ -2,7 +2,7 @@
 
 Discover local markets, craft fairs, and vendor events across Spokane.
 
-Spokane Markets is a Next.js application with role-based workflows for admins, organizers, vendors, and attendees. It includes event discovery, market and venue management, submissions/claims/moderation, newsletter/digest tooling, and production deployment via Docker + GitHub Actions.
+Spokane Markets is a Next.js application with role-based workflows for admins, organizers, vendors, and shoppers. It includes event discovery, market and venue management, submissions/claims/moderation, newsletter/digest tooling, and production deployment via Docker + GitHub Actions.
 
 ## Highlights
 
