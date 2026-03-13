@@ -1,8 +1,7 @@
 import Link from "next/link";
 import type { Event, Venue, Tag, Feature } from "@prisma/client";
 import type { PromotionType } from "@prisma/client";
-import { isMultiDayEvent, formatEventTimeFromSchedule } from "@/lib/utils";
-import { EventTimeLabel } from "@/components/event/event-time-label";
+import { isMultiDayEvent, formatEventTime, formatEventTimeFromSchedule } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Megaphone, Handshake, Star } from "lucide-react";
@@ -63,14 +62,9 @@ export function FeaturedEventCard({
   const multiDay = scheduleDays?.length
     ? scheduleDays.length > 1
     : isMultiDayEvent(new Date(event.startDate), new Date(event.endDate));
-  const timeDisplay = scheduleDays?.length ? (
-    formatEventTimeFromSchedule(scheduleDays)
-  ) : (
-    <EventTimeLabel
-      startDate={event.startDate}
-      endDate={event.endDate}
-    />
-  );
+  const timeLabel = scheduleDays?.length
+    ? formatEventTimeFromSchedule(scheduleDays)
+    : formatEventTime(event.startDate, event.endDate);
 
   return (
     <Link href={`/events/${event.slug}`} prefetch={false} className="group block">
@@ -103,14 +97,15 @@ export function FeaturedEventCard({
                 </span>
               </>
             )}
+            <span className="mt-2 max-w-24 text-[10px] font-medium leading-tight text-primary-foreground/95">
+              {timeLabel}
+            </span>
           </div>
 
           <div className="min-w-0 flex-1 space-y-2 pt-8">
             <h3 className="font-sans line-clamp-4 text-lg font-bold leading-tight text-foreground group-hover:text-primary">
               {event.title}
             </h3>
-
-            <p className="text-sm font-semibold text-foreground">{timeDisplay}</p>
 
             <p className="text-sm font-medium text-foreground">
               {event.venue.name}

@@ -1,11 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Event, Venue, Tag, Feature } from "@prisma/client";
-import { EventTimeLabel } from "@/components/event/event-time-label";
 import { TrackedLink } from "@/components/analytics/tracked-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { isMultiDayEvent, formatEventTimeFromSchedule, isBannerUnoptimized } from "@/lib/utils";
+import {
+  isMultiDayEvent,
+  formatEventTimeFromSchedule,
+  formatEventTime,
+  isBannerUnoptimized,
+} from "@/lib/utils";
 
 type ScheduleDay = { date: Date; startTime: string; endTime: string; allDay: boolean };
 
@@ -54,14 +58,9 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
     ? scheduleDays.length > 1
     : isMultiDayEvent(new Date(event.startDate), new Date(event.endDate));
 
-  const timeDisplay = scheduleDays?.length ? (
-    formatEventTimeFromSchedule(scheduleDays)
-  ) : (
-    <EventTimeLabel
-      startDate={event.startDate}
-      endDate={event.endDate}
-    />
-  );
+  const timeLabel = scheduleDays?.length
+    ? formatEventTimeFromSchedule(scheduleDays)
+    : formatEventTime(event.startDate, event.endDate);
   const showListImage = !!event.showImageInList && !!event.imageUrl;
 
   const content = (
@@ -97,14 +96,15 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
                 </span>
               </>
             )}
+            <span className="mt-2 max-w-24 text-[10px] font-medium leading-tight text-primary-foreground/95">
+              {timeLabel}
+            </span>
           </div>
 
           <div className="min-w-0 flex-1 space-y-2">
             <h3 className="font-sans line-clamp-3 text-lg font-bold leading-tight text-foreground group-hover:text-primary">
               {event.title}
             </h3>
-
-            <p className="text-sm font-semibold text-foreground">{timeDisplay}</p>
 
             <p className="line-clamp-2 text-sm font-medium text-foreground">
               {event.venue.name}
