@@ -81,7 +81,7 @@ export function GalleryImageDropzone({
     }
   }
 
-  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+  function handleDrop(e: React.DragEvent<HTMLButtonElement>) {
     e.preventDefault();
     setIsDragging(false);
     if (disabled || uploading || !canAddMore) return;
