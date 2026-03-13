@@ -6,9 +6,9 @@ Deploy Spokane Markets using Docker, Caddy, and GitHub Actions.
 
 - **Stack**: Next.js (standalone), PostgreSQL, Caddy
 - **CI/CD**: Push to `main` → build images → push to GHCR → SSH deploy
-- **Images**: `ghcr.io/redkeysh/spokane.markets:latest` (web), `ghcr.io/redkeysh/spokane.markets:init` (migrate + seed)
+- **Images**: `ghcr.io/redkeysh/spokane.markets:latest` (web), `ghcr.io/redkeysh/spokane.markets:init` (migrate + init tasks)
 - **Runtime**: Node.js 25 (inside container); host Node version is irrelevant
-- **Deploy flow**: `init` runs `prisma migrate deploy` and `prisma db seed` on startup, then exits; `web` starts after `init` completes
+- **Deploy flow**: `init` runs `prisma migrate deploy` (plus upload directory prep) on startup, then exits; `web` starts after `init` completes
 
 ## Prerequisites
 
@@ -179,6 +179,12 @@ Ensure the server allows SSH key auth for `SERVER_USER`.
 
 If first deploy fails, verify the configured `SERVER_DEPLOY_PATH` exists and contains this repository.
 
+Before the first deploy, create the external Docker network used by Caddy:
+
+```bash
+docker network create webapp || true
+```
+
 ### Option B: Manual deploy
 
 ```bash
@@ -207,7 +213,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 ### Seed database
 
-Seed runs automatically in the `init` container on every deploy. To re-run seed manually:
+Seed does **not** run automatically during deploy. Run it manually when needed:
 
 ```bash
 docker compose run --rm init npx prisma db seed

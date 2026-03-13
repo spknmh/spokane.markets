@@ -57,7 +57,7 @@ EXPOSE 3000
 CMD ["node", "server.js"]
 
 # ── init ─────────────────────────────────────────────────────────────
-# Runs migrate + seed on deploy. Uses full node_modules (no cherry-picking).
+# Runs migrate on deploy (seed remains manual). Uses full node_modules (no cherry-picking).
 # Creates upload subdirs so web (nextjs user) can write. Depends on init completing before web starts.
 FROM builder AS init
 WORKDIR /app
