@@ -5,13 +5,18 @@ import { readFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
-
 function runNpm(args, stdio = "pipe") {
-  return spawnSync(npmCmd, args, {
-    encoding: "utf8",
-    stdio,
-  });
+  const npmExecPath = process.env.npm_execpath;
+
+  if (npmExecPath) {
+    return spawnSync(process.execPath, [npmExecPath, ...args], {
+      encoding: "utf8",
+      stdio,
+    });
+  }
+
+  const cmd = process.platform === "win32" ? "npm.cmd" : "npm";
+  return spawnSync(cmd, args, { encoding: "utf8", stdio });
 }
 
 function getOutdated() {
