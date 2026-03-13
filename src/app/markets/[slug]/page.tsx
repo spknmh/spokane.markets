@@ -262,7 +262,7 @@ export default async function MarketDetailPage({ params }: PageProps) {
                   href={market.facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                  className="inline-flex items-center gap-2 rounded-md bg-[#1877F2] px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#166fe5]"
                 >
                   <Facebook className="h-4 w-4" aria-hidden />
                   Facebook
@@ -273,7 +273,7 @@ export default async function MarketDetailPage({ params }: PageProps) {
                   href={market.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                  className="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-[#f58529] via-[#dd2a7b] to-[#8134af] px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
                 >
                   <Instagram className="h-4 w-4" aria-hidden />
                   Instagram

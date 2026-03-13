@@ -33,6 +33,7 @@ export interface EventData {
   imageUrl?: string | null;
   websiteUrl?: string | null;
   facebookUrl?: string | null;
+  instagramUrl?: string | null;
   marketId?: string | null;
   status?: string;
 
@@ -180,6 +181,7 @@ export async function createEvent(
       status: status as EventStatus,
       websiteUrl: rest.websiteUrl || null,
       facebookUrl: rest.facebookUrl || null,
+      instagramUrl: rest.instagramUrl || null,
       submittedById: options.submittedById ?? null,
       ...(rest.participationMode !== undefined && {
         participationMode: (rest.participationMode || null) as ParticipationMode | null,
@@ -250,6 +252,7 @@ export async function updateEvent(
         imageUrl: rest.imageUrl || null,
         websiteUrl: rest.websiteUrl || null,
         facebookUrl: rest.facebookUrl || null,
+        instagramUrl: rest.instagramUrl || null,
         ...(options.status !== undefined && { status: options.status as EventStatus }),
         ...(rest.status !== undefined &&
           options.status === undefined && { status: rest.status as EventStatus }),

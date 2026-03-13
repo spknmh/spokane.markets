@@ -93,6 +93,7 @@ export async function POST(request: Request) {
       imageFocalY: data.imageFocalY ?? 50,
       websiteUrl: data.websiteUrl || null,
       facebookUrl: data.facebookUrl || null,
+      instagramUrl: data.instagramUrl || null,
       status,
       submittedById: session.user.id,
       tags: tagIds?.length ? { connect: tagIds.map((id) => ({ id })) } : undefined,

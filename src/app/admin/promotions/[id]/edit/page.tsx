@@ -14,17 +14,22 @@ export default async function EditPromotionPage({
 
   const { id } = await params;
 
-  const [promotion, publishedEvents] = await Promise.all([
+  const [promotion, publishedEvents, allVendors] = await Promise.all([
     db.promotion.findUnique({
       where: { id },
       include: {
         event: { select: { id: true, title: true, slug: true, startDate: true } },
+        vendorProfile: { select: { id: true, businessName: true, slug: true } },
       },
     }),
     db.event.findMany({
       where: { status: "PUBLISHED" },
       select: { id: true, title: true, slug: true, startDate: true },
       orderBy: { startDate: "asc" },
+    }),
+    db.vendorProfile.findMany({
+      select: { id: true, businessName: true, slug: true },
+      orderBy: { businessName: "asc" },
     }),
   ]);
 
@@ -36,10 +41,16 @@ export default async function EditPromotionPage({
     promotion.event && !publishedEvents.some((e) => e.id === promotion.event!.id)
       ? [promotion.event, ...publishedEvents]
       : publishedEvents;
+  const vendors =
+    promotion.vendorProfile &&
+    !allVendors.some((v) => v.id === promotion.vendorProfile!.id)
+      ? [promotion.vendorProfile, ...allVendors]
+      : allVendors;
 
   const initialData = {
     id: promotion.id,
     eventId: promotion.eventId ?? "",
+    vendorProfileId: promotion.vendorProfileId ?? "",
     type: promotion.type,
     sponsorName: promotion.sponsorName,
     imageUrl: promotion.imageUrl ?? undefined,
@@ -52,7 +63,7 @@ export default async function EditPromotionPage({
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Edit Promotion</h1>
-      <PromotionForm events={events} initialData={initialData} />
+      <PromotionForm events={events} vendors={vendors} initialData={initialData} />
     </div>
   );
 }

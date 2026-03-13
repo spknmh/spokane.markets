@@ -89,6 +89,7 @@ export async function PUT(
         status: data.status,
         websiteUrl: data.websiteUrl || null,
         facebookUrl: data.facebookUrl || null,
+        instagramUrl: data.instagramUrl || null,
         tags: { set: tagIds?.map((id) => ({ id })) ?? [] },
         features: { set: featureIds?.map((id) => ({ id })) ?? [] },
         ...(data.participationMode !== undefined && {

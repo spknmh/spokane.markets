@@ -354,6 +354,7 @@ model Event {
   status                   EventStatus        @default(DRAFT)
   websiteUrl               String?
   facebookUrl              String?
+  instagramUrl             String?
   participationMode        ParticipationMode?
   vendorCapacity           Int?
   publicIntentListEnabled  Boolean?
@@ -404,6 +405,7 @@ model EventScheduleDay {
 model Promotion {
   id          String        @id @default(cuid())
   eventId     String?
+  vendorProfileId String?
   type        PromotionType
   sponsorName String?
   imageUrl    String?
@@ -415,9 +417,11 @@ model Promotion {
   updatedAt   DateTime      @updatedAt
 
   event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  vendorProfile VendorProfile? @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
 
   @@index([startDate, endDate])
   @@index([eventId])
+  @@index([vendorProfileId])
   @@map("promotions")
 }
 
@@ -683,6 +687,7 @@ model VendorProfile {
   vendorRoster    EventVendorRoster[]
   favoriteVendors FavoriteVendor[]
   claimRequests   VendorClaimRequest[]
+  promotions      Promotion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { DatePickerInput } from "@/components/ui/date-picker-input";
 import {
   Card,
   CardHeader,
@@ -87,6 +88,8 @@ export function SubmissionForm({
   });
 
   const watchAllDay = useWatch({ control, name: "allDay" });
+  const watchEventDate = useWatch({ control, name: "eventDate" }) as string | undefined;
+  const watchEndDate = useWatch({ control, name: "endDate" }) as string | undefined;
   const watchTagIds = (useWatch({ control, name: "tagIds" }) ?? []) as string[];
   const watchFeatureIds = (useWatch({ control, name: "featureIds" }) ?? []) as string[];
 
@@ -250,7 +253,16 @@ export function SubmissionForm({
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="eventDate">Start date</Label>
-                <Input id="eventDate" type="date" {...register("eventDate")} />
+                <DatePickerInput
+                  id="eventDate"
+                  value={watchEventDate ?? ""}
+                  onChange={(value) =>
+                    setValue("eventDate", value, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                />
                 {errors.eventDate && (
                   <p className="text-sm text-destructive">
                     {errors.eventDate.message}
@@ -259,7 +271,16 @@ export function SubmissionForm({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="endDate">End date (optional)</Label>
-                <Input id="endDate" type="date" {...register("endDate")} />
+                <DatePickerInput
+                  id="endDate"
+                  value={watchEndDate ?? ""}
+                  onChange={(value) =>
+                    setValue("endDate", value, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                />
               </div>
             </div>
             <label className="flex items-center gap-2">

@@ -46,6 +46,7 @@ type EventRow = {
   status?: "DRAFT" | "PENDING" | "PUBLISHED" | "REJECTED" | "CANCELLED";
   websiteUrl?: string;
   facebookUrl?: string;
+  instagramUrl?: string;
   tagNames?: string[];
   featureNames?: string[];
   tagIds?: string[];
@@ -270,6 +271,7 @@ export async function importData(payload: ImportPayload): Promise<ImportResult> 
             status: row.status ?? "DRAFT",
             websiteUrl: row.websiteUrl || null,
             facebookUrl: row.facebookUrl || null,
+            instagramUrl: row.instagramUrl || null,
             tags: tagIds.length ? { connect: tagIds.map((id) => ({ id })) } : undefined,
             features: featureIds.length ? { connect: featureIds.map((id) => ({ id })) } : undefined,
           },

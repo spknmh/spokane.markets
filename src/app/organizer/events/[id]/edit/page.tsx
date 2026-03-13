@@ -80,6 +80,7 @@ export default async function OrganizerEditEventPage({
     imageFocalY: event.imageFocalY ?? 50,
     websiteUrl: event.websiteUrl ?? "",
     facebookUrl: event.facebookUrl ?? "",
+    instagramUrl: event.instagramUrl ?? "",
     tagIds: event.tags.map((t) => t.id),
     featureIds: event.features.map((f) => f.id),
     scheduleDays,

@@ -24,6 +24,9 @@ export default async function AdminPromotionsPage() {
       event: {
         select: { id: true, title: true, slug: true, startDate: true },
       },
+      vendorProfile: {
+        select: { id: true, businessName: true, slug: true },
+      },
     },
     orderBy: [{ sortOrder: "asc" }, { startDate: "asc" }],
   });
@@ -40,15 +43,14 @@ export default async function AdminPromotionsPage() {
       </div>
 
       <p className="text-muted-foreground">
-        Manage featured, sponsored, and partner events shown in the home page
-        carousel.
+        Manage featured, sponsored, and partner promotions shown across event and vendor surfaces.
       </p>
 
       <div className="overflow-hidden rounded-lg border border-border">
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              <th className="p-3 text-left font-medium">Event</th>
+              <th className="p-3 text-left font-medium">Target</th>
               <th className="p-3 text-left font-medium">Type</th>
               <th className="p-3 text-left font-medium">Sponsor</th>
               <th className="p-3 text-left font-medium">Display Period</th>
@@ -60,14 +62,16 @@ export default async function AdminPromotionsPage() {
             {promotions.length === 0 ? (
               <tr>
                 <td colSpan={6} className="p-6 text-center text-muted-foreground">
-                  No promotions yet. Create one to feature events on the home
-                  page.
+                  No promotions yet. Create one to feature events or vendors.
                 </td>
               </tr>
             ) : (
               promotions.map((p) => {
                 const isActive =
-                  p.startDate <= now && p.endDate >= now && p.event;
+                  p.startDate <= now &&
+                  p.endDate >= now &&
+                  (p.event || p.vendorProfile);
+                const isEventTarget = !!p.event;
                 return (
                   <tr key={p.id} className="hover:bg-muted/30">
                     <td className="p-3 font-medium">
@@ -78,9 +82,19 @@ export default async function AdminPromotionsPage() {
                         >
                           {p.event.title}
                         </Link>
+                      ) : p.vendorProfile ? (
+                        <Link
+                          href={`/vendors/${p.vendorProfile.slug}`}
+                          className="text-primary hover:underline"
+                        >
+                          {p.vendorProfile.businessName}
+                        </Link>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {isEventTarget ? "Event" : "Vendor"}
+                      </div>
                     </td>
                     <td className="p-3">
                       <Badge variant="secondary">

@@ -50,6 +50,7 @@ export async function deletePromotion(id: string) {
   await logAudit(session.user.id, "DELETE_PROMOTION", "PROMOTION", id);
   revalidatePath("/admin/promotions");
   revalidatePath("/");
+  revalidatePath("/vendors");
 }
 
 export async function verifyMarket(id: string) {

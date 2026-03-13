@@ -25,7 +25,7 @@ import { EventVendorActions } from "@/components/event-vendor-actions";
 import { TrackEventView } from "@/components/track-content-view";
 import { getParticipationConfig } from "@/lib/participation-config";
 import { SITE_NAME } from "@/lib/constants";
-import { Globe, Facebook } from "lucide-react";
+import { Globe, Facebook, Instagram } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -213,7 +213,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             </div>
           )}
 
-          {(event.websiteUrl || event.facebookUrl) && (
+          {(event.websiteUrl || event.facebookUrl || event.instagramUrl) && (
             <div className="mt-6 flex flex-wrap gap-3">
               {event.websiteUrl && (
                 <Button variant="outline" size="sm" asChild>
@@ -229,7 +229,11 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 </Button>
               )}
               {event.facebookUrl && (
-                <Button variant="outline" size="sm" asChild>
+                <Button
+                  size="sm"
+                  asChild
+                  className="border-0 bg-[#1877F2] text-white hover:bg-[#166fe5] focus-visible:ring-[#1877F2]"
+                >
                   <a
                     href={event.facebookUrl}
                     target="_blank"
@@ -238,6 +242,23 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   >
                     <Facebook className="h-4 w-4" />
                     Facebook
+                  </a>
+                </Button>
+              )}
+              {event.instagramUrl && (
+                <Button
+                  size="sm"
+                  asChild
+                  className="border-0 bg-gradient-to-r from-[#f58529] via-[#dd2a7b] to-[#8134af] text-white hover:brightness-95 focus-visible:ring-[#dd2a7b]"
+                >
+                  <a
+                    href={event.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5"
+                  >
+                    <Instagram className="h-4 w-4" />
+                    Instagram
                   </a>
                 </Button>
               )}

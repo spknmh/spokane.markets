@@ -88,6 +88,7 @@ export async function POST(request: Request) {
       status: data.status,
       websiteUrl: data.websiteUrl || null,
       facebookUrl: data.facebookUrl || null,
+      instagramUrl: data.instagramUrl || null,
       ...(data.participationMode && { participationMode: data.participationMode }),
       ...(data.vendorCapacity != null && { vendorCapacity: data.vendorCapacity }),
       ...(data.publicIntentListEnabled !== undefined && {

@@ -22,6 +22,9 @@ export async function GET(request: Request) {
           event: {
             select: { id: true, title: true, slug: true, startDate: true },
           },
+          vendorProfile: {
+            select: { id: true, businessName: true, slug: true, imageUrl: true },
+          },
         },
         orderBy: [{ sortOrder: "asc" }, { startDate: "asc" }],
       }),
@@ -52,7 +55,8 @@ export async function POST(request: Request) {
     const data = parsed.data;
     const promotion = await db.promotion.create({
       data: {
-        eventId: data.eventId,
+        eventId: data.eventId?.trim() ? data.eventId : null,
+        vendorProfileId: data.vendorProfileId?.trim() ? data.vendorProfileId : null,
         type: data.type,
         sponsorName: data.sponsorName || null,
         imageUrl: data.imageUrl || null,
@@ -64,6 +68,9 @@ export async function POST(request: Request) {
       include: {
         event: {
           select: { id: true, title: true, slug: true, startDate: true },
+        },
+        vendorProfile: {
+          select: { id: true, businessName: true, slug: true, imageUrl: true },
         },
       },
     });

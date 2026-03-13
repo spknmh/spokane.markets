@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/card";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { VendorsSearch } from "@/components/vendor/vendors-search";
+import { FeaturedVendorCard } from "@/components/vendor/featured-vendor-card";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,7 @@ export default async function VendorsPage({
       }
     : undefined;
 
-  const [session, vendors, totalCount, banners, applicationForms] = await Promise.all([
+  const [session, vendors, totalCount, banners, applicationForms, vendorPromotions] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
     db.vendorProfile.findMany({
       where,
@@ -70,9 +71,22 @@ export default async function VendorsPage({
       where: { type: { in: ["VENDOR", "MARKET"] } },
       select: { type: true, active: true },
     }),
+    db.promotion.findMany({
+      where: {
+        vendorProfileId: { not: null },
+        startDate: { lte: new Date() },
+        endDate: { gte: new Date() },
+      },
+      include: {
+        vendorProfile: true,
+      },
+      orderBy: [{ sortOrder: "asc" }, { startDate: "asc" }],
+      take: 6,
+    }),
   ]);
 
   const totalPages = Math.ceil(totalCount / limit);
+  const showPromotionRail = !q && page === 1;
   const vendorApplicationsOpen = applicationForms.some(
     (form) => form.type === "VENDOR" && form.active
   );
@@ -120,6 +134,37 @@ export default async function VendorsPage({
       <div className="mb-6">
         <VendorsSearch defaultValue={q} />
       </div>
+
+      {showPromotionRail && vendorPromotions.length > 0 && (
+        <section className="mb-10">
+          <div className="mb-4">
+            <h2 className="text-2xl font-bold tracking-tight">Featured Vendors</h2>
+            <p className="mt-1 text-muted-foreground">
+              Sponsored and partner vendors to check out
+            </p>
+          </div>
+          <div
+            className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory"
+            style={{ scrollbarWidth: "thin" }}
+          >
+            {vendorPromotions.map(
+              (promotion) =>
+                promotion.vendorProfile && (
+                  <div
+                    key={promotion.id}
+                    className="w-[min(380px,90vw)] shrink-0 snap-start"
+                  >
+                    <FeaturedVendorCard
+                      vendor={promotion.vendorProfile}
+                      promotionType={promotion.type}
+                      sponsorName={promotion.sponsorName}
+                    />
+                  </div>
+                )
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="mb-8 grid gap-4 lg:grid-cols-2">
         <Card className="border-primary/30 bg-primary/5">

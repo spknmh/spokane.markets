@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { DatePickerInput } from "@/components/ui/date-picker-input";
 import {
   generateRecurringSchedule,
   MAX_RECURRING_DAYS,
@@ -19,6 +20,27 @@ const WEEKDAYS = [
   { value: 5, label: "Fri" },
   { value: 6, label: "Sat" },
 ] as const;
+
+const DEFAULT_START_TIME = "08:00";
+const DEFAULT_END_TIME = "14:00";
+
+function buildTimeOptions(): { value: string; label: string }[] {
+  const options: { value: string; label: string }[] = [];
+  for (let hour = 0; hour < 24; hour += 1) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+      const labelHour = hour % 12 || 12;
+      const labelMinute = String(minute).padStart(2, "0");
+      const period = hour >= 12 ? "PM" : "AM";
+      options.push({ value, label: `${labelHour}:${labelMinute} ${period}` });
+    }
+  }
+  const pivot = options.findIndex((opt) => opt.value === DEFAULT_START_TIME);
+  if (pivot <= 0) return options;
+  return [...options.slice(pivot), ...options.slice(0, pivot)];
+}
+
+const TIME_OPTIONS = buildTimeOptions();
 
 function defaultStartDate(): string {
   const d = new Date();
@@ -44,8 +66,8 @@ export function ScheduleRecurringGenerator({ onGenerate }: ScheduleRecurringGene
   const [startDate, setStartDate] = useState(defaultStartDate);
   const [endDate, setEndDate] = useState(defaultEndDate);
   const [allDay, setAllDay] = useState(false);
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("17:00");
+  const [startTime, setStartTime] = useState(DEFAULT_START_TIME);
+  const [endTime, setEndTime] = useState(DEFAULT_END_TIME);
   const [warning, setWarning] = useState<string | null>(null);
 
   const toggleWeekday = (value: number) => {
@@ -112,20 +134,18 @@ export function ScheduleRecurringGenerator({ onGenerate }: ScheduleRecurringGene
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="recur-start-date">From date</Label>
-            <Input
+            <DatePickerInput
               id="recur-start-date"
-              type="date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={setStartDate}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="recur-end-date">To date</Label>
-            <Input
+            <DatePickerInput
               id="recur-end-date"
-              type="date"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={setEndDate}
             />
           </div>
         </div>
@@ -143,21 +163,31 @@ export function ScheduleRecurringGenerator({ onGenerate }: ScheduleRecurringGene
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="recur-start-time">Start time</Label>
-              <Input
+              <Select
                 id="recur-start-time"
-                type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-              />
+              >
+                {TIME_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="recur-end-time">End time</Label>
-              <Input
+              <Select
                 id="recur-end-time"
-                type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-              />
+              >
+                {TIME_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </Select>
             </div>
           </div>
         )}

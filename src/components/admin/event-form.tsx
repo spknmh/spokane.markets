@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { DatePickerInput } from "@/components/ui/date-picker-input";
 import { Switch } from "@/components/ui/switch";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 import { useRouter } from "next/navigation";
@@ -25,6 +26,9 @@ type ScheduleDay = {
   endTime?: string;
 };
 
+const DEFAULT_START_TIME = "08:00";
+const DEFAULT_END_TIME = "14:00";
+
 function buildTimeOptions(): { value: string; label: string }[] {
   const options: { value: string; label: string }[] = [];
   for (let hour = 0; hour < 24; hour += 1) {
@@ -36,7 +40,9 @@ function buildTimeOptions(): { value: string; label: string }[] {
       options.push({ value, label: `${labelHour}:${labelMinute} ${period}` });
     }
   }
-  return options;
+  const pivot = options.findIndex((opt) => opt.value === DEFAULT_START_TIME);
+  if (pivot <= 0) return options;
+  return [...options.slice(pivot), ...options.slice(0, pivot)];
 }
 
 const TIME_OPTIONS = buildTimeOptions();
@@ -90,6 +96,7 @@ type JsonImportData = {
   status?: "DRAFT" | "PENDING" | "PUBLISHED" | "REJECTED" | "CANCELLED";
   websiteUrl?: string;
   facebookUrl?: string;
+  instagramUrl?: string;
   tagIds?: string[];
   tagSlugs?: string[];
   featureIds?: string[];
@@ -119,6 +126,8 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
             {
               date: today,
               allDay: true as const,
+              startTime: DEFAULT_START_TIME,
+              endTime: DEFAULT_END_TIME,
             },
           ];
 
@@ -159,6 +168,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
           status: "DRAFT",
           websiteUrl: "",
           facebookUrl: "",
+          instagramUrl: "",
           tagIds: [],
           featureIds: [],
           scheduleDays: defaultSchedule,
@@ -191,6 +201,18 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
   const watchScheduleDays = watch("scheduleDays");
   useEffect(() => {
     const days = watchScheduleDays ?? [];
+    let changed = false;
+    const normalized = days.map((day) => {
+      if (day.allDay) return day;
+      const nextStart = day.startTime || DEFAULT_START_TIME;
+      const nextEnd = day.endTime || DEFAULT_END_TIME;
+      if (nextStart !== day.startTime || nextEnd !== day.endTime) changed = true;
+      return { ...day, startTime: nextStart, endTime: nextEnd };
+    });
+    if (changed) {
+      setValue("scheduleDays", normalized, { shouldDirty: true, shouldValidate: true });
+      return;
+    }
     if (days.length) {
       const first = days[0];
       const last = days[days.length - 1];
@@ -247,6 +269,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
       if (data.status != null) setValue("status", data.status);
       if (data.websiteUrl != null) setValue("websiteUrl", String(data.websiteUrl));
       if (data.facebookUrl != null) setValue("facebookUrl", String(data.facebookUrl));
+      if (data.instagramUrl != null) setValue("instagramUrl", String(data.instagramUrl));
       if (data.tagIds != null && Array.isArray(data.tagIds)) {
         setValue("tagIds", data.tagIds.map(String));
       } else if (data.tagSlugs != null && Array.isArray(data.tagSlugs)) {
@@ -372,7 +395,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
       <div className="space-y-4">
         <Label>Schedule</Label>
         <p className="text-xs text-muted-foreground">
-          Add one or more days. Default is one day, all day. Uncheck All day to set times.
+          Add one or more days. Default is one day, all day. Uncheck All day to use 8:00 AM as the default start.
         </p>
         <ScheduleRecurringGenerator onGenerate={(days) => replace(days)} />
         {fields.map((field, i) => (
@@ -382,9 +405,14 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
           >
             <div className="space-y-2 min-w-[140px]">
               <Label>Date</Label>
-              <Input
-                type="date"
-                {...register(`scheduleDays.${i}.date`)}
+              <DatePickerInput
+                value={watch(`scheduleDays.${i}.date`) || ""}
+                onChange={(value) =>
+                  setValue(`scheduleDays.${i}.date`, value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
               />
             </div>
             <label className="flex items-center gap-2">
@@ -399,7 +427,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
                 <div className="space-y-2">
                   <Label>Start</Label>
                   <Select {...register(`scheduleDays.${i}.startTime`)}>
-                    <option value="">Select start time</option>
+                    <option value="">Select start time (default 8:00 AM)</option>
                     {TIME_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
@@ -410,7 +438,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
                 <div className="space-y-2">
                   <Label>End</Label>
                   <Select {...register(`scheduleDays.${i}.endTime`)}>
-                    <option value="">Select end time</option>
+                    <option value="">Select end time (default 2:00 PM)</option>
                     {TIME_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
@@ -440,6 +468,8 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
             append({
               date: formatDateOnlyLocal(new Date()),
               allDay: true,
+              startTime: DEFAULT_START_TIME,
+              endTime: DEFAULT_END_TIME,
             })
           }
         >
@@ -696,7 +726,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
         </div>
       </details>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="websiteUrl">Website URL</Label>
           <Input id="websiteUrl" type="url" {...register("websiteUrl")} />
@@ -704,6 +734,10 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
         <div className="space-y-2">
           <Label htmlFor="facebookUrl">Facebook URL</Label>
           <Input id="facebookUrl" type="url" {...register("facebookUrl")} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="instagramUrl">Instagram URL</Label>
+          <Input id="instagramUrl" type="url" {...register("instagramUrl")} />
         </div>
       </div>
 

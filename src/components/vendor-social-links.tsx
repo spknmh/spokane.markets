@@ -43,6 +43,12 @@ export function VendorSocialLinks({
   const linkClass = iconOnly
     ? "inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
     : "inline-flex items-center gap-1.5 text-sm text-primary hover:underline";
+  const facebookClass = iconOnly
+    ? "inline-flex items-center justify-center rounded-full border border-[#1877F2]/30 bg-[#1877F2]/10 p-2 text-[#1877F2] transition-colors hover:bg-[#1877F2]/20"
+    : "inline-flex items-center gap-1.5 rounded-md bg-[#1877F2] px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#166fe5]";
+  const instagramClass = iconOnly
+    ? "inline-flex items-center justify-center rounded-full border border-[#dd2a7b]/35 bg-gradient-to-br from-[#f58529]/20 via-[#dd2a7b]/20 to-[#8134af]/20 p-2 text-[#dd2a7b] transition-opacity hover:opacity-90"
+    : "inline-flex items-center gap-1.5 rounded-md bg-gradient-to-r from-[#f58529] via-[#dd2a7b] to-[#8134af] px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90";
 
   const iconSize = iconOnly ? "h-4 w-4" : "h-4 w-4";
 
@@ -77,7 +83,7 @@ export function VendorSocialLinks({
           href={fbUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={linkClass}
+          className={facebookClass}
           onClick={(e) => handleClick(e, "facebook")}
           aria-label="Facebook"
         >
@@ -90,7 +96,7 @@ export function VendorSocialLinks({
           href={igUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={linkClass}
+          className={instagramClass}
           onClick={(e) => handleClick(e, "instagram")}
           aria-label="Instagram"
         >

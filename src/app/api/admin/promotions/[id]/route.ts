@@ -24,7 +24,10 @@ export async function PATCH(
     const promotion = await db.promotion.update({
       where: { id },
       data: {
-        ...(data.eventId !== undefined && { eventId: data.eventId }),
+        ...(data.eventId !== undefined && { eventId: data.eventId?.trim() ? data.eventId : null }),
+        ...(data.vendorProfileId !== undefined && {
+          vendorProfileId: data.vendorProfileId?.trim() ? data.vendorProfileId : null,
+        }),
         ...(data.type !== undefined && { type: data.type }),
         ...(data.sponsorName !== undefined && { sponsorName: data.sponsorName }),
         ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl || null }),
@@ -36,6 +39,9 @@ export async function PATCH(
       include: {
         event: {
           select: { id: true, title: true, slug: true, startDate: true },
+        },
+        vendorProfile: {
+          select: { id: true, businessName: true, slug: true, imageUrl: true },
         },
       },
     });

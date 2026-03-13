@@ -92,8 +92,9 @@ export const reportSchema = z.object({
 });
 export type ReportInput = z.infer<typeof reportSchema>;
 
-export const promotionSchema = z.object({
-  eventId: z.string().min(1, "Event is required"),
+const promotionSchemaBase = z.object({
+  eventId: z.string().optional().or(z.literal("")),
+  vendorProfileId: z.string().optional().or(z.literal("")),
   type: z.enum(["SPONSORED", "PARTNERSHIP", "FEATURED"]),
   sponsorName: z.string().optional().nullable(),
   imageUrl: imageUrlSchema,
@@ -102,7 +103,31 @@ export const promotionSchema = z.object({
   endDate: z.string().min(1, "End date is required"),
   sortOrder: z.number().int().min(0).optional(),
 });
+
+export const promotionSchema = promotionSchemaBase.superRefine((data, ctx) => {
+  const hasEvent = !!data.eventId?.trim();
+  const hasVendor = !!data.vendorProfileId?.trim();
+
+  if (hasEvent === hasVendor) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["eventId"],
+      message: "Select exactly one promotion target (event or vendor).",
+    });
+  }
+});
 export type PromotionInput = z.infer<typeof promotionSchema>;
 
-export const promotionPatchSchema = promotionSchema.partial();
+export const promotionPatchSchema = promotionSchemaBase.partial().superRefine((data, ctx) => {
+  const hasEvent = data.eventId !== undefined ? !!data.eventId?.trim() : undefined;
+  const hasVendor = data.vendorProfileId !== undefined ? !!data.vendorProfileId?.trim() : undefined;
+
+  if (hasEvent !== undefined && hasVendor !== undefined && hasEvent === hasVendor) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["eventId"],
+      message: "Select exactly one promotion target (event or vendor).",
+    });
+  }
+});
 export type PromotionPatchInput = z.infer<typeof promotionPatchSchema>;

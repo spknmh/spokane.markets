@@ -62,6 +62,7 @@ export default async function EditEventPage({
     status: event.status as "DRAFT" | "PENDING" | "PUBLISHED" | "REJECTED" | "CANCELLED",
     websiteUrl: event.websiteUrl ?? "",
     facebookUrl: event.facebookUrl ?? "",
+    instagramUrl: event.instagramUrl ?? "",
     tagIds: event.tags.map((t) => t.id),
     featureIds: event.features.map((f) => f.id),
     scheduleDays,

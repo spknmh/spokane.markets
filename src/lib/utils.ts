@@ -495,7 +495,19 @@ export function formatEventTimeFromSchedule(
 }
 
 export function getCompletenessScore(event: Record<string, unknown>): { score: number; total: number } {
-  const fields = ["title", "description", "startDate", "endDate", "imageUrl", "websiteUrl", "facebookUrl", "venueId", "marketId", "tags"];
+  const fields = [
+    "title",
+    "description",
+    "startDate",
+    "endDate",
+    "imageUrl",
+    "websiteUrl",
+    "facebookUrl",
+    "instagramUrl",
+    "venueId",
+    "marketId",
+    "tags",
+  ];
   let filled = 0;
   for (const field of fields) {
     const value = event[field];

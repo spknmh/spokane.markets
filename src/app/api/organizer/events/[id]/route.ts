@@ -112,6 +112,7 @@ export async function PUT(
       imageFocalY: data.imageFocalY ?? 50,
       websiteUrl: data.websiteUrl || null,
       facebookUrl: data.facebookUrl || null,
+      instagramUrl: data.instagramUrl || null,
       tags: { set: tagIds?.map((id) => ({ id })) ?? [] },
       features: { set: featureIds?.map((id) => ({ id })) ?? [] },
     },
