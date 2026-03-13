@@ -23,6 +23,9 @@
     "digest": "tsx scripts/weekly-digest.ts",
     "filter-alerts": "tsx scripts/filter-alerts.ts",
     "transform-venues": "tsx scripts/transform-venues-import.ts",
+    "deps:check": "node scripts/dependency-updates.mjs",
+    "deps:update:safe": "node scripts/dependency-updates.mjs --yes-safe",
+    "deps:update:all": "node scripts/dependency-updates.mjs --yes-safe --yes-major",
     "test": "vitest run",
     "test:watch": "vitest",
     "postinstall": "prisma generate"
