@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -103,6 +104,7 @@ export function OrganizerEventForm({
           venueLng: undefined,
           marketId: "",
           imageUrl: "",
+          showImageInList: false,
           websiteUrl: "",
           facebookUrl: "",
           tagIds: [],
@@ -121,6 +123,7 @@ export function OrganizerEventForm({
   const watchVenueId = watch("venueId");
   const useInlineAddress = !watchVenueId;
   const watchImageUrl = watch("imageUrl");
+  const watchShowImageInList = watch("showImageInList") ?? false;
   const watchTagIds = watch("tagIds") ?? [];
   const watchFeatureIds = watch("featureIds") ?? [];
 
@@ -411,6 +414,23 @@ export function OrganizerEventForm({
         label="Event image"
         aspectRatio="banner"
       />
+      <div className="rounded-lg border border-border p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="showImageInList">Show event image on /events cards</Label>
+            <p className="text-xs text-muted-foreground">
+              Optional. Displays a small profile-style image on event listing cards.
+            </p>
+          </div>
+          <Switch
+            id="showImageInList"
+            checked={watchShowImageInList}
+            onCheckedChange={(checked) =>
+              setValue("showImageInList", checked, { shouldDirty: true })
+            }
+          />
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

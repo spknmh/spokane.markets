@@ -88,6 +88,7 @@ export async function POST(request: Request) {
       venueId,
       marketId: data.marketId || null,
       imageUrl: data.imageUrl || null,
+      showImageInList: data.showImageInList ?? false,
       websiteUrl: data.websiteUrl || null,
       facebookUrl: data.facebookUrl || null,
       status,

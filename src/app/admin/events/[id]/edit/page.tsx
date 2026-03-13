@@ -56,6 +56,7 @@ export default async function EditEventPage({
     venueLng: undefined,
     marketId: event.marketId ?? "",
     imageUrl: event.imageUrl ?? "",
+    showImageInList: event.showImageInList ?? false,
     status: event.status as "DRAFT" | "PENDING" | "PUBLISHED" | "REJECTED" | "CANCELLED",
     websiteUrl: event.websiteUrl ?? "",
     facebookUrl: event.facebookUrl ?? "",

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -66,6 +67,7 @@ type JsonImportData = {
   venueLng?: number;
   marketId?: string;
   imageUrl?: string;
+  showImageInList?: boolean;
   status?: "DRAFT" | "PENDING" | "PUBLISHED" | "REJECTED" | "CANCELLED";
   websiteUrl?: string;
   facebookUrl?: string;
@@ -132,6 +134,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
           venueLng: undefined,
           marketId: "",
           imageUrl: "",
+          showImageInList: false,
           status: "DRAFT",
           websiteUrl: "",
           facebookUrl: "",
@@ -151,6 +154,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
   const watchVenueId = watch("venueId");
   const useInlineAddress = !watchVenueId;
   const watchImageUrl = watch("imageUrl");
+  const watchShowImageInList = watch("showImageInList") ?? false;
   const watchTagIds = watch("tagIds") ?? [];
   const watchFeatureIds = watch("featureIds") ?? [];
 
@@ -214,6 +218,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
       if (data.venueLng != null) setValue("venueLng", data.venueLng);
       if (data.marketId != null) setValue("marketId", String(data.marketId));
       if (data.imageUrl != null) setValue("imageUrl", String(data.imageUrl));
+      if (data.showImageInList != null) setValue("showImageInList", !!data.showImageInList);
       if (data.status != null) setValue("status", data.status);
       if (data.websiteUrl != null) setValue("websiteUrl", String(data.websiteUrl));
       if (data.facebookUrl != null) setValue("facebookUrl", String(data.facebookUrl));
@@ -514,6 +519,23 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
         label="Event image"
         aspectRatio="banner"
       />
+      <div className="rounded-lg border border-border p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="showImageInList">Show event image on /events cards</Label>
+            <p className="text-xs text-muted-foreground">
+              Optional. Displays a small profile-style image on event listing cards.
+            </p>
+          </div>
+          <Switch
+            id="showImageInList"
+            checked={watchShowImageInList}
+            onCheckedChange={(checked) =>
+              setValue("showImageInList", checked, { shouldDirty: true })
+            }
+          />
+        </div>
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="status">Status</Label>

@@ -1,14 +1,16 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Event, Venue, Tag, Feature } from "@prisma/client";
 import { EventTimeLabel } from "@/components/event/event-time-label";
 import { TrackedLink } from "@/components/analytics/tracked-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { isMultiDayEvent, formatEventTimeFromSchedule } from "@/lib/utils";
+import { isMultiDayEvent, formatEventTimeFromSchedule, isBannerUnoptimized } from "@/lib/utils";
 
 type ScheduleDay = { date: Date; startTime: string; endTime: string; allDay: boolean };
 
 type EventWithRelations = Event & {
+  showImageInList?: boolean;
   venue: Venue;
   tags: Tag[];
   features: Feature[];
@@ -60,6 +62,7 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
       endDate={event.endDate}
     />
   );
+  const showListImage = !!event.showImageInList && !!event.imageUrl;
 
   const content = (
     <>
@@ -85,9 +88,21 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
           </div>
 
           <div className="min-w-0 flex-1 space-y-2">
-            <h3 className="font-sans line-clamp-3 text-lg font-bold leading-tight text-foreground group-hover:text-primary">
-              {event.title}
-            </h3>
+            <div className="flex items-start gap-3">
+              {showListImage && event.imageUrl ? (
+                <Image
+                  src={event.imageUrl}
+                  alt={event.title}
+                  width={44}
+                  height={44}
+                  className="h-11 w-11 shrink-0 rounded-full object-cover"
+                  unoptimized={isBannerUnoptimized(event.imageUrl)}
+                />
+              ) : null}
+              <h3 className="font-sans line-clamp-3 text-lg font-bold leading-tight text-foreground group-hover:text-primary">
+                {event.title}
+              </h3>
+            </div>
 
             <p className="text-sm font-semibold text-foreground">{timeDisplay}</p>
 
