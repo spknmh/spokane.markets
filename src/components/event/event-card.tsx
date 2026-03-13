@@ -66,7 +66,19 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
 
   const content = (
     <>
-      <Card className="h-full min-h-[140px] border-2 transition-all hover:shadow-lg hover:border-primary/50">
+      <Card className="h-full min-h-[140px] overflow-hidden border-2 transition-all hover:border-primary/50 hover:shadow-lg">
+        {showListImage && event.imageUrl ? (
+          <div className="relative aspect-[16/9] w-full shrink-0 bg-muted">
+            <Image
+              src={event.imageUrl}
+              alt={event.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+              unoptimized={isBannerUnoptimized(event.imageUrl)}
+            />
+          </div>
+        ) : null}
         <CardContent className="flex gap-4 p-5">
           <div className="flex shrink-0 flex-col items-center justify-center self-start rounded-lg bg-primary px-3 py-2 text-center">
             <span className="text-xs font-bold uppercase tracking-wide text-primary-foreground">
@@ -88,21 +100,9 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
           </div>
 
           <div className="min-w-0 flex-1 space-y-2">
-            <div className="flex items-start gap-3">
-              {showListImage && event.imageUrl ? (
-                <Image
-                  src={event.imageUrl}
-                  alt={event.title}
-                  width={44}
-                  height={44}
-                  className="h-11 w-11 shrink-0 rounded-full object-cover"
-                  unoptimized={isBannerUnoptimized(event.imageUrl)}
-                />
-              ) : null}
-              <h3 className="font-sans line-clamp-3 text-lg font-bold leading-tight text-foreground group-hover:text-primary">
-                {event.title}
-              </h3>
-            </div>
+            <h3 className="font-sans line-clamp-3 text-lg font-bold leading-tight text-foreground group-hover:text-primary">
+              {event.title}
+            </h3>
 
             <p className="text-sm font-semibold text-foreground">{timeDisplay}</p>
 
