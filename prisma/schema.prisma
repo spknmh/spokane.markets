@@ -349,6 +349,8 @@ model Event {
   endDate                  DateTime
   imageUrl                 String?
   showImageInList          Boolean            @default(false)
+  imageFocalX              Int                @default(50)
+  imageFocalY              Int                @default(50)
   status                   EventStatus        @default(DRAFT)
   websiteUrl               String?
   facebookUrl              String?

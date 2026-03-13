@@ -84,6 +84,8 @@ export async function PUT(
         marketId: data.marketId || null,
         imageUrl: data.imageUrl || null,
         showImageInList: data.showImageInList ?? false,
+        imageFocalX: data.imageFocalX ?? 50,
+        imageFocalY: data.imageFocalY ?? 50,
         status: data.status,
         websiteUrl: data.websiteUrl || null,
         facebookUrl: data.facebookUrl || null,

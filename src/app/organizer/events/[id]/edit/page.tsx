@@ -76,6 +76,8 @@ export default async function OrganizerEditEventPage({
     marketId: event.marketId ?? "",
     imageUrl: event.imageUrl ?? "",
     showImageInList: event.showImageInList ?? false,
+    imageFocalX: event.imageFocalX ?? 50,
+    imageFocalY: event.imageFocalY ?? 50,
     websiteUrl: event.websiteUrl ?? "",
     facebookUrl: event.facebookUrl ?? "",
     tagIds: event.tags.map((t) => t.id),

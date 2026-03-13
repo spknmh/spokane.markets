@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useForm, useFieldArray, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventSchema, type EventInput } from "@/lib/validations";
@@ -68,6 +69,8 @@ type JsonImportData = {
   marketId?: string;
   imageUrl?: string;
   showImageInList?: boolean;
+  imageFocalX?: number;
+  imageFocalY?: number;
   status?: "DRAFT" | "PENDING" | "PUBLISHED" | "REJECTED" | "CANCELLED";
   websiteUrl?: string;
   facebookUrl?: string;
@@ -135,6 +138,8 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
           marketId: "",
           imageUrl: "",
           showImageInList: false,
+          imageFocalX: 50,
+          imageFocalY: 50,
           status: "DRAFT",
           websiteUrl: "",
           facebookUrl: "",
@@ -155,6 +160,8 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
   const useInlineAddress = !watchVenueId;
   const watchImageUrl = watch("imageUrl");
   const watchShowImageInList = watch("showImageInList") ?? false;
+  const watchImageFocalX = watch("imageFocalX") ?? 50;
+  const watchImageFocalY = watch("imageFocalY") ?? 50;
   const watchTagIds = watch("tagIds") ?? [];
   const watchFeatureIds = watch("featureIds") ?? [];
 
@@ -219,6 +226,8 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
       if (data.marketId != null) setValue("marketId", String(data.marketId));
       if (data.imageUrl != null) setValue("imageUrl", String(data.imageUrl));
       if (data.showImageInList != null) setValue("showImageInList", !!data.showImageInList);
+      if (data.imageFocalX != null) setValue("imageFocalX", Number(data.imageFocalX));
+      if (data.imageFocalY != null) setValue("imageFocalY", Number(data.imageFocalY));
       if (data.status != null) setValue("status", data.status);
       if (data.websiteUrl != null) setValue("websiteUrl", String(data.websiteUrl));
       if (data.facebookUrl != null) setValue("facebookUrl", String(data.facebookUrl));
@@ -519,6 +528,65 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
         label="Event image"
         aspectRatio="banner"
       />
+      {watchImageUrl && (
+        <div className="space-y-3 rounded-lg border border-border p-4">
+          <Label>Event image focal point</Label>
+          <div className="relative h-24 overflow-hidden rounded-md bg-muted">
+            <Image
+              src={watchImageUrl}
+              alt="Event image focal preview"
+              fill
+              className="object-cover"
+              style={{ objectPosition: `${watchImageFocalX}% ${watchImageFocalY}%` }}
+              unoptimized
+            />
+          </div>
+          <div className="grid gap-3">
+            <div className="grid grid-cols-[2rem_1fr_3rem] items-center gap-3">
+              <Label htmlFor="imageFocalX" className="text-xs text-muted-foreground">
+                X
+              </Label>
+              <input
+                id="imageFocalX"
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={watchImageFocalX}
+                onChange={(e) =>
+                  setValue("imageFocalX", Number(e.target.value), {
+                    shouldDirty: true,
+                  })
+                }
+              />
+              <span className="text-right text-xs text-muted-foreground">
+                {Math.round(watchImageFocalX)}%
+              </span>
+            </div>
+            <div className="grid grid-cols-[2rem_1fr_3rem] items-center gap-3">
+              <Label htmlFor="imageFocalY" className="text-xs text-muted-foreground">
+                Y
+              </Label>
+              <input
+                id="imageFocalY"
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={watchImageFocalY}
+                onChange={(e) =>
+                  setValue("imageFocalY", Number(e.target.value), {
+                    shouldDirty: true,
+                  })
+                }
+              />
+              <span className="text-right text-xs text-muted-foreground">
+                {Math.round(watchImageFocalY)}%
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="rounded-lg border border-border p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-1">

@@ -183,6 +183,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 width={1200}
                 height={400}
                 className="h-64 w-full object-cover sm:h-80"
+                style={{ objectPosition: `${event.imageFocalX ?? 50}% ${event.imageFocalY ?? 50}%` }}
                 priority
                 unoptimized={event.imageUrl.startsWith("/uploads/") || event.imageUrl.startsWith("http")}
               />

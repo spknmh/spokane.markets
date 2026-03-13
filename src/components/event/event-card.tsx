@@ -15,6 +15,8 @@ type ScheduleDay = { date: Date; startTime: string; endTime: string; allDay: boo
 
 type EventWithRelations = Event & {
   showImageInList?: boolean;
+  imageFocalX?: number;
+  imageFocalY?: number;
   venue: Venue;
   tags: Tag[];
   features: Feature[];
@@ -73,6 +75,7 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
               alt={event.title}
               fill
               className="object-cover"
+              style={{ objectPosition: `${event.imageFocalX ?? 50}% ${event.imageFocalY ?? 50}%` }}
               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
               unoptimized={isBannerUnoptimized(event.imageUrl)}
             />
