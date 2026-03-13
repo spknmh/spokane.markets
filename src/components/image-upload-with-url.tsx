@@ -17,6 +17,8 @@ interface ImageUploadWithUrlProps {
   label?: string;
   /** Preview aspect ratio: "square" (1:1) or "banner" (16:9) */
   aspectRatio?: "square" | "banner";
+  /** Hide manual URL input and keep upload-only flow. */
+  hideUrlInput?: boolean;
 }
 
 export function ImageUploadWithUrl({
@@ -26,6 +28,7 @@ export function ImageUploadWithUrl({
   disabled,
   label = "Image",
   aspectRatio = "square",
+  hideUrlInput = false,
 }: ImageUploadWithUrlProps) {
   const [uploading, setUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -95,7 +98,11 @@ export function ImageUploadWithUrl({
         </button>
         <div className="flex-1 space-y-2 min-w-0">
           <p className="text-sm text-muted-foreground">
-            {value ? "Change image" : "Upload image"} or paste URL below
+            {hideUrlInput
+              ? value
+                ? "Change image"
+                : "Upload image"
+              : `${value ? "Change image" : "Upload image"} or paste URL below`}
           </p>
           <p className="text-xs text-muted-foreground">
             JPEG, PNG, WebP or GIF. Max 5MB.
@@ -103,17 +110,19 @@ export function ImageUploadWithUrl({
           {uploading && (
             <p className="text-xs text-muted-foreground">Uploading…</p>
           )}
-          <Input
-            type="text"
-            placeholder="https://... or leave empty if uploading"
-            value={value ?? ""}
-            onChange={(e) => {
-              setError(null);
-              onChange(e.target.value);
-            }}
-            disabled={disabled}
-            className="mt-1"
-          />
+          {!hideUrlInput && (
+            <Input
+              type="text"
+              placeholder="https://... or leave empty if uploading"
+              value={value ?? ""}
+              onChange={(e) => {
+                setError(null);
+                onChange(e.target.value);
+              }}
+              disabled={disabled}
+              className="mt-1"
+            />
+          )}
         </div>
       </div>
       <input

@@ -28,6 +28,7 @@ export default async function VendorProfileEditPage() {
           : "",
         contactEmail: profile.contactEmail ?? "",
         contactPhone: profile.contactPhone ?? "",
+        galleryUrls: profile.galleryUrls ?? [],
         galleryUrlsText: (profile.galleryUrls ?? []).join("\n"),
         specialties: profile.specialties ?? "",
       }

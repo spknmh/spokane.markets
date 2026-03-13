@@ -3,7 +3,14 @@ import { imageUrlSchema, flexibleUrlSchema, socialHandleSchema } from "./common"
 
 export const vendorProfileSchema = z.object({
   businessName: z.string().min(1, "Business name is required"),
-  slug: z.string().optional(),
+  slug: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (v) => !v || /^[a-z0-9-]+$/.test(v),
+      "Slug must be lowercase letters, numbers, hyphens only"
+    ),
   description: z.string().optional(),
   imageUrl: imageUrlSchema,
   websiteUrl: flexibleUrlSchema,
@@ -11,7 +18,17 @@ export const vendorProfileSchema = z.object({
   instagramUrl: socialHandleSchema,
   contactEmail: z.string().email().optional().or(z.literal("")),
   contactPhone: z.string().optional(),
-  galleryUrls: z.array(z.string().url()).optional(),
+  galleryUrls: z
+    .array(
+      z
+        .string()
+        .refine(
+          (v) => v.startsWith("/uploads/") || /^https?:\/\//.test(v),
+          "Gallery images must be upload paths or http(s) URLs"
+        )
+    )
+    .max(6, "Gallery supports up to 6 images")
+    .optional(),
   /** Form-only: textarea value, one URL per line; parsed to galleryUrls on submit */
   galleryUrlsText: z.string().optional(),
   specialties: z.string().optional(),

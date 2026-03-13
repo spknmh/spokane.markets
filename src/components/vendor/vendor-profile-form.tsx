@@ -28,6 +28,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
+import { GalleryImageDropzone } from "@/components/vendor/gallery-image-dropzone";
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
 
 interface VendorProfileFormProps {
@@ -38,6 +39,7 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = React.useState<string | null>(null);
   const isEditing = !!initialData?.id;
+  const profileUrlPrefix = "https://spokane.markets/vendors/";
 
   React.useEffect(() => {
     if (!isEditing) return;
@@ -65,30 +67,27 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
       instagramUrl: "",
       contactEmail: "",
       contactPhone: "",
+      galleryUrls: [],
       galleryUrlsText: "",
       specialties: "",
     },
   });
 
   const businessName = useWatch({ control, name: "businessName" });
+  const slugValue = useWatch({ control, name: "slug" });
   const imageUrl = useWatch({ control, name: "imageUrl" });
-  const previewSlug = isEditing && initialData?.slug
-    ? initialData.slug
-    : (slugify(businessName ?? "") || "your-business-name");
+  const galleryUrls = useWatch({ control, name: "galleryUrls" }) ?? [];
+  const suggestedSlug = slugify(businessName ?? "") || "your-business-name";
+  const previewSlug = (slugValue?.trim() || (isEditing ? initialData?.slug : "") || suggestedSlug)
+    .trim()
+    .toLowerCase();
 
   async function onSubmit(data: VendorProfileInput) {
     setServerError(null);
 
     const payload: Record<string, unknown> = { ...data };
-    if (!isEditing) {
-      delete payload.slug;
-    }
-    // Parse gallery URLs from textarea (one per line)
-    const text = (payload.galleryUrlsText as string) ?? "";
-    payload.galleryUrls = text
-      .split("\n")
-      .map((s) => s.trim())
-      .filter((s) => s.startsWith("http"));
+    payload.slug = (data.slug ?? "").trim();
+    payload.galleryUrls = (data.galleryUrls ?? []).slice(0, 6);
     delete payload.galleryUrlsText;
 
     const method = isEditing ? "PUT" : "POST";
@@ -131,28 +130,59 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
         <CardContent className="space-y-4">
           <FormErrorBanner message={serverError} />
 
-          <div className="space-y-2">
-            <Label htmlFor="businessName">Business Name *</Label>
-            <Input
-              id="businessName"
-              placeholder="e.g. Sunshine Farm Produce"
-              {...register("businessName")}
-            />
-            {errors.businessName && (
-              <p className="text-sm text-destructive">
-                {errors.businessName.message}
-              </p>
-            )}
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-start">
+            <div className="space-y-2">
+              <Label htmlFor="businessName">Business Name *</Label>
+              <Input
+                id="businessName"
+                placeholder="e.g. Sunshine Farm Produce"
+                {...register("businessName")}
+              />
+              {errors.businessName && (
+                <p className="text-sm text-destructive">
+                  {errors.businessName.message}
+                </p>
+              )}
+            </div>
+            <div className="sm:pt-6">
+              <ImageUploadWithUrl
+                value={imageUrl ?? ""}
+                onChange={(url) => setValue("imageUrl", url)}
+                uploadType="vendor"
+                disabled={isSubmitting}
+                label="Profile image"
+                aspectRatio="square"
+                hideUrlInput
+              />
+              {errors.imageUrl && (
+                <p className="text-sm text-destructive">
+                  {errors.imageUrl.message}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
             <Label>Your profile URL</Label>
-            <p className="rounded-md border border-border bg-muted/30 px-3 py-2 font-mono text-sm text-muted-foreground">
-              /vendors/{previewSlug}
-            </p>
+            <div className="flex items-center overflow-hidden rounded-md border border-border">
+              <div className="bg-muted/40 px-3 py-2 font-mono text-sm text-muted-foreground">
+                {profileUrlPrefix}
+              </div>
+              <Input
+                placeholder={suggestedSlug}
+                className="border-0 font-mono shadow-none focus-visible:ring-0"
+                {...register("slug")}
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
-              Generated from your business name. This cannot be changed later.
+              Optional. Leave blank to auto-generate from your business name.
             </p>
+            <p className="rounded-md border border-border bg-muted/30 px-3 py-2 font-mono text-sm text-muted-foreground">
+              Preview: {profileUrlPrefix}{previewSlug}
+            </p>
+            {errors.slug && (
+              <p className="text-sm text-destructive">{errors.slug.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -174,20 +204,6 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
               {...register("specialties")}
             />
           </div>
-
-          <ImageUploadWithUrl
-            value={imageUrl ?? ""}
-            onChange={(url) => setValue("imageUrl", url)}
-            uploadType="vendor"
-            disabled={isSubmitting}
-            label="Profile image"
-            aspectRatio="square"
-          />
-          {errors.imageUrl && (
-            <p className="text-sm text-destructive">
-              {errors.imageUrl.message}
-            </p>
-          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -222,18 +238,19 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="galleryUrlsText">Gallery Images</Label>
-            <Textarea
-              id="galleryUrlsText"
-              placeholder="One image URL per line:&#10;https://example.com/photo1.jpg&#10;https://example.com/photo2.jpg"
-              rows={3}
-              {...register("galleryUrlsText")}
-            />
-            <p className="text-xs text-muted-foreground">
-              Add image URLs, one per line. These will appear in a gallery on your profile.
+          <GalleryImageDropzone
+            value={galleryUrls}
+            onChange={(urls) =>
+              setValue("galleryUrls", urls, { shouldDirty: true, shouldValidate: true })
+            }
+            disabled={isSubmitting}
+            maxImages={6}
+          />
+          {errors.galleryUrls && (
+            <p className="text-sm text-destructive">
+              {errors.galleryUrls.message as string}
             </p>
-          </div>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">

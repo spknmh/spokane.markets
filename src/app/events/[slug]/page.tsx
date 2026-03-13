@@ -184,7 +184,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 height={400}
                 className="h-64 w-full object-cover sm:h-80"
                 priority
-                unoptimized={event.imageUrl.startsWith("http")}
+                unoptimized={event.imageUrl.startsWith("/uploads/") || event.imageUrl.startsWith("http")}
               />
             ) : (
               <Image

@@ -35,6 +35,11 @@ async function generateUniqueSlug(base: string): Promise<string> {
   return candidate;
 }
 
+function normalizeSlugInput(value: string | undefined): string | undefined {
+  if (!value?.trim()) return undefined;
+  return slugify(value);
+}
+
 export async function GET() {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
@@ -95,7 +100,24 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
-    const slug = await generateUniqueSlug(data.businessName);
+    const requestedSlug = normalizeSlugInput(data.slug);
+    let slug: string;
+
+    if (requestedSlug) {
+      const existingSlug = await db.vendorProfile.findUnique({
+        where: { slug: requestedSlug },
+        select: { id: true },
+      });
+      if (existingSlug) {
+        return NextResponse.json(
+          { error: `Slug "${requestedSlug}" is already taken.` },
+          { status: 400 },
+        );
+      }
+      slug = requestedSlug;
+    } else {
+      slug = await generateUniqueSlug(data.businessName);
+    }
 
     const profile = await db.$transaction(async (tx) => {
       return tx.vendorProfile.create({
@@ -152,11 +174,28 @@ export async function PUT(request: Request) {
     }
 
     const data = parsed.data;
+    const requestedSlug = normalizeSlugInput(data.slug);
+    let slug = existing.slug;
+
+    if (requestedSlug) {
+      const existingSlug = await db.vendorProfile.findUnique({
+        where: { slug: requestedSlug },
+        select: { id: true },
+      });
+      if (existingSlug && existingSlug.id !== existing.id) {
+        return NextResponse.json(
+          { error: `Slug "${requestedSlug}" is already taken.` },
+          { status: 400 },
+        );
+      }
+      slug = requestedSlug;
+    }
 
     const profile = await db.vendorProfile.update({
       where: { userId: session.user.id },
       data: {
         businessName: data.businessName,
+        slug,
         description: toOptional(data.description),
         imageUrl: toOptional(data.imageUrl),
         websiteUrl: toOptionalUrl(data.websiteUrl),
