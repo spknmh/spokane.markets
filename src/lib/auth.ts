@@ -37,7 +37,8 @@ export const auth = betterAuth({
     modelName: "session",
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
-    cookieCache: { enabled: true, maxAge: 5 * 60 },
+    // Keep role/permission changes effective immediately after page reload/navigation.
+    cookieCache: { enabled: false },
   },
   account: {
     modelName: "account",
