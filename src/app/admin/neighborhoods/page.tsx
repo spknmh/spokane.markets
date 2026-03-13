@@ -8,7 +8,7 @@ export default async function AdminNeighborhoodsPage() {
   await requireAdmin();
 
   const neighborhoods = await db.neighborhood.findMany({
-    orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+    orderBy: [{ label: "asc" }],
     include: {
       _count: {
         select: {

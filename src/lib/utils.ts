@@ -158,6 +158,32 @@ export function formatDate(date: Date): string {
   }).format(new Date(date));
 }
 
+/** Format as YYYY-MM-DD using UTC date parts (safe for @db.Date values). */
+export function formatDateOnlyUTC(date: Date): string {
+  const d = new Date(date);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Format as YYYY-MM-DD using local date parts (safe for date input defaults). */
+export function formatDateOnlyLocal(date: Date): string {
+  const d = new Date(date);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * Parse a YYYY-MM-DD date-only value to a stable Date for PostgreSQL DATE columns.
+ * Noon UTC avoids accidental day shifts when DB/session timezone differs.
+ */
+export function parseDateOnlyToUTCNoon(dateStr: string): Date {
+  return new Date(`${dateStr}T12:00:00.000Z`);
+}
+
 /** Format date as "May 12" for compact display (e.g. "thru May 12"). */
 export function formatDateShort(date: Date): string {
   return new Intl.DateTimeFormat("en-US", {

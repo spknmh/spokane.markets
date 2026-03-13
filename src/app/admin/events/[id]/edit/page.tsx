@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import type { EventInput } from "@/lib/validations";
 import { EventForm } from "@/components/admin/event-form";
 import { notFound } from "next/navigation";
-import { formatForDateTimeLocal } from "@/lib/utils";
+import { formatDateOnlyUTC, formatForDateTimeLocal } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +32,7 @@ export default async function EditEventPage({
   const scheduleDays =
     event.scheduleDays?.length
       ? event.scheduleDays.map((d) => ({
-          date: formatForDateTimeLocal(d.date, tz).slice(0, 10),
+          date: formatDateOnlyUTC(d.date),
           allDay: d.allDay,
           startTime: d.allDay ? undefined : d.startTime,
           endTime: d.allDay ? undefined : d.endTime,

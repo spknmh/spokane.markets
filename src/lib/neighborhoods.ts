@@ -12,7 +12,7 @@ export async function getNeighborhoodOptions(
 ): Promise<NeighborhoodOption[]> {
   const rows = await db.neighborhood.findMany({
     where: includeInactive ? undefined : { isActive: true },
-    orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+    orderBy: [{ label: "asc" }],
     select: { slug: true, label: true },
   });
 

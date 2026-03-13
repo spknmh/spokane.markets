@@ -12,7 +12,6 @@ type NeighborhoodWithCount = {
   id: string;
   slug: string;
   label: string;
-  sortOrder: number;
   isActive: boolean;
   _count: { markets: number; venues: number };
 };
@@ -28,7 +27,6 @@ export function NeighborhoodsManager({
   const [neighborhoods, setNeighborhoods] = useState(initialNeighborhoods);
   const [label, setLabel] = useState("");
   const [slug, setSlug] = useState("");
-  const [sortOrder, setSortOrder] = useState("0");
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,20 +34,17 @@ export function NeighborhoodsManager({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
   const [editSlug, setEditSlug] = useState("");
-  const [editSortOrder, setEditSortOrder] = useState("0");
   const [editIsActive, setEditIsActive] = useState(true);
   const [editingSubmitting, setEditingSubmitting] = useState(false);
 
-  const sorted = [...neighborhoods].sort(
-    (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label)
+  const sorted = [...neighborhoods].sort((a, b) =>
+    a.label.localeCompare(b.label)
   );
 
   const addNeighborhood = async () => {
     const nextLabel = label.trim();
     const nextSlug = (slug.trim() || slugify(nextLabel)).toLowerCase();
-    const nextSortOrder = Number.parseInt(sortOrder, 10);
-
-    if (!nextLabel || !nextSlug || Number.isNaN(nextSortOrder)) return;
+    if (!nextLabel || !nextSlug) return;
     setSubmitting(true);
     setError(null);
 
@@ -60,7 +55,6 @@ export function NeighborhoodsManager({
         body: JSON.stringify({
           label: nextLabel,
           slug: nextSlug,
-          sortOrder: nextSortOrder,
           isActive,
         }),
       });
@@ -72,7 +66,6 @@ export function NeighborhoodsManager({
       setNeighborhoods((prev) => [...prev, { ...created, _count: { markets: 0, venues: 0 } }]);
       setLabel("");
       setSlug("");
-      setSortOrder("0");
       setIsActive(true);
       router.refresh();
     } catch (err) {
@@ -86,7 +79,6 @@ export function NeighborhoodsManager({
     setEditingId(row.id);
     setEditLabel(row.label);
     setEditSlug(row.slug);
-    setEditSortOrder(String(row.sortOrder));
     setEditIsActive(row.isActive);
     setError(null);
   };
@@ -95,7 +87,6 @@ export function NeighborhoodsManager({
     setEditingId(null);
     setEditLabel("");
     setEditSlug("");
-    setEditSortOrder("0");
     setEditIsActive(true);
   };
 
@@ -103,9 +94,7 @@ export function NeighborhoodsManager({
     if (!editingId) return;
     const nextLabel = editLabel.trim();
     const nextSlug = (editSlug.trim() || slugify(nextLabel)).toLowerCase();
-    const nextSortOrder = Number.parseInt(editSortOrder, 10);
-
-    if (!nextLabel || !nextSlug || Number.isNaN(nextSortOrder)) return;
+    if (!nextLabel || !nextSlug) return;
     setEditingSubmitting(true);
     setError(null);
     try {
@@ -115,7 +104,6 @@ export function NeighborhoodsManager({
         body: JSON.stringify({
           label: nextLabel,
           slug: nextSlug,
-          sortOrder: nextSortOrder,
           isActive: editIsActive,
         }),
       });
@@ -206,14 +194,6 @@ export function NeighborhoodsManager({
           onChange={(e) => setSlug(e.target.value)}
           className="w-44"
         />
-        <Input
-          type="number"
-          min={0}
-          placeholder="Sort"
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
-          className="w-24"
-        />
         <label className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm">
           <input
             type="checkbox"
@@ -252,13 +232,6 @@ export function NeighborhoodsManager({
                     onChange={(e) => setEditSlug(e.target.value)}
                     className="h-8 w-40"
                     placeholder="slug"
-                  />
-                  <Input
-                    type="number"
-                    min={0}
-                    value={editSortOrder}
-                    onChange={(e) => setEditSortOrder(e.target.value)}
-                    className="h-8 w-24"
                   />
                   <label className="flex items-center gap-2 text-sm">
                     <input
@@ -301,7 +274,7 @@ export function NeighborhoodsManager({
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    slug: {row.slug} · sort: {row.sortOrder} · venues:{" "}
+                    slug: {row.slug} · venues:{" "}
                     {row._count.venues} · markets: {row._count.markets}
                   </p>
                 </div>

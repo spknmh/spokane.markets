@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { parseDateTimeInTimezone } from "@/lib/utils";
+import { parseDateOnlyToUTCNoon, parseDateTimeInTimezone } from "@/lib/utils";
 import type { EventStatus, ParticipationMode } from "@prisma/client";
 
 const EVENT_TIMEZONE = "America/Los_Angeles";
@@ -137,7 +137,7 @@ export function buildScheduleDayRecords(
 ) {
   return scheduleDays.map((d) => ({
     eventId,
-    date: new Date(d.date),
+    date: parseDateOnlyToUTCNoon(d.date),
     startTime: d.allDay ? "00:00" : (d.startTime ?? "00:00"),
     endTime: d.allDay ? "23:59" : (d.endTime ?? "23:59"),
     allDay: d.allDay,

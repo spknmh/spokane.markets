@@ -21,13 +21,18 @@ const WEEKDAYS = [
 ] as const;
 
 function defaultStartDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
 }
 
 function defaultEndDate(): string {
   const d = new Date();
   d.setMonth(d.getMonth() + 3);
-  return d.toISOString().slice(0, 10);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
 }
 
 interface ScheduleRecurringGeneratorProps {

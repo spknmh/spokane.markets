@@ -12,6 +12,12 @@ export type ScheduleDay = {
   endTime?: string;
 };
 
+function toLocalDateString(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+}
+
 /**
  * Expand a recurring rule into individual schedule days.
  * @param weekdays - 0=Sun, 1=Mon, ..., 6=Sat
@@ -45,7 +51,7 @@ export function generateRecurringSchedule(
   while (current <= end && result.length < MAX_RECURRING_DAYS) {
     const dayOfWeek = current.getDay();
     if (weekdays.includes(dayOfWeek)) {
-      const dateStr = current.toISOString().slice(0, 10);
+      const dateStr = toLocalDateString(current);
       result.push({
         date: dateStr,
         allDay,

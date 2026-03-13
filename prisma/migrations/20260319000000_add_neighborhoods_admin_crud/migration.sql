@@ -62,6 +62,7 @@ BEGIN
     WHEN 'downtown-riverfront' THEN RETURN 'downtown';
     WHEN 'south-hill-perry-district' THEN RETURN 'south-hill';
     WHEN 'perry-district' THEN RETURN 'south-hill';
+    WHEN 'emerson-garfield' THEN RETURN 'garland';
     WHEN 'garland-north-monroe' THEN RETURN 'garland';
     WHEN 'north-monroe' THEN RETURN 'garland';
     WHEN 'north-spokane-mead' THEN RETURN 'north-spokane';

@@ -10,7 +10,7 @@ export async function GET() {
     if (error) return error;
 
     const neighborhoods = await db.neighborhood.findMany({
-      orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+      orderBy: [{ label: "asc" }],
       include: {
         _count: {
           select: {
@@ -42,7 +42,6 @@ export async function POST(request: Request) {
       data: {
         label: parsed.data.label,
         slug: parsed.data.slug,
-        sortOrder: parsed.data.sortOrder,
         isActive: parsed.data.isActive,
       },
     });

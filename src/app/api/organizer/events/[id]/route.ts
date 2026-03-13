@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { organizerEventSchema } from "@/lib/validations";
-import { parseDateTimeInTimezone } from "@/lib/utils";
+import { parseDateOnlyToUTCNoon, parseDateTimeInTimezone } from "@/lib/utils";
 import { logAudit } from "@/lib/audit";
 import { NextResponse } from "next/server";
 
@@ -119,7 +119,7 @@ export async function PUT(
     await db.eventScheduleDay.createMany({
       data: scheduleDays.map((d) => ({
         eventId: id,
-        date: new Date(d.date),
+        date: parseDateOnlyToUTCNoon(d.date),
         startTime: d.allDay ? "00:00" : (d.startTime ?? "00:00"),
         endTime: d.allDay ? "23:59" : (d.endTime ?? "23:59"),
         allDay: d.allDay,

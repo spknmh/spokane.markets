@@ -178,7 +178,7 @@ UPDATE "user" SET "role" = 'ADMIN' WHERE "email" = 'you@example.com';
 ### Managing neighborhoods
 
 1. **Admin → Neighborhoods**
-2. Add/edit labels, slugs, sort order, and active status.
+2. Add/edit labels, slugs, and active status.
 3. If a neighborhood is in use, deleting it requires reassigning references to another slug.
 4. Neighborhood definitions feed markets, venues, event filters, and newsletter area subscriptions.
 

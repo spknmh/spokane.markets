@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount";
 import { OrganizerEventForm } from "@/components/organizer-event-form";
 import { notFound, redirect } from "next/navigation";
-import { formatForDateTimeLocal } from "@/lib/utils";
+import { formatDateOnlyUTC, formatForDateTimeLocal } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +51,7 @@ export default async function OrganizerEditEventPage({
   const scheduleDays =
     event.scheduleDays?.length
       ? event.scheduleDays.map((d) => ({
-          date: formatForDateTimeLocal(d.date, tz).slice(0, 10),
+          date: formatDateOnlyUTC(d.date),
           allDay: d.allDay,
           startTime: d.allDay ? undefined : d.startTime,
           endTime: d.allDay ? undefined : d.endTime,

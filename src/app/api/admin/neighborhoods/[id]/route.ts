@@ -28,7 +28,6 @@ export async function PATCH(
       data: {
         label: parsed.data.label,
         slug: parsed.data.slug,
-        sortOrder: parsed.data.sortOrder,
         isActive: parsed.data.isActive,
       },
     });

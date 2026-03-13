@@ -45,18 +45,16 @@ async function main() {
   });
 
   // 1b. Neighborhoods (source-of-truth for venue/market/subscriber area slugs)
-  for (const [index, neighborhood] of DEFAULT_NEIGHBORHOODS.entries()) {
+  for (const neighborhood of DEFAULT_NEIGHBORHOODS) {
     await prisma.neighborhood.upsert({
       where: { slug: neighborhood.value },
       create: {
         slug: neighborhood.value,
         label: neighborhood.label,
-        sortOrder: (index + 1) * 10,
         isActive: true,
       },
       update: {
         label: neighborhood.label,
-        sortOrder: (index + 1) * 10,
         isActive: true,
       },
     });

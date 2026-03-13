@@ -263,7 +263,6 @@ model Neighborhood {
   id        String  @id @default(cuid())
   slug      String  @unique
   label     String
-  sortOrder Int     @default(0)
   isActive  Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -271,7 +270,7 @@ model Neighborhood {
   venues  Venue[]  @relation("VenueNeighborhood")
   markets Market[] @relation("MarketBaseArea")
 
-  @@index([isActive, sortOrder])
+  @@index([isActive, label])
   @@map("neighborhoods")
 }
 

@@ -23,7 +23,6 @@ export const neighborhoodSchema = z.object({
       /^[a-z0-9-]+$/,
       "Slug must be lowercase letters, numbers, and hyphens only"
     ),
-  sortOrder: z.coerce.number().int().min(0).optional().default(0),
   isActive: z.boolean().optional().default(true),
 });
 export type NeighborhoodInput = z.infer<typeof neighborhoodSchema>;

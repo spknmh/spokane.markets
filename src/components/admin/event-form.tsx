@@ -3,7 +3,7 @@
 import { useForm, useFieldArray, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventSchema, type EventInput } from "@/lib/validations";
-import { slugify } from "@/lib/utils";
+import { formatDateOnlyLocal, formatDateOnlyUTC, slugify } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,7 +25,7 @@ type ScheduleDay = {
 
 function toScheduleDay(start: Date, end: Date): ScheduleDay {
   const d = new Date(start);
-  const date = d.toISOString().slice(0, 10);
+  const date = formatDateOnlyUTC(d);
   const startMidnight = d.getHours() === 0 && d.getMinutes() === 0;
   const endLate =
     (end.getHours() === 23 && end.getMinutes() === 59) ||
@@ -88,7 +88,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
   const [jsonImportText, setJsonImportText] = useState("");
   const [jsonImportError, setJsonImportError] = useState<string | null>(null);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatDateOnlyLocal(new Date());
   const defaultSchedule =
     initialData?.scheduleDays?.length
       ? initialData.scheduleDays
@@ -400,7 +400,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
           variant="outline"
           onClick={() =>
             append({
-              date: new Date().toISOString().slice(0, 10),
+              date: formatDateOnlyLocal(new Date()),
               allDay: true,
             })
           }

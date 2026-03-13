@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { formatTime12hr, parseDateTimeInTimezone } from "./utils";
+import {
+  formatDateOnlyLocal,
+  formatDateOnlyUTC,
+  formatTime12hr,
+  parseDateOnlyToUTCNoon,
+  parseDateTimeInTimezone,
+} from "./utils";
 
 describe("formatTime12hr", () => {
   it("converts 24h to 12h without timezone conversion", () => {
@@ -37,5 +43,21 @@ describe("parseDateTimeInTimezone", () => {
       hour12: true,
     });
     expect(fmt.format(d)).toBe("8:30 PM");
+  });
+});
+
+describe("date-only helpers", () => {
+  it("formats date-only using UTC parts", () => {
+    expect(formatDateOnlyUTC(new Date("2026-03-14T00:00:00.000Z"))).toBe("2026-03-14");
+  });
+
+  it("formats date-only using local parts", () => {
+    const d = new Date(2026, 2, 14, 8, 30, 0);
+    expect(formatDateOnlyLocal(d)).toBe("2026-03-14");
+  });
+
+  it("parses date-only values to stable UTC noon", () => {
+    const d = parseDateOnlyToUTCNoon("2026-03-14");
+    expect(d.toISOString()).toBe("2026-03-14T12:00:00.000Z");
   });
 });

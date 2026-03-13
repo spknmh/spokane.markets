@@ -13,7 +13,6 @@ describe("neighborhood-related validation", () => {
     const result = neighborhoodSchema.safeParse({
       label: "Test Neighborhood",
       slug: "test-neighborhood-1",
-      sortOrder: 10,
       isActive: true,
     });
     expect(result.success).toBe(true);
@@ -23,7 +22,6 @@ describe("neighborhood-related validation", () => {
     const result = neighborhoodSchema.safeParse({
       label: "Test Neighborhood",
       slug: "Test Neighborhood!",
-      sortOrder: 10,
       isActive: true,
     });
     expect(result.success).toBe(false);
