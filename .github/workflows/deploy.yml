@@ -1,4 +1,4 @@
-name: Build & Deploy
+name: Build, Publish, and Deploy
 
 on:
   push:
@@ -13,35 +13,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
+  quality:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [lint, test]
     env:
       DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: '25'
           cache: 'npm'
       - run: npm ci
-      - run: npm run lint
-
-  test:
-    runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '25'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run test
+      - run: npm run ${{ matrix.task }}
 
   build-and-deploy:
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [quality]
     environment: spokane.market
     permissions:
       contents: read
@@ -53,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Validate secrets
         env:
@@ -63,45 +54,40 @@ jobs:
           GTM_ID: ${{ secrets.NEXT_PUBLIC_GTM_ID }}
           MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}
           UMAMI_URL: ${{ secrets.NEXT_PUBLIC_UMAMI_SCRIPT_URL }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SERVER_HOST_KEY: ${{ secrets.SERVER_HOST_KEY }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
           missing=""
           [ -z "$SA_KEY" ] && missing="$missing NEXT_SERVER_ACTIONS_ENCRYPTION_KEY"
           [ -z "$APP_URL" ] && missing="$missing NEXT_PUBLIC_APP_URL"
+          [ -z "$SERVER_HOST" ] && missing="$missing SERVER_HOST"
+          [ -z "$SERVER_USER" ] && missing="$missing SERVER_USER"
+          [ -z "$SERVER_SSH_KEY" ] && missing="$missing SERVER_SSH_KEY"
+          [ -z "$SERVER_HOST_KEY" ] && missing="$missing SERVER_HOST_KEY"
+          [ -z "$GHCR_USERNAME" ] && missing="$missing GHCR_USERNAME"
+          [ -z "$GHCR_TOKEN" ] && missing="$missing GHCR_TOKEN"
           if [ -n "$missing" ]; then
             echo "::error::Required secrets not set:$missing"
             echo "Add them in Settings > Secrets and variables > Actions."
             exit 1
           fi
           if [ -z "$UMAMI_ID" ]; then echo "::warning::NEXT_PUBLIC_UMAMI_WEBSITE_ID not set - Umami will be disabled in the client bundle"; fi
+          if [ -z "$UMAMI_URL" ]; then echo "::notice::NEXT_PUBLIC_UMAMI_SCRIPT_URL not set - Umami script URL fallback will be used"; fi
           if [ -z "$GTM_ID" ]; then echo "::notice::NEXT_PUBLIC_GTM_ID not set - GTM will be disabled"; fi
           if [ -z "$MAPBOX_TOKEN" ]; then echo "::notice::NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN not set - address autofill will be disabled"; fi
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '25'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Restore Next.js build cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
-
-      - name: Build
-        env:
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
-          NEXT_PUBLIC_GTM_ID: ${{ secrets.NEXT_PUBLIC_GTM_ID }}
-          NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${{ secrets.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}
-          NEXT_PUBLIC_UMAMI_SCRIPT_URL: ${{ secrets.NEXT_PUBLIC_UMAMI_SCRIPT_URL }}
-          NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}
-          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
-        run: npm run build
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -152,3 +138,38 @@ jobs:
           tags: |
             ${{ env.IMAGE_INIT }}
             ghcr.io/${{ github.repository }}:init
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      - name: Configure known_hosts
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.SERVER_HOST_KEY }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy on remote host
+        shell: bash
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          SERVER_DEPLOY_PATH: ${{ secrets.SERVER_DEPLOY_PATH }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          deploy_path="${SERVER_DEPLOY_PATH:-/opt/spokane.markets}"
+          port="${SERVER_PORT:-22}"
+          ssh -p "$port" "$SERVER_USER@$SERVER_HOST" \
+            "GHCR_USERNAME='$GHCR_USERNAME' GHCR_TOKEN='$GHCR_TOKEN' DEPLOY_PATH='$deploy_path' bash -s" <<'EOF'
+          set -euo pipefail
+          cd "$DEPLOY_PATH"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+          docker image prune -f
+          EOF

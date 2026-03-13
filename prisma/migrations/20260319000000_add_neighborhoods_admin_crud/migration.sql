@@ -14,20 +14,21 @@ CREATE UNIQUE INDEX "neighborhoods_slug_key" ON "neighborhoods"("slug");
 CREATE INDEX "neighborhoods_isActive_sortOrder_idx" ON "neighborhoods"("isActive", "sortOrder");
 
 -- Seed canonical neighborhoods.
-INSERT INTO "neighborhoods" ("id", "slug", "label", "sortOrder")
+INSERT INTO "neighborhoods" ("id", "slug", "label", "sortOrder", "updatedAt")
 VALUES
-  ('neighborhood_downtown', 'downtown', 'Downtown / Riverfront', 10),
-  ('neighborhood_kendall_yards', 'kendall-yards', 'Kendall Yards', 20),
-  ('neighborhood_south_hill', 'south-hill', 'South Hill / Perry District', 30),
-  ('neighborhood_garland', 'garland', 'Garland / North Monroe', 40),
-  ('neighborhood_north_spokane', 'north-spokane', 'North Spokane / Mead', 50),
-  ('neighborhood_spokane_valley', 'spokane-valley', 'Spokane Valley / Millwood', 60),
-  ('neighborhood_liberty_lake', 'liberty-lake', 'Liberty Lake', 70),
-  ('neighborhood_cheney', 'cheney', 'Cheney / Airway Heights', 80)
+  ('neighborhood_downtown', 'downtown', 'Downtown / Riverfront', 10, CURRENT_TIMESTAMP),
+  ('neighborhood_kendall_yards', 'kendall-yards', 'Kendall Yards', 20, CURRENT_TIMESTAMP),
+  ('neighborhood_south_hill', 'south-hill', 'South Hill / Perry District', 30, CURRENT_TIMESTAMP),
+  ('neighborhood_garland', 'garland', 'Garland / North Monroe', 40, CURRENT_TIMESTAMP),
+  ('neighborhood_north_spokane', 'north-spokane', 'North Spokane / Mead', 50, CURRENT_TIMESTAMP),
+  ('neighborhood_spokane_valley', 'spokane-valley', 'Spokane Valley / Millwood', 60, CURRENT_TIMESTAMP),
+  ('neighborhood_liberty_lake', 'liberty-lake', 'Liberty Lake', 70, CURRENT_TIMESTAMP),
+  ('neighborhood_cheney', 'cheney', 'Cheney / Airway Heights', 80, CURRENT_TIMESTAMP)
 ON CONFLICT ("slug") DO UPDATE
 SET "label" = EXCLUDED."label",
     "sortOrder" = EXCLUDED."sortOrder",
-    "isActive" = true;
+    "isActive" = true,
+    "updatedAt" = CURRENT_TIMESTAMP;
 
 -- Normalize legacy/free-form values to canonical slugs.
 CREATE OR REPLACE FUNCTION normalize_neighborhood_slug(raw_value TEXT)

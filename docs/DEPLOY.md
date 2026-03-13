@@ -15,6 +15,7 @@ Deploy Spokane Markets using Docker, Caddy, and GitHub Actions.
 - Linux server with Docker and Docker Compose v2
 - Domain pointed at the server (e.g. `spokane.markets`)
 - GitHub repo with Actions enabled
+- A dedicated SSH deploy user with key-based auth
 
 ## 1. Server Setup
 
@@ -27,13 +28,64 @@ sudo usermod -aG docker $USER
 # Log out and back in
 ```
 
-### Clone the repo
+### Create a dedicated deploy user (recommended)
+
+Run on the server as root (or with sudo):
 
 ```bash
-cd ~
-git clone https://github.com/redkeysh/spokane.markets.git
-cd spokane.markets
+sudo adduser --disabled-password --gecos "" deploy
+sudo usermod -aG docker deploy
+sudo mkdir -p /home/deploy/.ssh
+sudo chmod 700 /home/deploy/.ssh
+sudo chown -R deploy:deploy /home/deploy/.ssh
+sudo mkdir -p /opt/spokane.markets
+sudo chown -R deploy:deploy /opt/spokane.markets
 ```
+
+### Clone the repo (as deploy user)
+
+```bash
+sudo -u deploy -H bash -lc '
+  git clone https://github.com/redkeysh/spokane.markets.git /opt/spokane.markets
+  cd /opt/spokane.markets
+'
+```
+
+### Generate deploy SSH keypair (on your local machine)
+
+Use a dedicated key only for CI deploys:
+
+```bash
+ssh-keygen -t ed25519 -a 64 -f ~/.ssh/spokane_actions -C "github-actions@spokane.markets"
+```
+
+Install the public key on the server:
+
+```bash
+ssh-copy-id -i ~/.ssh/spokane_actions.pub deploy@YOUR_SERVER_HOST
+```
+
+If `ssh-copy-id` is unavailable, append manually:
+
+```bash
+cat ~/.ssh/spokane_actions.pub | ssh deploy@YOUR_SERVER_HOST 'umask 077; mkdir -p ~/.ssh; cat >> ~/.ssh/authorized_keys'
+```
+
+Verify key login:
+
+```bash
+ssh -i ~/.ssh/spokane_actions deploy@YOUR_SERVER_HOST "echo ok"
+```
+
+### Capture and pin the server host key
+
+Record the SSH host key exactly once from a trusted network:
+
+```bash
+ssh-keyscan -H YOUR_SERVER_HOST
+```
+
+Save the full output line (for example, `your.host ssh-ed25519 AAAA...`) for the `SERVER_HOST_KEY` GitHub secret.
 
 ### Upload storage
 
@@ -91,29 +143,41 @@ In **Settings → Secrets and variables → Actions**, add:
 | Secret | Description |
 |--------|-------------|
 | `SERVER_HOST` | Server hostname or IP |
-| `SERVER_USER` | SSH username (e.g. `deploy` or `root`) |
-| `SERVER_SSH_KEY` | Private SSH key (full contents, including `-----BEGIN ...-----`) |
+| `SERVER_USER` | SSH username (recommended: `deploy`) |
+| `SERVER_PORT` | Optional SSH port (default `22`) |
+| `SERVER_DEPLOY_PATH` | Optional absolute path to repo on server (default `/opt/spokane.markets`) |
+| `SERVER_SSH_KEY` | Private SSH key contents from `~/.ssh/spokane_actions` |
+| `SERVER_HOST_KEY` | Pinned output from `ssh-keyscan -H YOUR_SERVER_HOST` |
+| `GHCR_USERNAME` | GitHub username/org with package read access (often `redkeysh`) |
+| `GHCR_TOKEN` | Personal access token with `read:packages` (and `repo` if repo is private) |
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Same value as in `.env.local` — `openssl rand -base64 32`. Required for Server Actions. |
 | `NEXT_PUBLIC_APP_URL` | Same as `AUTH_URL` (e.g. `https://spokane.markets`). Required for client bundle |
 | `NEXT_PUBLIC_GTM_ID` | Google Tag Manager container ID (e.g. `GTM-MCG6KBNR`). Optional; consent banner shows regardless. |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | Optional Umami website ID for client analytics |
+| `NEXT_PUBLIC_UMAMI_SCRIPT_URL` | Optional Umami script URL |
+| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | Optional Mapbox token for address autofill |
 
 Ensure the server allows SSH key auth for `SERVER_USER`.
+
+### Create GHCR pull token
+
+1. GitHub -> **Settings -> Developer settings -> Personal access tokens**.
+2. Create a fine-grained token (or classic PAT) with package read permissions.
+3. For private repos, include repository read access.
+4. Save as `GHCR_TOKEN`; store matching account/org as `GHCR_USERNAME`.
 
 ## 4. First-Time Deployment
 
 ### Option A: Via GitHub Actions (recommended)
 
-1. Push to `main`. The workflow builds both images (web & init), pushes to GHCR, and deploys.
-2. If the server has no image yet, the first run may fail on `docker pull`. Run once manually:
+1. Push to `main`.
+2. Workflow runs quality checks (`lint`, `test`), builds both images, pushes to GHCR, then SSHes to your server.
+3. Remote deploy command:
+   - `docker compose -f docker-compose.yml -f docker-compose.prod.yml pull`
+   - `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans`
+4. `init` runs `prisma migrate deploy` before `web` starts.
 
-```bash
-ssh user@server
-cd ~/spokane.markets
-docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-
-Migrations and seed run automatically in the `init` container before `web` starts.
+If first deploy fails, verify the configured `SERVER_DEPLOY_PATH` exists and contains this repository.
 
 ### Option B: Manual deploy
 
@@ -134,7 +198,7 @@ docker push ghcr.io/redkeysh/spokane.markets:latest
 docker push ghcr.io/redkeysh/spokane.markets:init
 
 # On server
-cd ~/spokane.markets
+cd /opt/spokane.markets
 docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
@@ -225,7 +289,8 @@ Note: The web image is standalone and may not include tsx. Use the init image in
 | Uploads 404 | Check `docker volume ls` for the uploads volume and verify `caddy` mounts the same uploads volume read-only |
 | Uploads `EACCES` | Confirm `web` and `init` use the shared named uploads volume, not a host bind mount |
 | Auth redirect wrong | `AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match your domain |
-| SSH deploy fails | `SERVER_SSH_KEY` includes full key; server allows key auth |
+| SSH deploy fails | `SERVER_SSH_KEY` valid, `SERVER_HOST_KEY` matches current host key, deploy user can SSH and run Docker |
+| GHCR pull denied | Check `GHCR_USERNAME`/`GHCR_TOKEN` secrets and token package permissions (`read:packages`) |
 | **TLS cert error** (`remote error: tls: internal error`) | Caddyfile uses `disable_tlsalpn_challenge` to force HTTP-01. Ensure ports 80 and 443 are open (`ufw status`), DNS points to server IP, and no proxy/load balancer terminates TLS before Caddy. If behind Cloudflare or similar, use DNS-01 challenge instead. |
 | **Build `npm ci` ECONNRESET** | Transient network failure. Retry the build. The Dockerfile sets `fetch-retries`, `fetch-retry-mintimeout`, and `fetch-retry-maxtimeout` to harden against this. If it persists: `docker build --network host -t ... .` or check proxy/firewall. |
 | **Cron not running** | Check `docker compose logs cron`. Ensure init image has crond (Alpine). If missing, use host crontab (see §8). |
