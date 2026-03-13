@@ -22,13 +22,13 @@ A practical guide for getting the website running and understanding how markets,
 3. **Migrations**: `npx prisma migrate deploy`
 4. **Seed**: `npx prisma db seed` (creates admin user, tags, features, sample venues/markets/events)
 5. **Run**: `npm run dev` → http://localhost:3000
-6. **Admin**: Sign in as `admin@spokane.markets` / `admin123` → go to `/admin`
+6. **Admin access**: Seed creates `admin@spokane.markets` with role `ADMIN` (no default password). Use magic-link sign-in for that email (requires `RESEND_API_KEY`) or promote your own account to `ADMIN` in DB.
 
 ---
 
 ## Markets vs Venues
 
-| | **Venue** | **Market** |
+| Dimension | **Venue** | **Market** |
 |---|---|---|
 | **What it is** | A physical location (address, coordinates) | A recurring market or event brand |
 | **Purpose** | Where things happen | What happens (identity, brand, schedule) |
@@ -100,9 +100,9 @@ Copy `.env.example` to `.env.local` and set:
 | Variable | Required | Notes |
 |----------|----------|-------|
 | `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `AUTH_SECRET` | Yes | `openssl rand -base64 32` |
-| `AUTH_URL` | Yes | `http://localhost:3000` (dev) or your domain (prod) |
-| `NEXT_PUBLIC_APP_URL` | Yes | Same as AUTH_URL — used for landing page, redirects |
+| `BETTER_AUTH_SECRET` | Yes | `openssl rand -base64 32` |
+| `BETTER_AUTH_URL` | Yes | `http://localhost:3000` (dev) or your domain (prod) |
+| `NEXT_PUBLIC_APP_URL` | Yes | Same as `BETTER_AUTH_URL` — used for landing page, redirects |
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Yes (Docker) | `openssl rand -base64 32` |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Optional | OAuth sign-in |
 | `AUTH_FACEBOOK_ID` / `AUTH_FACEBOOK_SECRET` | Optional | OAuth sign-in |
@@ -134,7 +134,19 @@ Docker now uses a shared named volume for uploads, so no host `uploads/` directo
 
 ### 4. First admin user
 
-Seed creates `admin@spokane.markets` / `admin123`. **Change the password** after first login (or create a new admin via Admin → Users).
+Seed creates `admin@spokane.markets` with role `ADMIN`, but does not set a default password.
+
+Recommended first access:
+
+1. Configure `RESEND_API_KEY`.
+2. Go to `/auth/signin`.
+3. Use **Sign in with email link** for `admin@spokane.markets`.
+
+Alternative (local/dev): sign up with your own email, then promote that user in PostgreSQL:
+
+```sql
+UPDATE "user" SET "role" = 'ADMIN' WHERE "email" = 'you@example.com';
+```
 
 ---
 
@@ -195,7 +207,13 @@ Seed creates `admin@spokane.markets` / `admin123`. **Change the password** after
 
 ### Maintenance mode
 
-Admin → Site Settings → Maintenance Mode. Control site-wide access with three modes: Off (normal), Admins only, or Privileged (admins + vendors + organizers). Non-privileged visitors see a configurable maintenance page. See `docs/MAINTENANCE-MODE.md` for details.
+Admin -> Site Settings -> Maintenance Mode. Control site-wide access with:
+
+- `OFF`: normal site access for everyone
+- `MAINTENANCE_ADMIN_ONLY`: admins only
+- `MAINTENANCE_PRIVILEGED`: admins, vendors, and organizers
+
+Non-privileged visitors see the maintenance page with the configured title/body/links.
 
 Requires `NEXT_PUBLIC_APP_URL` in `.env.local`.
 

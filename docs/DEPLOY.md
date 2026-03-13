@@ -1,316 +1,318 @@
 # Production Deployment Guide
 
-Deploy Spokane Markets using Docker, Caddy, and GitHub Actions.
+Step-by-step runbook for deploying Spokane Markets with Docker, Caddy, and GitHub Actions.
 
-## Overview
+## Read This First
 
-- **Stack**: Next.js (standalone), PostgreSQL, Caddy
-- **CI/CD**: Push to `main` → build images → push to GHCR → SSH deploy
-- **Images**: `ghcr.io/redkeysh/spokane.markets:latest` (web), `ghcr.io/redkeysh/spokane.markets:init` (migrate + init tasks)
-- **Runtime**: Node.js 25 (inside container); host Node version is irrelevant
-- **Deploy flow**: `init` runs `prisma migrate deploy` (plus upload directory prep) on startup, then exits; `web` starts after `init` completes
+This guide is written for one production server and one domain.
 
-## Prerequisites
+- Recommended domain/host: `spokane.markets`
+- Deploy path on server: `/opt/spokane.markets`
+- Deploy user on server: `deploy`
 
-- Linux server with Docker and Docker Compose v2
-- Domain pointed at the server (e.g. `spokane.markets`)
-- GitHub repo with Actions enabled
-- A dedicated SSH deploy user with key-based auth
+### Command execution contexts
 
-## 1. Server Setup
+Every command in this guide is tagged with where to run it:
 
-### Install Docker
+- **[LOCAL]** your laptop/workstation
+- **[SERVER-ROOT]** server shell as `root` (or a sudo-capable admin user)
+- **[SERVER-DEPLOY]** server shell as `deploy`
+- **[GITHUB-UI]** GitHub website settings pages
+
+If you run a command in the wrong place, deployment will fail.
+
+## Architecture Summary
+
+- App image: `ghcr.io/redkeysh/spokane.markets:latest`
+- Init image: `ghcr.io/redkeysh/spokane.markets:init`
+- CI flow: push to `main` -> lint/test -> build/push images -> SSH into server -> compose pull/up
+- Runtime: `init` runs migrations and upload-dir prep, then exits; `web` starts after init succeeds
+
+## 1) Choose and lock hostnames
+
+Pick one SSH host value and use it consistently.
+
+Recommended:
+
+- `SERVER_HOST=spokane.markets`
+
+You can use an internal hostname or IP instead, but then `SERVER_HOST_KEY` must match that exact value.
+
+## 2) Server bootstrap
+
+### 2.1 Install Docker
+
+**Run on [SERVER-ROOT]:**
 
 ```bash
-# Ubuntu/Debian
 curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER
-# Log out and back in
 ```
 
-### Create a dedicated deploy user (recommended)
+Log out/in once so your group membership refreshes.
 
-Run on the server as root (or with sudo):
+### 2.2 Create deploy user and directories
+
+**Run on [SERVER-ROOT]:**
 
 ```bash
 sudo adduser --disabled-password --gecos "" deploy
 sudo usermod -aG docker deploy
-sudo mkdir -p /home/deploy/.ssh
-sudo chmod 700 /home/deploy/.ssh
-sudo chown -R deploy:deploy /home/deploy/.ssh
+sudo install -d -m 700 -o deploy -g deploy /home/deploy/.ssh
 sudo mkdir -p /opt/spokane.markets
 sudo chown -R deploy:deploy /opt/spokane.markets
+docker network create webapp || true
 ```
 
-### Clone the repo (as deploy user)
+`--disabled-password` is expected and recommended. This user authenticates by SSH key only.
+
+### 2.3 Clone repo
+
+**Run on [SERVER-DEPLOY]:**
 
 ```bash
-sudo -u deploy -H bash -lc '
-  git clone https://github.com/redkeysh/spokane.markets.git /opt/spokane.markets
-  cd /opt/spokane.markets
-'
+git clone https://github.com/redkeysh/spokane.markets.git /opt/spokane.markets
+cd /opt/spokane.markets
 ```
 
-### Generate deploy SSH keypair (on your local machine)
+## 3) SSH keys for GitHub Actions deploy
 
-Use a dedicated key only for CI deploys:
+### 3.1 Generate CI deploy key
+
+**Run on [LOCAL]:**
 
 ```bash
 ssh-keygen -t ed25519 -a 64 -f ~/.ssh/spokane_actions -C "github-actions@spokane.markets"
 ```
 
-Install the public key on the server:
+This creates:
+
+- private key: `~/.ssh/spokane_actions` -> goes to `SERVER_SSH_KEY` secret
+- public key: `~/.ssh/spokane_actions.pub` -> installed into `/home/deploy/.ssh/authorized_keys`
+
+### 3.2 Install public key on server (passwordless deploy user safe flow)
+
+Because `deploy` has disabled password, do not rely on `ssh-copy-id deploy@...` unless `deploy` already has key access.
+
+**Run on [SERVER-ROOT]:**
 
 ```bash
-ssh-copy-id -i ~/.ssh/spokane_actions.pub deploy@YOUR_SERVER_HOST
+sudo tee -a /home/deploy/.ssh/authorized_keys >/dev/null
 ```
 
-If `ssh-copy-id` is unavailable, append manually:
+Paste the full contents of `~/.ssh/spokane_actions.pub`, press Enter, then Ctrl+D.  
+Then run:
 
 ```bash
-cat ~/.ssh/spokane_actions.pub | ssh deploy@YOUR_SERVER_HOST 'umask 077; mkdir -p ~/.ssh; cat >> ~/.ssh/authorized_keys'
+sudo chown deploy:deploy /home/deploy/.ssh/authorized_keys
+sudo chmod 600 /home/deploy/.ssh/authorized_keys
 ```
 
-Verify key login:
+### 3.3 Verify deploy user key login
+
+**Run on [LOCAL]:**
 
 ```bash
-ssh -i ~/.ssh/spokane_actions deploy@YOUR_SERVER_HOST "echo ok"
+ssh -i ~/.ssh/spokane_actions deploy@spokane.markets "echo ok"
 ```
 
-### Capture and pin the server host key
+If this fails, do not continue to GitHub secrets yet.
 
-Record the SSH host key exactly once from a trusted network:
+## 4) Host key pinning (SERVER_HOST_KEY)
+
+This verifies the server identity during CI SSH.
+
+### 4.1 Collect host key
+
+**Run on [LOCAL]** from a trusted network:
 
 ```bash
-ssh-keyscan -H YOUR_SERVER_HOST
+ssh-keyscan -H spokane.markets
 ```
 
-Save the full output line (for example, `your.host ssh-ed25519 AAAA...`) for the `SERVER_HOST_KEY` GitHub secret.
+Copy the **single `ssh-ed25519` line** (not the `# ...` comment lines).
 
-### Upload storage
+### 4.2 What secret values should be
 
-Uploads now use a shared Docker named volume (`uploads_data`) instead of a host bind mount. The `init` container creates the upload subdirectories on first run, and the same volume is mounted into `web` for writes and `caddy` for read-only file serving.
+If your workflow target is `spokane.markets`, then:
 
-If you are migrating from an older deployment that used `./uploads`, copy the existing files into the named volume before switching traffic:
+- `SERVER_HOST=spokane.markets`
+- `SERVER_HOST_KEY=<ssh-keyscan -H spokane.markets ed25519 line>`
 
-```bash
-docker compose up -d db
-VOLUME_NAME="$(docker compose config --volumes | tail -n 1)"
-docker volume create "$VOLUME_NAME"
-docker run --rm \
-  -v "$VOLUME_NAME":/to \
-  -v "$(pwd)/uploads:/from:ro" \
-  alpine sh -c 'mkdir -p /to && cp -R /from/. /to/'
-```
+They must refer to the same host.
 
-If you prefer, you can also inspect the created volume name with `docker volume ls`.
+## 5) Server runtime `.env.local`
 
-### Create `.env.local`
-
-Copy from `.env.example` and fill in production values:
+**Run on [SERVER-DEPLOY]:**
 
 ```bash
+cd /opt/spokane.markets
 cp .env.example .env.local
 nano .env.local
 ```
 
-Required production values:
+Required runtime values:
 
-| Variable | Description |
-|----------|-------------|
+| Variable | Example |
+|---|---|
 | `DATABASE_URL` | `postgresql://postgres:YOUR_PASSWORD@db:5432/spokane_markets?schema=public` |
-| `POSTGRES_PASSWORD` | Strong password for PostgreSQL |
-| `AUTH_SECRET` | `openssl rand -base64 32` |
-| `AUTH_URL` | `https://spokane.markets` (your domain) |
+| `POSTGRES_PASSWORD` | strong password |
+| `BETTER_AUTH_SECRET` | `openssl rand -base64 32` |
+| `BETTER_AUTH_URL` | `https://spokane.markets` |
 | `NEXT_PUBLIC_APP_URL` | `https://spokane.markets` |
-| `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | `openssl rand -base64 32` — **required** for Server Actions in Docker. Must also be set as GitHub Secret for CI builds. |
-| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Optional. From Google Cloud Console |
-| `AUTH_FACEBOOK_ID` / `AUTH_FACEBOOK_SECRET` | Optional. From Meta Developer |
-| `RESEND_API_KEY` | From Resend dashboard |
+| `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | `openssl rand -base64 32` |
 
-## 2. Caddyfile (Domain)
+Important:
 
-Edit `Caddyfile`:
-1. Replace `you@yourdomain.com` with your email (for Let's Encrypt notifications).
-2. Ensure the site block domain matches your domain (e.g. `spokane.markets`).
+- `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` should match.
+- `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` must match the GitHub secret value used for CI builds.
 
-Caddy obtains TLS certificates automatically. HTTP/2 and HTTP/3 are enabled by default (requires ports 80, 443/tcp, 443/udp).
+## 6) Caddy and firewall
 
-## 3. GitHub Secrets
+### 6.1 Caddyfile
 
-In **Settings → Secrets and variables → Actions**, add:
+**Run on [SERVER-DEPLOY]:**
 
-| Secret | Description |
-|--------|-------------|
-| `SERVER_HOST` | Server hostname or IP |
-| `SERVER_USER` | SSH username (recommended: `deploy`) |
-| `SERVER_PORT` | Optional SSH port (default `22`) |
-| `SERVER_DEPLOY_PATH` | Optional absolute path to repo on server (default `/opt/spokane.markets`) |
-| `SERVER_SSH_KEY` | Private SSH key contents from `~/.ssh/spokane_actions` |
-| `SERVER_HOST_KEY` | Pinned output from `ssh-keyscan -H YOUR_SERVER_HOST` |
-| `GHCR_USERNAME` | GitHub username/org with package read access (often `redkeysh`) |
-| `GHCR_TOKEN` | Personal access token with `read:packages` (and `repo` if repo is private) |
-| `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Same value as in `.env.local` — `openssl rand -base64 32`. Required for Server Actions. |
-| `NEXT_PUBLIC_APP_URL` | Same as `AUTH_URL` (e.g. `https://spokane.markets`). Required for client bundle |
-| `NEXT_PUBLIC_GTM_ID` | Google Tag Manager container ID (e.g. `GTM-MCG6KBNR`). Optional; consent banner shows regardless. |
-| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | Optional Umami website ID for client analytics |
-| `NEXT_PUBLIC_UMAMI_SCRIPT_URL` | Optional Umami script URL |
-| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | Optional Mapbox token for address autofill |
+- Set your email in `Caddyfile`.
+- Ensure site domain blocks match your production domain.
 
-Ensure the server allows SSH key auth for `SERVER_USER`.
+### 6.2 Firewall
 
-### Create GHCR pull token
-
-1. GitHub -> **Settings -> Developer settings -> Personal access tokens**.
-2. Create a fine-grained token (or classic PAT) with package read permissions.
-3. For private repos, include repository read access.
-4. Save as `GHCR_TOKEN`; store matching account/org as `GHCR_USERNAME`.
-
-## 4. First-Time Deployment
-
-### Option A: Via GitHub Actions (recommended)
-
-1. Push to `main`.
-2. Workflow runs quality checks (`lint`, `test`), builds both images, pushes to GHCR, then SSHes to your server.
-3. Remote deploy command:
-   - `docker compose -f docker-compose.yml -f docker-compose.prod.yml pull`
-   - `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans`
-4. `init` runs `prisma migrate deploy` before `web` starts.
-
-If first deploy fails, verify the configured `SERVER_DEPLOY_PATH` exists and contains this repository.
-
-Before the first deploy, create the external Docker network used by Caddy:
-
-```bash
-docker network create webapp || true
-```
-
-### Option B: Manual deploy
-
-```bash
-# On your machine: build and push both images
-export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="your-base64-key"
-export NEXT_PUBLIC_APP_URL="https://spokane.markets"
-export NEXT_PUBLIC_GTM_ID="GTM-MCG6KBNR"  # optional
-docker build -t ghcr.io/redkeysh/spokane.markets:latest --target runner \
-  --build-arg NEXT_PUBLIC_APP_URL \
-  --build-arg NEXT_PUBLIC_GTM_ID \
-  --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY .
-docker build -t ghcr.io/redkeysh/spokane.markets:init --target init \
-  --build-arg NEXT_PUBLIC_APP_URL \
-  --build-arg NEXT_PUBLIC_GTM_ID \
-  --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY .
-docker push ghcr.io/redkeysh/spokane.markets:latest
-docker push ghcr.io/redkeysh/spokane.markets:init
-
-# On server
-cd /opt/spokane.markets
-docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-
-## 5. Post-Deploy
-
-### Seed database
-
-Seed does **not** run automatically during deploy. Run it manually when needed:
-
-```bash
-docker compose run --rm init npx prisma db seed
-```
-
-### Verify
-
-- https://your-domain → app loads
-- https://your-domain/admin → admin login works
-- Uploads: create a review with a photo, confirm `/uploads/photos/...` serves
-- Banner uploads: update a banner in `/admin/settings` and confirm the new file serves from `/uploads/banner/...`
-
-**Admin operations:** See [docs/ADMIN-GUIDE.md](docs/ADMIN-GUIDE.md) for markets vs venues, events, vendors, and workflows.
-
-### Analytics (Umami) verification
-
-When Umami is enabled (`NEXT_PUBLIC_UMAMI_WEBSITE_ID` set at build), run this checklist after deploy:
-
-| Check | How to verify |
-|-------|----------------|
-| Script load | DevTools → Network: request to script URL (e.g. `https://analytics.spokane.markets/script.js`) returns **200** |
-| `window.umami` | DevTools → Console: `window.umami` is an object, `typeof window.umami.track === "function"` |
-| Route change pageview | Navigate to another route (e.g. `/` → `/events`); Network shows a POST to the Umami collect endpoint (e.g. `/api/send`) |
-| Custom event | Trigger an action (e.g. accept consent, newsletter subscribe); Network shows POST to same collect endpoint |
-| No double pageview | Umami dashboard: initial load shows one pageview for the landing page |
-| Adblock | If the script is blocked by an adblocker, tracking will not run; document as expected. |
-
-Debug page: visit `/debug/analytics` to inspect Umami script state, `trackReady`, and `data-domains` vs current hostname.
-
-## 6. Image Reference
-
-`docker-compose.prod.yml` uses:
-- `ghcr.io/redkeysh/spokane.markets:latest` (web)
-- `ghcr.io/redkeysh/spokane.markets:init` (init)
-
-If your repo is under a different org/user, update the `image` keys to match `ghcr.io/OWNER/REPO` (same as `github.repository`).
-
-## 7. Firewall
-
-Open ports 80 (HTTP), 443/tcp (HTTPS, HTTP/2), and 443/udp (HTTP/3):
+**Run on [SERVER-ROOT]:**
 
 ```bash
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 sudo ufw allow 443/udp
-sudo ufw allow 22
+sudo ufw allow 22/tcp
 sudo ufw enable
 ```
 
-## 8. Cron Jobs (Digest & Filter Alerts)
+If SSH uses non-22, allow that port instead.
+
+## 7) GitHub secrets
+
+### 7.1 Create GHCR token
+
+**Run on [GITHUB-UI]:**
+
+Create a PAT (fine-grained or classic) with package read access.
+
+- required: `read:packages`
+- for private repos: also repo read access
+
+### 7.2 Set Actions secrets
+
+**Run on [GITHUB-UI]** in repo secrets (and environment `spokane.market` if used):
+
+| Secret | Value |
+|---|---|
+| `SERVER_HOST` | `spokane.markets` |
+| `SERVER_USER` | `deploy` |
+| `SERVER_PORT` | `22` (optional; default is 22) |
+| `SERVER_DEPLOY_PATH` | `/opt/spokane.markets` (optional; this is default) |
+| `SERVER_SSH_KEY` | contents of `~/.ssh/spokane_actions` (private key) |
+| `SERVER_HOST_KEY` | pinned `ssh-ed25519` host key line from `ssh-keyscan -H spokane.markets` |
+| `GHCR_USERNAME` | GitHub account/org that can read package |
+| `GHCR_TOKEN` | PAT from step 7.1 |
+| `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | same value as server `.env.local` |
+| `NEXT_PUBLIC_APP_URL` | `https://spokane.markets` |
+
+Optional build-time secrets:
+
+- `NEXT_PUBLIC_GTM_ID`
+- `NEXT_PUBLIC_UMAMI_WEBSITE_ID`
+- `NEXT_PUBLIC_UMAMI_SCRIPT_URL`
+- `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`
+
+## 8) First deployment
+
+### Option A (recommended): GitHub Actions
+
+**Run on [LOCAL]:**
+
+```bash
+git push origin main
+```
+
+Workflow does:
+
+1. lint/test
+2. build and push `latest` and `init` images
+3. SSH to server and run:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+docker image prune -f
+```
+
+### Option B: manual server deploy
+
+**Run on [SERVER-DEPLOY]:**
+
+```bash
+cd /opt/spokane.markets
+docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+```
+
+## 9) Post-deploy checks
+
+**Run on [SERVER-DEPLOY]:**
+
+```bash
+cd /opt/spokane.markets
+docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=100 init
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=100 web
+```
+
+Verify in browser:
+
+- app loads on `https://spokane.markets`
+- admin can sign in
+- upload URLs serve from `/uploads/...`
+
+Admin guide: [ADMIN-GUIDE.md](ADMIN-GUIDE.md)
+
+## 10) Seed and cron operations
+
+### Seed (manual)
+
+Seed does not run automatically during deploy.
+
+**Run on [SERVER-DEPLOY]:**
+
+```bash
+cd /opt/spokane.markets
+docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm init npx prisma db seed
+```
+
+### Cron jobs in production
 
 The `cron` service runs:
-- **Weekly digest** (Mondays 9:00): `scripts/weekly-digest.ts` — emails subscribers with upcoming events
-- **Filter alerts** (daily 8:00): `scripts/filter-alerts.ts` — emails users with saved filters when new events match
 
-The cron service uses the same image as `init` and shares `.env.local`. Ensure `RESEND_API_KEY` is set for email delivery.
+- weekly digest (Mon 09:00): `scripts/weekly-digest.ts`
+- filter alerts (daily 08:00): `scripts/filter-alerts.ts`
+- DB backup (daily 02:00): `scripts/pg-backup.sh`
 
-**Alternative: host crontab** (if Docker cron is unreliable):
-
-```bash
-# Add to crontab -e
-0 9 * * 1 cd /path/to/spokane.markets && docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm web npm run digest
-0 8 * * * cd /path/to/spokane.markets && docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm web npm run filter-alerts
-```
-
-Note: The web image is standalone and may not include tsx. Use the init image instead:
-
-```bash
-0 9 * * 1 cd /path/to/spokane.markets && docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm init npm run digest
-0 8 * * * cd /path/to/spokane.markets && docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm init npm run filter-alerts
-```
-
-## 9. Troubleshooting
+## 11) Troubleshooting
 
 | Issue | Check |
-|-------|-------|
-| 502 Bad Gateway | `docker compose ps` — is `web` running? `docker compose logs web` |
-| Migrations fail | `DATABASE_URL` correct? DB healthy? `docker compose logs init` for migrate output; `docker compose exec db pg_isready -U postgres` |
-| Uploads 404 | Check `docker volume ls` for the uploads volume and verify `caddy` mounts the same uploads volume read-only |
-| Uploads `EACCES` | Confirm `web` and `init` use the shared named uploads volume, not a host bind mount |
-| Auth redirect wrong | `AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match your domain |
-| SSH deploy fails | `SERVER_SSH_KEY` valid, `SERVER_HOST_KEY` matches current host key, deploy user can SSH and run Docker |
-| GHCR pull denied | Check `GHCR_USERNAME`/`GHCR_TOKEN` secrets and token package permissions (`read:packages`) |
-| **TLS cert error** (`remote error: tls: internal error`) | Caddyfile uses `disable_tlsalpn_challenge` to force HTTP-01. Ensure ports 80 and 443 are open (`ufw status`), DNS points to server IP, and no proxy/load balancer terminates TLS before Caddy. If behind Cloudflare or similar, use DNS-01 challenge instead. |
-| **Build `npm ci` ECONNRESET** | Transient network failure. Retry the build. The Dockerfile sets `fetch-retries`, `fetch-retry-mintimeout`, and `fetch-retry-maxtimeout` to harden against this. If it persists: `docker build --network host -t ... .` or check proxy/firewall. |
-| **Cron not running** | Check `docker compose logs cron`. Ensure init image has crond (Alpine). If missing, use host crontab (see §8). |
-| **Failed to find Server Action** | See [Failed to find Server Action](#failed-to-find-server-action) below. |
+|---|---|
+| 502/Bad gateway | `docker compose ... ps` and `docker compose ... logs web` |
+| Migrations fail | `docker compose ... logs init`, DB readiness (`pg_isready`) |
+| Upload 404 | volume mounts for `uploads_data` in `web` + `caddy` |
+| Upload EACCES | init container ownership/chmod step |
+| Auth redirects wrong | `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` mismatch |
+| SSH deploy fails | host/key mismatch (`SERVER_HOST` vs `SERVER_HOST_KEY`), key permissions, docker access |
+| GHCR pull denied | `GHCR_USERNAME`/`GHCR_TOKEN` permissions (`read:packages`) |
 
 ### Failed to find Server Action
 
-This error indicates a client/server build mismatch. Fix steps:
+Usually client/server build mismatch.
 
-1. **Verify key consistency** — `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` must be identical in:
-   - GitHub Secrets (for CI builds)
-   - Server `.env.local` (for runtime)
-   Generate once with `openssl rand -base64 32` and use the same value everywhere.
-
-2. **Rebuild after key changes** — If the key was changed, rebuild images with `docker compose build --no-cache` (or re-run the GitHub Actions workflow) so the new key is embedded.
-
-3. **Clear browser cache** — After deploy, hard refresh (Ctrl+Shift+R) or clear cache to avoid stale client bundles.
+1. Keep `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` identical in server `.env.local` and GitHub secret.
+2. Rebuild/redeploy after key changes.
+3. Hard refresh browser cache.
