@@ -95,7 +95,13 @@ export async function resolveVenueId(
   input: VenueInput
 ): Promise<string | null> {
   const venueId = input.venueId?.trim() || null;
-  if (venueId) return venueId;
+  if (venueId) {
+    const activeVenue = await db.venue.findFirst({
+      where: { id: venueId, deletedAt: null },
+      select: { id: true },
+    });
+    return activeVenue?.id ?? null;
+  }
 
   if (
     input.venueName?.trim() &&
@@ -236,6 +242,14 @@ export async function updateEvent(
   const venueId = await resolveVenueId(rest);
   if (!venueId) {
     return { event: null, error: "Select a venue or enter an address" };
+  }
+
+  const existing = await db.event.findFirst({
+    where: { id: eventId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!existing) {
+    return { event: null, error: "Event not found or archived" };
   }
 
   const event = await db.$transaction(async (tx) => {

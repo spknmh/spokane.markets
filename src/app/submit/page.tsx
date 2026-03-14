@@ -20,7 +20,11 @@ export default async function SubmitPage() {
   const [session, banners, markets, tags, features] = await Promise.all([
     requireAuth("/submit"),
     getBannerImages(),
-    db.market.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    db.market.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
     db.tag.findMany({ select: { id: true, name: true, slug: true }, orderBy: { name: "asc" } }),
     db.feature.findMany({ select: { id: true, name: true, slug: true }, orderBy: { name: "asc" } }),
   ]);

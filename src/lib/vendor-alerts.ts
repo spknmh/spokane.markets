@@ -19,12 +19,12 @@ export function sendVendorFavoriteAlerts(
       if (!resendKey) return;
 
       const [vendor, event, favorites] = await Promise.all([
-        db.vendorProfile.findUnique({
-          where: { id: vendorProfileId },
+        db.vendorProfile.findFirst({
+          where: { id: vendorProfileId, deletedAt: null },
           select: { businessName: true, slug: true },
         }),
-        db.event.findUnique({
-          where: { id: eventId },
+        db.event.findFirst({
+          where: { id: eventId, deletedAt: null },
           select: {
             title: true,
             slug: true,

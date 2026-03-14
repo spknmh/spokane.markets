@@ -83,8 +83,8 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
   const session = await getSession();
   const vendorProfile = session?.user
-    ? await db.vendorProfile.findUnique({
-        where: { userId: session.user.id! },
+    ? await db.vendorProfile.findFirst({
+        where: { userId: session.user.id!, deletedAt: null },
         select: { id: true },
       })
     : null;

@@ -36,7 +36,7 @@ export default async function HomePage() {
         eventId: { not: null },
         startDate: { lte: new Date() },
         endDate: { gte: new Date() },
-        event: { status: "PUBLISHED" },
+        event: { status: "PUBLISHED", deletedAt: null },
       },
       include: {
         event: {
@@ -55,6 +55,7 @@ export default async function HomePage() {
     db.event.findMany({
       where: {
         status: "PUBLISHED",
+        deletedAt: null,
         startDate: { lte: end },
         endDate: { gte: start },
       },
@@ -71,6 +72,7 @@ export default async function HomePage() {
     db.event.findMany({
       where: {
         status: "PUBLISHED",
+        deletedAt: null,
         startDate: { lte: planAheadRange.end },
         endDate: { gte: planAheadRange.start },
       },

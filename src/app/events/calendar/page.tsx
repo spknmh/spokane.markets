@@ -53,6 +53,7 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
 
   const where: Prisma.EventWhereInput = {
     status: "PUBLISHED",
+    deletedAt: null,
     startDate: { lte: monthEnd },
     endDate: { gte: monthStart },
   };

@@ -152,6 +152,7 @@ export async function getVendorOfWeek(): Promise<VendorOfWeek | null> {
     db.siteConfig.findUnique({ where: { key: VENDOR_OF_WEEK_KEY } }),
     db.vendorProfile.findMany({
       where: {
+        deletedAt: null,
         businessName: { not: "" },
         OR: [{ imageUrl: { not: null } }, { description: { not: null } }, { specialties: { not: null } }],
       },

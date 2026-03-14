@@ -52,14 +52,17 @@ export default async function MarketsPage({
   const [banners, markets] = await Promise.all([
     getBannerImages(),
     db.market.findMany({
-      where: q
-        ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : undefined,
+      where: {
+        deletedAt: null,
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q, mode: "insensitive" } },
+                { description: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      },
       orderBy: { name: "asc" },
       include: {
         baseAreaRef: {

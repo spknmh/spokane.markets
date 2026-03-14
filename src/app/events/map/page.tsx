@@ -79,6 +79,7 @@ export default async function EventsMapPage({ searchParams }: MapPageProps) {
 
   const where: Prisma.EventWhereInput = {
     status: "PUBLISHED",
+    deletedAt: null,
     startDate: { lte: lt },
     endDate: { gte: gte },
   };

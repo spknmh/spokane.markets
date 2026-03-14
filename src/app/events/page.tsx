@@ -138,6 +138,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
 
   const where: Prisma.EventWhereInput = {
     status: "PUBLISHED",
+    deletedAt: null,
     startDate: { lte: lt },
     endDate: { gte: gte },
   };

@@ -27,13 +27,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { db } = await import("@/lib/db");
   const [events, markets, vendors] = await Promise.all([
     db.event.findMany({
-      where: { status: "PUBLISHED" },
+      where: { status: "PUBLISHED", deletedAt: null },
       select: { slug: true, updatedAt: true },
     }),
     db.market.findMany({
+      where: { deletedAt: null },
       select: { slug: true, updatedAt: true },
     }),
     db.vendorProfile.findMany({
+      where: { deletedAt: null },
       select: { slug: true, updatedAt: true },
     }),
   ]);

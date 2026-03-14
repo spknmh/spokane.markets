@@ -49,13 +49,14 @@ export default async function VendorsPage({
 
   const where = q
     ? {
+        deletedAt: null,
         OR: [
           { businessName: { contains: q, mode: "insensitive" as const } },
           { specialties: { contains: q, mode: "insensitive" as const } },
           { description: { contains: q, mode: "insensitive" as const } },
         ],
       }
-    : undefined;
+    : { deletedAt: null };
 
   const [session, vendors, totalCount, banners, vendorOfWeek] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
