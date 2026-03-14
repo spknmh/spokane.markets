@@ -35,7 +35,7 @@ export default async function VendorProfileEditPage() {
     : undefined;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <h1 className="mb-6 text-3xl font-bold tracking-tight">
         {profile ? "Edit Vendor Profile" : "Create Vendor Profile"}
       </h1>

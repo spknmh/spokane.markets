@@ -1,33 +1,51 @@
 import type { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-utils";
+import { db } from "@/lib/db";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
+import { buildDashboardNavSections } from "@/lib/dashboard-nav";
+import { organizerAnyMarketWhere } from "@/lib/market-membership";
 
 export const metadata: Metadata = {
   title: "Account Settings",
 };
-
-const accountNavItems = [
-  { label: "Overview", href: "/dashboard", icon: "LayoutDashboard" as const },
-  { label: "Settings", href: "/account/settings", icon: "Settings" as const },
-  { label: "Security", href: "/account/security", icon: "Shield" as const },
-  { label: "Privacy", href: "/account/privacy", icon: "Eye" as const },
-  { label: "Notifications", href: "/account/notifications", icon: "Bell" as const },
-  { label: "Saved", href: "/account/saved", icon: "Bookmark" as const },
-];
 
 export default async function AccountLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth("/account/settings");
+  const session = await requireAuth("/account/settings");
+  const userId = session.user.id;
+
+  const [user, organizerMarkets, organizerEvents] = await Promise.all([
+    db.user.findUnique({
+      where: { id: userId },
+      select: {
+        role: true,
+        vendorProfile: { select: { slug: true } },
+      },
+    }),
+    db.market.count({ where: organizerAnyMarketWhere(userId) }),
+    db.event.count({ where: { submittedById: userId } }),
+  ]);
+
+  if (!user) {
+    return null;
+  }
+
+  const sections = buildDashboardNavSections({
+    isAdmin: user.role === "ADMIN",
+    hasVendorProfile: Boolean(user.vendorProfile),
+    hasOrganizerAccess: user.role === "ORGANIZER" || organizerMarkets > 0 || organizerEvents > 0,
+    vendorSlug: user.vendorProfile?.slug ?? null,
+  });
 
   return (
     <div className="flex min-h-screen bg-background">
       <DashboardSidebar
-        title="Account"
-        subtitle="Manage your account"
-        items={accountNavItems}
+        title="Dashboards"
+        subtitle="Your workspace"
+        sections={sections}
         backLabel="Back to site"
       />
       <div className="flex-1 flex flex-col min-w-0">

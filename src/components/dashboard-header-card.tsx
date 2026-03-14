@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { BadgeIcon } from "@/components/badge-icon";
@@ -23,6 +24,7 @@ export interface DashboardHeaderCardProps {
   vendorProfile?: { createdAt: Date };
   organizerSince?: Date;
   badges?: { slug: string; name: string; icon: string | null }[];
+  children?: ReactNode;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -37,13 +39,15 @@ export function DashboardHeaderCard({
   vendorProfile,
   organizerSince,
   badges = [],
+  children,
 }: DashboardHeaderCardProps) {
   const displayName = user.name || user.email;
   const fallbackLetter = displayName.charAt(0).toUpperCase();
 
   return (
     <Card className="border-2">
-      <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6">
+      <CardContent className="space-y-4 p-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
         <div className="flex shrink-0 items-center gap-4">
           {user.image ? (
             <Image
@@ -85,6 +89,8 @@ export function DashboardHeaderCard({
             ))}
           </div>
         )}
+        </div>
+        {children ? <div className="border-t border-border pt-4">{children}</div> : null}
       </CardContent>
     </Card>
   );

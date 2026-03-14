@@ -1,30 +1,51 @@
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth-utils";
+import { db } from "@/lib/db";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
+import { buildDashboardNavSections } from "@/lib/dashboard-nav";
+import { organizerAnyMarketWhere } from "@/lib/market-membership";
 
 export const metadata: Metadata = {
   title: "Organizer Dashboard",
 };
-
-const organizerNavItems = [
-  { label: "Overview", href: "/organizer/dashboard", icon: "LayoutDashboard" as const },
-  { label: "Submit Event", href: "/organizer/events/new", icon: "PlusCircle" as const },
-  { label: "Browse Markets", href: "/markets", icon: "MapPin" as const },
-];
 
 export default async function OrganizerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireRole("ORGANIZER");
+  const session = await requireRole("ORGANIZER");
+  const userId = session.user.id;
+
+  const [user, organizerMarkets, organizerEvents] = await Promise.all([
+    db.user.findUnique({
+      where: { id: userId },
+      select: {
+        role: true,
+        vendorProfile: { select: { slug: true } },
+      },
+    }),
+    db.market.count({ where: organizerAnyMarketWhere(userId) }),
+    db.event.count({ where: { submittedById: userId } }),
+  ]);
+
+  if (!user) {
+    return null;
+  }
+
+  const sections = buildDashboardNavSections({
+    isAdmin: user.role === "ADMIN",
+    hasVendorProfile: Boolean(user.vendorProfile),
+    hasOrganizerAccess: user.role === "ORGANIZER" || organizerMarkets > 0 || organizerEvents > 0,
+    vendorSlug: user.vendorProfile?.slug ?? null,
+  });
 
   return (
     <div className="flex min-h-screen bg-background">
       <DashboardSidebar
-        title="Organizer Dashboard"
-        subtitle="Manage markets and events"
-        items={organizerNavItems}
+        title="Dashboards"
+        subtitle="Your workspace"
+        sections={sections}
         backLabel="Back to site"
       />
       <div className="flex-1 flex flex-col min-w-0">

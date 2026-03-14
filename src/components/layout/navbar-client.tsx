@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, X, Home, Bell, User, Settings, LayoutDashboard, Store, Shield, LogOut } from "lucide-react";
+import { Menu, X, Home, Bell, User, LayoutDashboard, Store, Shield, LogOut } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { NotificationBell } from "@/components/notification-bell";
 import { SiteLogo } from "@/components/layout/site-logo";
@@ -167,14 +167,6 @@ function MobileNav({
                   >
                     <User className="h-4 w-4" aria-hidden />
                     My Account
-                  </Link>
-                  <Link
-                    href="/account/settings"
-                    className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"
-                    onClick={() => setOpen(false)}
-                  >
-                    <Settings className="h-4 w-4" aria-hidden />
-                    Account Settings
                   </Link>
                   {session.user?.role === "ADMIN" && (
                     <Link

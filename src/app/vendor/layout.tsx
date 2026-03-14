@@ -2,23 +2,12 @@ import type { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
+import { buildDashboardNavSections } from "@/lib/dashboard-nav";
+import { organizerAnyMarketWhere } from "@/lib/market-membership";
 
 export const metadata: Metadata = {
   title: "Vendor Dashboard",
 };
-
-function getVendorNavItems(profileSlug: string | null) {
-  return [
-    { label: "Overview", href: "/vendor/dashboard", icon: "LayoutDashboard" as const },
-    { label: "Edit Profile", href: "/vendor/profile/edit", icon: "User" as const },
-    { label: "Link to Event", href: "/vendor/events/link", icon: "Link2" as const },
-    {
-      label: "View Public Profile",
-      href: profileSlug ? `/vendors/${profileSlug}` : "/vendors",
-      icon: "ExternalLink" as const,
-    },
-  ];
-}
 
 export default async function VendorLayout({
   children,
@@ -26,20 +15,37 @@ export default async function VendorLayout({
   children: React.ReactNode;
 }) {
   const session = await requireAuth("/vendor/dashboard");
+  const userId = session.user.id;
 
-  const profile = await db.vendorProfile.findUnique({
-    where: { userId: session.user.id },
-    select: { slug: true },
+  const [user, organizerMarkets, organizerEvents] = await Promise.all([
+    db.user.findUnique({
+      where: { id: userId },
+      select: {
+        role: true,
+        vendorProfile: { select: { slug: true } },
+      },
+    }),
+    db.market.count({ where: organizerAnyMarketWhere(userId) }),
+    db.event.count({ where: { submittedById: userId } }),
+  ]);
+
+  if (!user) {
+    return null;
+  }
+
+  const sections = buildDashboardNavSections({
+    isAdmin: user.role === "ADMIN",
+    hasVendorProfile: Boolean(user.vendorProfile),
+    hasOrganizerAccess: user.role === "ORGANIZER" || organizerMarkets > 0 || organizerEvents > 0,
+    vendorSlug: user.vendorProfile?.slug ?? null,
   });
-
-  const vendorNavItems = getVendorNavItems(profile?.slug ?? null);
 
   return (
     <div className="flex min-h-screen bg-background">
       <DashboardSidebar
-        title="Vendor Dashboard"
-        subtitle="Manage your vendor profile"
-        items={vendorNavItems}
+        title="Dashboards"
+        subtitle="Your workspace"
+        sections={sections}
         backLabel="Back to site"
       />
       <div className="flex-1 flex flex-col min-w-0">

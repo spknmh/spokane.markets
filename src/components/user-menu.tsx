@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, LayoutDashboard, Store, Shield, LogOut, Bell, Home, Settings } from "lucide-react";
+import { ChevronDown, LayoutDashboard, Store, Shield, LogOut, Bell, Home } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -66,13 +66,6 @@ export function UserMenu({ session }: UserMenuProps) {
           >
             <Home className="h-4 w-4" />
             My Account
-          </Link>
-          <Link
-            href="/account/settings"
-            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
-          >
-            <Settings className="h-4 w-4" />
-            Account Settings
           </Link>
           {isAdmin && (
             <Link
