@@ -23,6 +23,7 @@ import { evaluateVendorVerificationReadiness } from "@/lib/vendor-verification";
 import { RequestVerificationButton } from "@/components/vendor/request-verification-button";
 import { VendorOnboardingChecklist } from "@/components/vendor/vendor-onboarding-checklist";
 import { Badge } from "@/components/ui/badge";
+import { buildVendorDashboardProfileQuery } from "./query";
 
 export const dynamic = "force-dynamic";
 
@@ -43,44 +44,7 @@ export default async function VendorDashboardPage({
         userBadges: { include: { badge: true }, orderBy: { badge: { sortOrder: "asc" } } },
       },
     }),
-    db.vendorProfile.findUnique({
-      where: { userId: session.user.id },
-      include: {
-        _count: { select: { favoriteVendors: true } },
-        vendorEvents: {
-          include: {
-            event: {
-              include: {
-                venue: true,
-                tags: true,
-                features: true,
-                _count: { select: { vendorEvents: true } },
-                scheduleDays: { orderBy: { date: "asc" } },
-              },
-            },
-          },
-          orderBy: { event: { startDate: "asc" } },
-        },
-        vendorIntents: {
-          where: {
-            status: { in: ["ATTENDING", "REQUESTED", "APPLIED", "WAITLISTED"] },
-          },
-          include: {
-            event: {
-              include: {
-                venue: true,
-                tags: true,
-                features: true,
-                market: true,
-                _count: { select: { vendorEvents: true } },
-                scheduleDays: { orderBy: { date: "asc" } },
-              },
-            },
-          },
-          orderBy: { event: { startDate: "asc" } },
-        },
-      },
-    }),
+    db.vendorProfile.findFirst(buildVendorDashboardProfileQuery(session.user.id)),
   ]);
 
   if (!user) {
