@@ -28,10 +28,15 @@ interface PageProps {
 }
 
 async function getVendor(slug: string) {
-  return db.vendorProfile.findUnique({
-    where: { slug },
+  return db.vendorProfile.findFirst({
+    where: { slug, deletedAt: null },
     include: {
       vendorEvents: {
+        where: {
+          event: {
+            deletedAt: null,
+          },
+        },
         include: {
           event: {
             include: {

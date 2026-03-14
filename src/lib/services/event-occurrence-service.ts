@@ -26,8 +26,8 @@ export type EventForDisplay = Event & {
  * Find event by slug.
  */
 export async function findEventBySlug(slug: string, userId?: string): Promise<EventForDisplay | null> {
-  const event = await db.event.findUnique({
-    where: { slug },
+  const event = await db.event.findFirst({
+    where: { slug, deletedAt: null },
     include: {
       venue: true,
       market: true,
@@ -75,7 +75,7 @@ export async function findEventBySlug(slug: string, userId?: string): Promise<Ev
  */
 export async function findEventByIdOrSlug(idOrSlug: string, userId?: string): Promise<EventForDisplay | null> {
   const event = await db.event.findFirst({
-    where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
+    where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }], deletedAt: null },
     include: {
       venue: true,
       market: true,

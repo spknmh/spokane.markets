@@ -18,7 +18,9 @@ import { Flag } from "lucide-react";
 
 const REASONS = [
   { value: "spam", label: "Spam" },
+  { value: "scam_or_fraud", label: "Scam / fraud" },
   { value: "inappropriate", label: "Inappropriate content" },
+  { value: "duplicate_listing", label: "Duplicate listing" },
   { value: "other", label: "Other" },
 ] as const;
 

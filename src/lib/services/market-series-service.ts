@@ -16,13 +16,13 @@ export type MarketForDisplay = Market & {
  * Find market by slug.
  */
 export async function findMarketBySlug(slug: string): Promise<MarketForDisplay | null> {
-  return db.market.findUnique({
-    where: { slug },
+  return db.market.findFirst({
+    where: { slug, deletedAt: null },
     include: {
       baseAreaRef: true,
       venue: true,
       events: {
-        where: { status: "PUBLISHED", startDate: { gte: new Date() } },
+        where: { status: "PUBLISHED", startDate: { gte: new Date() }, deletedAt: null },
         orderBy: { startDate: "asc" },
         take: 10,
         include: { venue: true },
