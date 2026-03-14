@@ -176,7 +176,7 @@ export async function DELETE(
     if (error) return error;
 
     const { id } = await params;
-    await db.event.delete({ where: { id } });
+    await db.event.update({ where: { id }, data: { deletedAt: new Date() } });
 
     return new NextResponse(null, { status: 204 });
   } catch (err) {

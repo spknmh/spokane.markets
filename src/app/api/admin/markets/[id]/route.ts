@@ -82,7 +82,7 @@ export async function DELETE(
     if (error) return error;
 
     const { id } = await params;
-    await db.market.delete({ where: { id } });
+    await db.market.update({ where: { id }, data: { deletedAt: new Date() } });
 
     return new NextResponse(null, { status: 204 });
   } catch (err) {

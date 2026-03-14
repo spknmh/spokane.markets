@@ -126,7 +126,7 @@ export async function DELETE(
     if (error) return error;
 
     const { id } = await params;
-    await db.vendorProfile.delete({ where: { id } });
+    await db.vendorProfile.update({ where: { id }, data: { deletedAt: new Date() } });
 
     return new NextResponse(null, { status: 204 });
   } catch (err) {

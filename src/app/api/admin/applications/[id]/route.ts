@@ -7,7 +7,7 @@ import { createNotification } from "@/lib/notifications";
 import { NextResponse } from "next/server";
 
 const patchApplicationSchema = z.object({
-  status: z.enum(["APPROVED", "REJECTED"]),
+  status: z.enum(["APPROVED", "REJECTED", "NEEDS_INFO", "DUPLICATE"]),
   notes: z.string().optional(),
 });
 
@@ -86,15 +86,32 @@ export async function PATCH(
     } else {
       await logAudit(
         session.user.id,
-        status === "APPROVED" ? "APPROVE_APPLICATION" : "REJECT_APPLICATION",
+        status === "APPROVED"
+          ? "APPROVE_APPLICATION"
+          : status === "REJECTED"
+            ? "REJECT_APPLICATION"
+            : status === "NEEDS_INFO"
+              ? "REQUEST_APPLICATION_INFO"
+              : "MARK_APPLICATION_DUPLICATE",
         "APPLICATION",
         id,
-        { email: application.email }
+        {
+          email: application.email,
+          previousValue: { status: "PENDING" },
+          newValue: { status },
+        }
       );
     }
 
     if (application.userId) {
-      const statusText = status === "APPROVED" ? "approved" : "rejected";
+      const statusText =
+        status === "APPROVED"
+          ? "approved"
+          : status === "REJECTED"
+            ? "rejected"
+            : status === "NEEDS_INFO"
+              ? "marked as needing more information"
+              : "marked as duplicate";
       await createNotification({
         userId: application.userId,
         type: "APPLICATION_STATUS",

@@ -7,6 +7,9 @@ import { NextResponse } from "next/server";
 
 const patchUserSchema = z.object({
   role: z.enum(["USER", "VENDOR", "ORGANIZER", "ADMIN"]).optional(),
+  accountStatus: z
+    .enum(["ACTIVE", "SUSPENDED", "BANNED", "DEACTIVATED"])
+    .optional(),
   sendPasswordReset: z.boolean().optional(),
 });
 
@@ -25,7 +28,7 @@ export async function PATCH(
       return apiValidationError(parsed.error.flatten().fieldErrors);
     }
 
-    const { role, sendPasswordReset } = parsed.data;
+    const { role, accountStatus, sendPasswordReset } = parsed.data;
 
     if (sendPasswordReset) {
       const targetUser = await db.user.findUnique({
@@ -48,27 +51,69 @@ export async function PATCH(
       return NextResponse.json({ success: true, message: "Password reset email sent" });
     }
 
-    if (!role) {
-      return apiError("Role is required when not sending password reset", 400);
+    if (!role && !accountStatus) {
+      return apiError(
+        "Role or accountStatus is required when not sending password reset",
+        400
+      );
+    }
+
+    const existing = await db.user.findUnique({
+      where: { id },
+      select: { role: true, accountStatus: true },
+    });
+    if (!existing) {
+      return apiNotFound("User");
+    }
+
+    const nextRole = role ?? existing.role;
+    const nextAccountStatus = accountStatus ?? existing.accountStatus;
+
+    const isSelf = id === session.user.id;
+    if (isSelf && (nextRole !== "ADMIN" || nextAccountStatus !== "ACTIVE")) {
+      return apiError("You cannot demote, suspend, or deactivate your own account", 400);
+    }
+
+    const isCurrentlyAdmin = existing.role === "ADMIN";
+    const isRemovingAdminPrivilege = isCurrentlyAdmin && nextRole !== "ADMIN";
+    const isDisablingAdmin = isCurrentlyAdmin && nextAccountStatus !== "ACTIVE";
+    if (isRemovingAdminPrivilege || isDisablingAdmin) {
+      const activeAdminCount = await db.user.count({
+        where: { role: "ADMIN", accountStatus: "ACTIVE" },
+      });
+      if (activeAdminCount <= 1) {
+        return apiError("At least one active admin account is required", 400);
+      }
     }
 
     const user = await db.user.update({
       where: { id },
-      data: { role },
+      data: {
+        ...(role ? { role } : {}),
+        ...(accountStatus ? { accountStatus } : {}),
+      },
       select: {
         id: true,
         name: true,
         email: true,
         image: true,
         role: true,
+        accountStatus: true,
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    await logAudit(session.user.id, "UPDATE_USER_ROLE", "USER", id, {
-      newRole: role,
+    await logAudit(session.user.id, "UPDATE_USER", "USER", id, {
+      previousValue: {
+        role: existing.role,
+        accountStatus: existing.accountStatus,
+      },
+      newValue: {
+        role: nextRole,
+        accountStatus: nextAccountStatus,
+      },
     });
 
     return NextResponse.json(user);
@@ -92,8 +137,28 @@ export async function DELETE(
       return apiError("You cannot delete your own account", 400);
     }
 
+    const target = await db.user.findUnique({
+      where: { id },
+      select: { role: true, accountStatus: true },
+    });
+    if (!target) {
+      return apiNotFound("User");
+    }
+
+    if (target.role === "ADMIN" && target.accountStatus === "ACTIVE") {
+      const activeAdminCount = await db.user.count({
+        where: { role: "ADMIN", accountStatus: "ACTIVE" },
+      });
+      if (activeAdminCount <= 1) {
+        return apiError("At least one active admin account is required", 400);
+      }
+    }
+
     await db.user.delete({ where: { id } });
-    await logAudit(session.user.id, "DELETE_USER", "USER", id);
+    await logAudit(session.user.id, "DELETE_USER", "USER", id, {
+      previousValue: target,
+      newValue: null,
+    });
 
     return new NextResponse(null, { status: 204 });
   } catch (err) {

@@ -55,6 +55,7 @@ export async function POST(request: Request) {
       email: true,
       image: true,
       role: true,
+      accountStatus: true,
       emailVerified: true,
       createdAt: true,
       updatedAt: true,
