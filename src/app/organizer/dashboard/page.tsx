@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { DashboardHeaderCard } from "@/components/dashboard-header-card";
 import { evaluateAndGrantBadges } from "@/lib/badges";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatDateRangeInTimezone, formatRelativeTime } from "@/lib/utils";
 import { getOrganizerQueuesSummary } from "@/lib/organizer/queues";
 import { organizerAnyMarketWhere, organizerManageEventWhere } from "@/lib/market-membership";
@@ -23,6 +23,13 @@ const QUEUE_ICONS: Record<string, typeof Users> = {
   vendor_requests: Users,
   events_pending: Clock,
 };
+const EVENT_STATUS_VARIANTS = {
+  DRAFT: "info",
+  PENDING: "warning",
+  PUBLISHED: "success",
+  REJECTED: "destructive",
+  CANCELLED: "destructive",
+} as const;
 
 export const dynamic = "force-dynamic";
 
@@ -95,14 +102,6 @@ export default async function OrganizerDashboardPage() {
         ? new Date(Math.min(...markets.map((m) => m.createdAt.getTime())))
         : undefined;
 
-  const statusColor: Record<string, string> = {
-    DRAFT: "info",
-    PENDING: "warning",
-    PUBLISHED: "success",
-    REJECTED: "destructive",
-    CANCELLED: "destructive",
-  };
-
   const statusLabel: Record<string, string> = {
     DRAFT: "Draft",
     PENDING: "Pending Review",
@@ -124,16 +123,56 @@ export default async function OrganizerDashboardPage() {
 
   const getPendingForEvent = (eventId: string) =>
     pendingCountByEventId[eventId] ?? 0;
+  const getStatusVariant = (status: string) =>
+    EVENT_STATUS_VARIANTS[status as keyof typeof EVENT_STATUS_VARIANTS] ?? "outline";
+  const renderEventCard = (event: (typeof events)[number], dimmed = false) => {
+    const pending = getPendingForEvent(event.id);
+    return (
+      <Card key={event.id} className={dimmed ? "opacity-80" : undefined}>
+        <CardContent className="flex items-center justify-between gap-4 p-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/events/${event.slug}`}
+                className="truncate font-medium hover:text-primary"
+              >
+                {event.title}
+              </Link>
+              <Badge variant={getStatusVariant(event.status)}>
+                {statusLabel[event.status] ?? event.status}
+              </Badge>
+            </div>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {formatDateRangeInTimezone(event.startDate, event.endDate, null)} · {event.venue.name}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/organizer/events/${event.id}/roster`}>
+                Roster{pending > 0 ? ` (${pending})` : ""}
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/organizer/events/${event.id}/edit`}>Edit</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={`/events/${event.slug}`}>View</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-5xl space-y-8 px-4 py-8">
       <TrackEventOnMount
         eventName="organizer_dashboard_view"
         params={{ surface: "dashboard" }}
       />
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Organizer Dashboard</h1>
           <p className="mt-1 text-muted-foreground">
@@ -162,14 +201,14 @@ export default async function OrganizerDashboardPage() {
       />
 
       {hasVerifiedMarket && (
-        <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
           You own a verified market — your submitted events will be
           auto-published.
         </div>
       )}
 
       {totalPendingRequests > 0 && (
-        <div className="mt-4 flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+        <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
           <span className="font-medium">
             {totalPendingRequests} vendor request{totalPendingRequests !== 1 ? "s" : ""} pending review
           </span>
@@ -183,8 +222,13 @@ export default async function OrganizerDashboardPage() {
       )}
 
       {/* Queues */}
-      <section className="mt-6">
-        <h2 className="mb-4 text-lg font-semibold">Action Items</h2>
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Action Items</h2>
+          <p className="text-sm text-muted-foreground">
+            Prioritized queues that need organizer attention.
+          </p>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
             {queueSummary.map((q) => {
               const Icon = QUEUE_ICONS[q.type];
@@ -215,7 +259,7 @@ export default async function OrganizerDashboardPage() {
 
       {/* Event stats */}
       {events.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-3 text-sm">
+        <div className="flex flex-wrap gap-3 text-sm">
           <span className="rounded-full bg-emerald-500/10 px-3 py-1 font-medium text-emerald-700 dark:text-emerald-400">
             {eventCounts.published} published
           </span>
@@ -239,7 +283,7 @@ export default async function OrganizerDashboardPage() {
 
       {/* Market onboarding CTA */}
       {markets.length === 0 && (
-        <Card className="mt-6 border-2 border-dashed">
+        <Card className="border-2 border-dashed">
           <CardContent className="flex flex-col items-center justify-center gap-3 py-8 text-center sm:flex-row">
             <p className="text-muted-foreground">
               Ready to organize? Create your first market profile to get started.
@@ -252,10 +296,13 @@ export default async function OrganizerDashboardPage() {
       )}
 
       {/* Markets */}
-      <section id="markets" className="mt-10 scroll-mt-8">
-        <h2 className="text-xl font-semibold">Your Markets</h2>
+      <section id="markets" className="scroll-mt-8 space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">Your Markets</h2>
+          <CardDescription>Published and draft market profiles you manage.</CardDescription>
+        </div>
         {markets.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             You don&apos;t manage any markets yet.{" "}
             <Link href="/organizer/markets/new" className="text-primary hover:underline">
               Create a market profile
@@ -263,7 +310,7 @@ export default async function OrganizerDashboardPage() {
             to start publishing events and managing vendor requests.
           </p>
         ) : (
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {markets.map((market) => (
               <Card key={market.id}>
                 <CardContent className="p-4">
@@ -323,10 +370,13 @@ export default async function OrganizerDashboardPage() {
       </section>
 
       {/* Events */}
-      <section id="events" className="mt-10 scroll-mt-8">
-        <h2 className="text-xl font-semibold">Your Events</h2>
+      <section id="events" className="scroll-mt-8 space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">Your Events</h2>
+          <CardDescription>Review submissions, update details, and manage rosters.</CardDescription>
+        </div>
         {events.length === 0 ? (
-          <Card className="mt-4 border-2 border-dashed">
+          <Card className="border-2 border-dashed">
             <CardContent className="flex flex-col items-center justify-center gap-3 py-10 text-center">
               <p className="text-muted-foreground">
                 You haven&apos;t submitted any events yet.
@@ -337,67 +387,14 @@ export default async function OrganizerDashboardPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="mt-4 space-y-8">
+          <div className="space-y-8">
             {upcomingEvents.length > 0 && (
               <div>
                 <h3 className="mb-3 text-sm font-medium text-muted-foreground">
                   Upcoming ({upcomingEvents.length})
                 </h3>
                 <div className="space-y-3">
-                  {upcomingEvents.map((event) => {
-                    const pending = getPendingForEvent(event.id);
-                    return (
-                      <Card key={event.id}>
-                        <CardContent className="flex items-center justify-between gap-4 p-4">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <Link
-                                href={`/events/${event.slug}`}
-                                className="truncate font-medium hover:text-primary"
-                              >
-                                {event.title}
-                              </Link>
-                              <Badge
-                                variant={
-                                  (statusColor[event.status] as
-                                    | "default"
-                                    | "secondary"
-                                    | "outline"
-                                    | "destructive"
-                                    | "warning"
-                                    | "success"
-                                    | "info") ?? "outline"
-                                }
-                              >
-                                {statusLabel[event.status] ?? event.status}
-                              </Badge>
-                            </div>
-                            <p className="mt-0.5 text-sm text-muted-foreground">
-                              {formatDateRangeInTimezone(event.startDate, event.endDate, null)} ·{" "}
-                              {event.venue.name}
-                            </p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" asChild>
-                              <Link href={`/organizer/events/${event.id}/roster`}>
-                                Roster{pending > 0 ? ` (${pending})` : ""}
-                              </Link>
-                            </Button>
-                            <Button variant="outline" size="sm" asChild>
-                              <Link href={`/organizer/events/${event.id}/edit`}>
-                                Edit
-                              </Link>
-                            </Button>
-                            <Button variant="ghost" size="sm" asChild>
-                              <Link href={`/events/${event.slug}`}>
-                                View
-                              </Link>
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                  {upcomingEvents.map((event) => renderEventCard(event))}
                 </div>
               </div>
             )}
@@ -407,60 +404,7 @@ export default async function OrganizerDashboardPage() {
                   Past ({pastEvents.length})
                 </h3>
                 <div className="space-y-3">
-                  {pastEvents.map((event) => {
-                    const pending = getPendingForEvent(event.id);
-                    return (
-                      <Card key={event.id} className="opacity-80">
-                        <CardContent className="flex items-center justify-between gap-4 p-4">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <Link
-                                href={`/events/${event.slug}`}
-                                className="truncate font-medium hover:text-primary"
-                              >
-                                {event.title}
-                              </Link>
-                              <Badge
-                                variant={
-                                  (statusColor[event.status] as
-                                    | "default"
-                                    | "secondary"
-                                    | "outline"
-                                    | "destructive"
-                                    | "warning"
-                                    | "success"
-                                    | "info") ?? "outline"
-                                }
-                              >
-                                {statusLabel[event.status] ?? event.status}
-                              </Badge>
-                            </div>
-                            <p className="mt-0.5 text-sm text-muted-foreground">
-                              {formatDateRangeInTimezone(event.startDate, event.endDate, null)} ·{" "}
-                              {event.venue.name}
-                            </p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" asChild>
-                              <Link href={`/organizer/events/${event.id}/roster`}>
-                                Roster{pending > 0 ? ` (${pending})` : ""}
-                              </Link>
-                            </Button>
-                            <Button variant="outline" size="sm" asChild>
-                              <Link href={`/organizer/events/${event.id}/edit`}>
-                                Edit
-                              </Link>
-                            </Button>
-                            <Button variant="ghost" size="sm" asChild>
-                              <Link href={`/events/${event.slug}`}>
-                                View
-                              </Link>
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                  {pastEvents.map((event) => renderEventCard(event, true))}
                 </div>
               </div>
             )}

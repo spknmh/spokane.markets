@@ -89,7 +89,7 @@ export default async function VendorDashboardPage({
 
   if (!profile) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-3xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
         <TrackEventOnMount
           eventName="vendor_dashboard_view"
           params={{ surface: "dashboard" }}
@@ -108,18 +108,20 @@ export default async function VendorDashboardPage({
             icon: ub.badge.icon,
           }))}
         />
-        <div className="mt-12 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Welcome, Vendor!
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            You don&apos;t have a vendor profile yet. Create one to start
-            listing where you&apos;ll be selling.
-          </p>
-          <Button asChild size="lg" className="mt-8">
-            <Link href="/vendor/profile/edit">Create Your Vendor Profile</Link>
-          </Button>
-        </div>
+        <Card className="border-2 border-dashed">
+          <CardContent className="py-10 text-center">
+            <h1 className="text-3xl font-bold tracking-tight">
+              Welcome, Vendor!
+            </h1>
+            <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
+              You don&apos;t have a vendor profile yet. Create one to start
+              listing where you&apos;ll be selling.
+            </p>
+            <Button asChild size="lg" className="mt-8">
+              <Link href="/vendor/profile/edit">Create Your Vendor Profile</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -160,15 +162,20 @@ export default async function VendorDashboardPage({
     readiness.isEligible && verificationStatus === "UNVERIFIED";
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
       <TrackEventOnMount
         eventName="vendor_dashboard_view"
         params={{ surface: "dashboard" }}
       />
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Vendor Dashboard
-        </h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Vendor Dashboard
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            Track profile readiness, events, and verification progress.
+          </p>
+        </div>
         <Button asChild variant="outline">
           <Link href={`/vendors/${profile.slug}`}>
             <ExternalLink className="mr-2 h-4 w-4" />
@@ -196,11 +203,10 @@ export default async function VendorDashboardPage({
       <VendorProfileProgress
         percent={profileCompletionPercent}
         profileComplete={profileComplete}
-        className="mt-6"
       />
       <VendorOnboardingChecklist showOnFirstCreate={params.onboarding === "1"} />
 
-      <Card className="mt-6">
+      <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -255,7 +261,7 @@ export default async function VendorDashboardPage({
         </CardContent>
       </Card>
 
-      <Card className="mt-8">
+      <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
@@ -292,9 +298,9 @@ export default async function VendorDashboardPage({
         </CardContent>
       </Card>
 
-      <section className="mt-10">
+      <section className="space-y-2">
         <h2 className="text-xl font-semibold">My Season Pipeline</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Events you&apos;ve requested, marked attending, or expressed interest in.
         </p>
         <VendorPipelineBoard
@@ -315,8 +321,8 @@ export default async function VendorDashboardPage({
         />
       </section>
 
-      <section className="mt-10">
-        <div className="flex items-center justify-between">
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-semibold">Upcoming Events</h2>
           <Button asChild size="sm">
             <Link href="/vendor/events/link">Link to Event</Link>
@@ -324,7 +330,7 @@ export default async function VendorDashboardPage({
         </div>
 
         {upcomingEvents.length === 0 ? (
-          <Card className="mt-4">
+          <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
               <p>No upcoming events linked yet.</p>
               <p className="mt-1 text-sm">
@@ -333,7 +339,7 @@ export default async function VendorDashboardPage({
             </CardContent>
           </Card>
         ) : (
-          <div className="mt-4 space-y-3">
+          <div className="space-y-3">
             {upcomingEvents.map((event) => (
               <EventCard key={event.id} event={event} />
             ))}
