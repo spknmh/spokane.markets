@@ -21,12 +21,18 @@ import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { computeVendorProfileCompletion } from "@/lib/vendor-profile";
 import { evaluateVendorVerificationReadiness } from "@/lib/vendor-verification";
 import { RequestVerificationButton } from "@/components/vendor/request-verification-button";
+import { VendorOnboardingChecklist } from "@/components/vendor/vendor-onboarding-checklist";
 import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
 
-export default async function VendorDashboardPage() {
+export default async function VendorDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ onboarding?: string }>;
+}) {
   const session = await requireAuth("/vendor/dashboard");
+  const params = await searchParams;
 
   await evaluateAndGrantBadges(session.user.id);
 
@@ -192,6 +198,7 @@ export default async function VendorDashboardPage() {
         profileComplete={profileComplete}
         className="mt-6"
       />
+      <VendorOnboardingChecklist showOnFirstCreate={params.onboarding === "1"} />
 
       <Card className="mt-6">
         <CardHeader>
@@ -225,6 +232,13 @@ export default async function VendorDashboardPage() {
             </div>
           ) : (
             <div className="space-y-2">
+              <TrackEventOnMount
+                eventName="vendor_verification_requirement_unmet"
+                params={{
+                  surface: "vendor_dashboard",
+                  unmet_codes: readiness.unmetRequirements.map((r) => r.code).join(","),
+                }}
+              />
               <p className="text-sm text-muted-foreground">
                 Complete the checklist below to request verification.
               </p>

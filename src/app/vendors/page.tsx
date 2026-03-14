@@ -147,12 +147,12 @@ export default async function VendorsPage({
           <CardHeader>
             <CardTitle className="text-xl">Run a market or event series?</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Get started as an organizer by claiming your market listing from the market page.
+              Get started as an organizer by creating your market profile.
             </p>
           </CardHeader>
           <CardContent className="flex flex-wrap items-center gap-3">
             <Button asChild variant="outline">
-              <Link href="/markets" prefetch={false}>
+              <Link href="/organizer/markets/new" prefetch={false}>
                 Create Market
               </Link>
             </Button>

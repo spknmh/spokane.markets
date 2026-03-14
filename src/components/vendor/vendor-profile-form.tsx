@@ -109,7 +109,7 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
         surface: "dashboard",
       });
     }
-    router.push("/vendor/dashboard");
+    router.push(isEditing ? "/vendor/dashboard" : "/vendor/dashboard?onboarding=1");
     router.refresh();
   }
 

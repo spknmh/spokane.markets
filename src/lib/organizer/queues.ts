@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { organizerManageEventWhere } from "@/lib/market-membership";
 
 export type OrganizerQueueType =
   | "vendor_requests"
@@ -12,10 +13,6 @@ export type OrganizerQueueSummary = {
   eventId?: string;
 };
 
-const organizerEventWhere = (userId: string) => ({
-  OR: [{ submittedById: userId }, { market: { ownerId: userId } }],
-});
-
 export async function getOrganizerQueuesSummary(
   userId: string
 ): Promise<OrganizerQueueSummary[]> {
@@ -23,7 +20,7 @@ export async function getOrganizerQueuesSummary(
     await Promise.all([
       db.eventVendorIntent.findFirst({
         where: {
-          event: organizerEventWhere(userId),
+          event: organizerManageEventWhere(userId),
           status: { in: ["REQUESTED", "APPLIED"] },
         },
         orderBy: { createdAt: "asc" },
@@ -31,13 +28,13 @@ export async function getOrganizerQueuesSummary(
       }),
       db.eventVendorIntent.count({
         where: {
-          event: organizerEventWhere(userId),
+          event: organizerManageEventWhere(userId),
           status: { in: ["REQUESTED", "APPLIED"] },
         },
       }),
       db.event.findFirst({
         where: {
-          ...organizerEventWhere(userId),
+          ...organizerManageEventWhere(userId),
           status: "PENDING",
         },
         orderBy: { createdAt: "asc" },
@@ -45,7 +42,7 @@ export async function getOrganizerQueuesSummary(
       }),
       db.event.count({
         where: {
-          ...organizerEventWhere(userId),
+          ...organizerManageEventWhere(userId),
           status: "PENDING",
         },
       }),

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth-utils";
 import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
+import { organizerAnyMarketWhere } from "@/lib/market-membership";
 import { OrganizerEventForm } from "@/components/organizer-event-form";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ export default async function OrganizerNewEventPage() {
     db.tag.findMany({ orderBy: { name: "asc" } }),
     db.feature.findMany({ orderBy: { name: "asc" } }),
     db.market.findMany({
-      where: { ownerId: session.user.id },
+      where: organizerAnyMarketWhere(session.user.id),
       select: { id: true, name: true, venueId: true },
       orderBy: { name: "asc" },
     }),

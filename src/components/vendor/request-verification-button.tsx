@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { trackEvent } from "@/lib/analytics";
 
 export function RequestVerificationButton() {
   const router = useRouter();
@@ -16,8 +17,10 @@ export function RequestVerificationButton() {
         const res = await fetch("/api/vendor/verification", { method: "POST" });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
+          trackEvent("vendor_verification_request_error", { surface: "vendor_dashboard" });
           throw new Error(data.error ?? "Failed to submit verification request.");
         }
+        trackEvent("vendor_verification_request_submitted", { surface: "vendor_dashboard" });
         router.refresh();
       } catch (err) {
         setError(

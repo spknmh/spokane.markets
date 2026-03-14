@@ -19,6 +19,7 @@ import { DashboardHeaderCard } from "@/components/dashboard-header-card";
 import { evaluateAndGrantBadges } from "@/lib/badges";
 import { SITE_NAME } from "@/lib/constants";
 import { PendingVerificationModal } from "@/components/pending-verification-modal";
+import { organizerAnyMarketWhere } from "@/lib/market-membership";
 
 export const dynamic = "force-dynamic";
 
@@ -78,7 +79,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       take: 10,
     }),
     db.market.count({
-      where: { ownerId: session.user.id! },
+      where: organizerAnyMarketWhere(session.user.id!),
     }),
     db.event.count({
       where: { submittedById: session.user.id! },
@@ -134,7 +135,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               Create Vendor Profile
             </Link>
             <Link
-              href="/markets"
+              href="/organizer/markets/new"
               className="min-h-[44px] rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
             >
               Create Market

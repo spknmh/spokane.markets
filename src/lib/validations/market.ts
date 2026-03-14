@@ -44,3 +44,24 @@ export const organizerMarketPatchSchema = z.object({
 });
 export type OrganizerMarketPatchInput = z.infer<typeof organizerMarketPatchSchema>;
 
+export const organizerMarketCreateSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  slug: z.string().min(1, "Slug is required"),
+  venueId: z.string().min(1, "Venue is required"),
+  description: z.string().optional(),
+  imageUrl: imageUrlSchema,
+  websiteUrl: z.string().url().optional().or(z.literal("")),
+  facebookUrl: z.string().url().optional().or(z.literal("")),
+  instagramUrl: z.string().url().optional().or(z.literal("")),
+  baseArea: neighborhoodSlugSchema.optional(),
+  typicalSchedule: z.string().optional(),
+  contactEmail: z.string().email().optional().or(z.literal("")),
+  contactPhone: z.string().optional(),
+  participationMode: participationModeEnum.optional(),
+  vendorCapacity: z.number().int().min(0).nullable().optional(),
+  publicIntentListEnabled: z.boolean().optional(),
+  publicIntentNamesEnabled: z.boolean().optional(),
+  publicRosterEnabled: z.boolean().optional(),
+});
+export type OrganizerMarketCreateInput = z.infer<typeof organizerMarketCreateSchema>;
+

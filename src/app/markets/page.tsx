@@ -103,12 +103,12 @@ export default async function MarketsPage({
           <CardHeader>
             <CardTitle className="text-xl">Run a market or recurring event?</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Start organizing by claiming your market listing from the market detail page.
+              Start organizing by creating your market profile and completing onboarding.
             </p>
           </CardHeader>
           <CardContent className="flex flex-wrap items-center gap-3">
             <Button asChild>
-              <Link href="/markets" prefetch={false}>
+              <Link href="/organizer/markets/new" prefetch={false}>
                 Create Market
               </Link>
             </Button>

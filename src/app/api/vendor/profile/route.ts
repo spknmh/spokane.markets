@@ -120,7 +120,7 @@ export async function POST(request: Request) {
     }
 
     const profile = await db.$transaction(async (tx) => {
-      return tx.vendorProfile.create({
+      const created = await tx.vendorProfile.create({
         data: {
           userId: session.user.id,
           businessName: data.businessName,
@@ -136,6 +136,15 @@ export async function POST(request: Request) {
           specialties: toOptional(data.specialties),
         },
       });
+
+      if (session.user.role === "USER") {
+        await tx.user.update({
+          where: { id: session.user.id },
+          data: { role: "VENDOR" },
+        });
+      }
+
+      return created;
     });
 
     return NextResponse.json(profile, { status: 201 });

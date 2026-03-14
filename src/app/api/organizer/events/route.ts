@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { organizerEventSchema } from "@/lib/validations";
 import { parseDateOnlyToUTCNoon, parseDateTimeInTimezone } from "@/lib/utils";
 import { logAudit } from "@/lib/audit";
+import { organizerManageMarketWhere } from "@/lib/market-membership";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -71,8 +72,24 @@ export async function POST(request: Request) {
     );
   }
 
+  if (data.marketId && session.user.role !== "ADMIN") {
+    const marketAccess = await db.market.findFirst({
+      where: {
+        id: data.marketId,
+        ...organizerManageMarketWhere(session.user.id),
+      },
+      select: { id: true },
+    });
+    if (!marketAccess) {
+      return NextResponse.json({ error: "Forbidden for selected market" }, { status: 403 });
+    }
+  }
+
   const hasVerifiedMarket = await db.market.findFirst({
-    where: { ownerId: session.user.id, verificationStatus: "VERIFIED" },
+    where: {
+      verificationStatus: "VERIFIED",
+      ...organizerManageMarketWhere(session.user.id),
+    },
     select: { id: true },
   });
 

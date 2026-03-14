@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatDateRangeInTimezone, formatRelativeTime } from "@/lib/utils";
 import { getOrganizerQueuesSummary } from "@/lib/organizer/queues";
+import { organizerAnyMarketWhere, organizerManageEventWhere } from "@/lib/market-membership";
 import { Users, Clock } from "lucide-react";
 
 const QUEUE_LABELS: Record<string, string> = {
@@ -37,7 +38,7 @@ export default async function OrganizerDashboardPage() {
 
   const [markets, events, pendingByEvent, queueSummary] = await Promise.all([
     db.market.findMany({
-      where: { ownerId: userId },
+      where: organizerAnyMarketWhere(userId),
       include: {
         venue: { select: { name: true } },
         _count: { select: { events: true } },
@@ -51,29 +52,19 @@ export default async function OrganizerDashboardPage() {
       orderBy: { name: "asc" },
     }),
     db.event.findMany({
-      where: {
-        OR: [
-          { submittedById: userId },
-          { market: { ownerId: userId } },
-        ],
-      },
+      where: organizerManageEventWhere(userId),
       include: {
         venue: true,
         tags: true,
         features: true,
-        market: { select: { id: true, name: true, ownerId: true } },
+        market: { select: { id: true, name: true } },
       },
       orderBy: { startDate: "asc" },
     }),
     db.eventVendorIntent.groupBy({
       by: ["eventId"],
       where: {
-        event: {
-          OR: [
-            { submittedById: userId },
-            { market: { ownerId: userId } },
-          ],
-        },
+        event: organizerManageEventWhere(userId),
         status: { in: ["REQUESTED", "APPLIED"] },
       },
       _count: true,
@@ -254,7 +245,7 @@ export default async function OrganizerDashboardPage() {
               Ready to organize? Create your first market profile to get started.
             </p>
             <Button asChild variant="outline">
-              <Link href="/markets">Create Market</Link>
+              <Link href="/organizer/markets/new">Create Market</Link>
             </Button>
           </CardContent>
         </Card>
@@ -266,7 +257,7 @@ export default async function OrganizerDashboardPage() {
         {markets.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
             You don&apos;t manage any markets yet.{" "}
-            <Link href="/markets" className="text-primary hover:underline">
+            <Link href="/organizer/markets/new" className="text-primary hover:underline">
               Create a market profile
             </Link>{" "}
             to start publishing events and managing vendor requests.

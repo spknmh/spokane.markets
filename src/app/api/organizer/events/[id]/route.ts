@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { organizerEventSchema } from "@/lib/validations";
 import { parseDateOnlyToUTCNoon, parseDateTimeInTimezone } from "@/lib/utils";
 import { logAudit } from "@/lib/audit";
+import { organizerManageMarketWhere } from "@/lib/market-membership";
 import { NextResponse } from "next/server";
 
 async function requireOrganizerAuth() {
@@ -29,14 +30,35 @@ export async function PUT(
 
   const event = await db.event.findUnique({
     where: { id },
-    select: { submittedById: true, status: true },
+    select: {
+      submittedById: true,
+      status: true,
+      marketId: true,
+      market: {
+        select: {
+          ownerId: true,
+          memberships: {
+            where: { role: { in: ["OWNER", "MANAGER"] } },
+            select: { userId: true },
+          },
+        },
+      },
+    },
   });
 
   if (!event) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (event.submittedById !== session.user.id && session.user.role !== "ADMIN") {
+  const canManageViaMarket =
+    event.market?.ownerId === session.user.id ||
+    event.market?.memberships.some((m) => m.userId === session.user.id);
+
+  if (
+    event.submittedById !== session.user.id &&
+    !canManageViaMarket &&
+    session.user.role !== "ADMIN"
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -50,6 +72,19 @@ export async function PUT(
   }
 
   const { tagIds, featureIds, scheduleDays, ...data } = parsed.data;
+
+  if (data.marketId && session.user.role !== "ADMIN") {
+    const marketAccess = await db.market.findFirst({
+      where: {
+        id: data.marketId,
+        ...organizerManageMarketWhere(session.user.id),
+      },
+      select: { id: true },
+    });
+    if (!marketAccess) {
+      return NextResponse.json({ error: "Forbidden for selected market" }, { status: 403 });
+    }
+  }
 
   const tz = "America/Los_Angeles";
 
@@ -148,14 +183,34 @@ export async function DELETE(
 
   const event = await db.event.findUnique({
     where: { id },
-    select: { submittedById: true, status: true },
+    select: {
+      submittedById: true,
+      status: true,
+      market: {
+        select: {
+          ownerId: true,
+          memberships: {
+            where: { role: { in: ["OWNER", "MANAGER"] } },
+            select: { userId: true },
+          },
+        },
+      },
+    },
   });
 
   if (!event) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (event.submittedById !== session.user.id && session.user.role !== "ADMIN") {
+  const canManageViaMarket =
+    event.market?.ownerId === session.user.id ||
+    event.market?.memberships.some((m) => m.userId === session.user.id);
+
+  if (
+    event.submittedById !== session.user.id &&
+    !canManageViaMarket &&
+    session.user.role !== "ADMIN"
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

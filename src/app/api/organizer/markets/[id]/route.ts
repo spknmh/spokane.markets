@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
+import { organizerManageMarketWhere } from "@/lib/market-membership";
 import { organizerMarketPatchSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
 
@@ -21,16 +22,16 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const market = await db.market.findUnique({
-    where: { id },
-    select: { ownerId: true, verificationStatus: true },
+  const market = await db.market.findFirst({
+    where: {
+      id,
+      ...(session.user.role === "ADMIN" ? {} : organizerManageMarketWhere(session.user.id)),
+    },
+    select: { verificationStatus: true },
   });
 
   if (!market) {
     return NextResponse.json({ error: "Market not found" }, { status: 404 });
-  }
-  if (market.ownerId !== session.user.id && session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   if (market.verificationStatus !== "VERIFIED" && session.user.role !== "ADMIN") {
     return NextResponse.json(

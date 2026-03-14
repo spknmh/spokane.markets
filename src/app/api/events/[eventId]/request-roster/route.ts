@@ -79,6 +79,18 @@ export async function POST(
     const organizerIds = new Set<string>();
     if (event.submittedById) organizerIds.add(event.submittedById);
     if (event.market?.ownerId) organizerIds.add(event.market.ownerId);
+    if (event.marketId) {
+      const marketMemberships = await db.marketMembership.findMany({
+        where: {
+          marketId: event.marketId,
+          role: { in: ["OWNER", "MANAGER"] },
+        },
+        select: { userId: true },
+      });
+      for (const membership of marketMemberships) {
+        organizerIds.add(membership.userId);
+      }
+    }
 
     for (const organizerId of organizerIds) {
       const prefs = await db.notificationPreference.findUnique({

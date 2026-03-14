@@ -34,7 +34,7 @@ A practical guide for getting the website running and understanding how markets,
 | **Purpose** | Where things happen | What happens (identity, brand, schedule) |
 | **Examples** | Riverfront Park, Convention Center, South Perry District | Spokane Saturday Market, South Perry Farmers Market |
 | **Has its own page?** | No — venues are not browsable | Yes — `/markets/[slug]` |
-| **Can be claimed?** | No | Yes — users can claim ownership |
+| **Can be self-managed?** | No | Yes — organizers can create and manage market profiles |
 | **Requires venue?** | — | Yes — every market has a primary location |
 | **Fields** | Name, address, city, state, zip, lat/lng, neighborhood, parking notes | Name, slug, **venue** (required), description, image, social links, typical schedule, contact info |
 
@@ -167,7 +167,7 @@ UPDATE "user" SET "role" = 'ADMIN' WHERE "email" = 'you@example.com';
 3. Description, image, social links.
 4. `typicalSchedule` — e.g. "Saturdays, May–October".
 5. `baseArea` — neighborhood for filtering (downtown, south-hill, etc.).
-6. Markets can be **verified** and **claimed** by organizers. The market profile shows its venue (address, directions).
+6. Markets can be **verified** and managed through organizer memberships. The market profile shows its venue (address, directions).
 
 ### Creating a venue
 
@@ -190,16 +190,24 @@ UPDATE "user" SET "role" = 'ADMIN' WHERE "email" = 'you@example.com';
 4. Use the **Announcement Bar** section for a short site-wide message with an optional CTA link.
 5. File uploads go to `/uploads/banner/`; external URLs work for any domain.
 
-### Submissions & claims
+### Submissions & verification
 
 - **Submissions** (Admin → Submissions): Public event submissions. Approve to create an event (or reject with notes).
-- **Claims** (Admin → Claims): Market claims and vendor profile claims. Approve to assign ownership.
+- **Applications** (Admin → Applications): Vendor verification requests are reviewed here (approve/reject).
+- **Markets** (Admin → Markets): Organizer-created markets enter moderation in `PENDING` verification status.
 
 ### Moderation queues
 
 - **Reviews** (Admin → Reviews): Approve or reject user reviews.
 - **Photos** (Admin → Photos): Approve or reject uploaded photos.
 - **Reports** (Admin → Reports): User-reported content.
+
+### Organizer membership model
+
+- Markets support multiple team members through `market_memberships`.
+- Membership roles: `OWNER`, `MANAGER`, `VOLUNTEER`, `STAFF`.
+- Owners/Managers can manage market-linked workflows (events, roster operations, market updates).
+- New organizer-created markets automatically create an `OWNER` membership for the creator.
 
 ---
 
@@ -226,6 +234,14 @@ Requires `NEXT_PUBLIC_APP_URL` in `.env.local`.
 | ORGANIZER | + Create/edit events (own) |
 | ADMIN | Full admin dashboard |
 
+### Analytics taxonomy (Umami)
+
+Use these canonical event names for onboarding and moderation funnels:
+
+- Vendor flow: `vendor_profile_edit`, `vendor_profile_publish`, `vendor_onboarding_checklist_view`, `vendor_onboarding_checklist_dismiss`, `vendor_verification_request_submitted`, `vendor_verification_request_error`, `vendor_verification_requirement_unmet`
+- Organizer flow: `organizer_market_created`, `organizer_market_create_error`, `organizer_dashboard_view`
+- Dashboard flow: `vendor_dashboard_view`
+
 ### Neighborhoods
 
 Used for filtering events and markets. Managed in **Admin → Neighborhoods** and stored in the `neighborhoods` table. Venues and markets use `baseArea` / `neighborhood` slugs (e.g. `downtown`, `south-hill`).
@@ -245,7 +261,7 @@ The seed is idempotent: sample data (venues, markets, events) is only added on t
 | Concept | One-liner |
 |---------|-----------|
 | **Venue** | Physical location — where events happen |
-| **Market** | Recurring market brand — has its own page, can be claimed |
+| **Market** | Recurring market brand — has its own page, can be organizer-managed |
 | **Event** | Specific occurrence — requires venue, optional market, dates/tags/features |
 | **Vendor** | Business profile — links to events they’ll attend |
 

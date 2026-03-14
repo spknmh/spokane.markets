@@ -6,6 +6,7 @@ import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount";
 import { OrganizerEventForm } from "@/components/organizer-event-form";
 import { notFound, redirect } from "next/navigation";
 import { formatDateOnlyUTC, formatForDateTimeLocal } from "@/lib/utils";
+import { organizerAnyMarketWhere } from "@/lib/market-membership";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,20 @@ export default async function OrganizerEditEventPage({
   const [event, venues, tags, features, markets] = await Promise.all([
     db.event.findUnique({
       where: { id },
-      include: { tags: true, features: true, scheduleDays: { orderBy: { date: "asc" } } },
+      include: {
+        tags: true,
+        features: true,
+        scheduleDays: { orderBy: { date: "asc" } },
+        market: {
+          select: {
+            ownerId: true,
+            memberships: {
+              where: { role: { in: ["OWNER", "MANAGER"] } },
+              select: { userId: true },
+            },
+          },
+        },
+      },
     }),
     db.venue.findMany({
       select: { id: true, name: true },
@@ -33,7 +47,7 @@ export default async function OrganizerEditEventPage({
     db.tag.findMany({ orderBy: { name: "asc" } }),
     db.feature.findMany({ orderBy: { name: "asc" } }),
     db.market.findMany({
-      where: { ownerId: session.user.id },
+      where: organizerAnyMarketWhere(session.user.id),
       select: { id: true, name: true, venueId: true },
       orderBy: { name: "asc" },
     }),
@@ -42,8 +56,11 @@ export default async function OrganizerEditEventPage({
   if (!event) notFound();
 
   const isOwner = event.submittedById === session.user.id;
+  const canManageViaMarket =
+    event.market?.ownerId === session.user.id ||
+    event.market?.memberships.some((m) => m.userId === session.user.id);
   const isAdmin = session.user.role === "ADMIN";
-  if (!isOwner && !isAdmin) {
+  if (!isOwner && !canManageViaMarket && !isAdmin) {
     redirect("/unauthorized");
   }
 

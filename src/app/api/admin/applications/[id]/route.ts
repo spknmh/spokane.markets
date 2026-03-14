@@ -57,6 +57,15 @@ export async function PATCH(
         }
       }
 
+      if (app.form.type === "VENDOR_VERIFICATION" && app.userId) {
+        await tx.vendorProfile.updateMany({
+          where: { userId: app.userId },
+          data: {
+            verificationStatus: status === "APPROVED" ? "VERIFIED" : "UNVERIFIED",
+          },
+        });
+      }
+
       return app;
     });
 

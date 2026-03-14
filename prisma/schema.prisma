@@ -16,6 +16,13 @@ enum Role {
   ADMIN
 }
 
+enum MarketMembershipRole {
+  OWNER
+  MANAGER
+  VOLUNTEER
+  STAFF
+}
+
 enum VerificationStatus {
   UNVERIFIED
   PENDING
@@ -119,13 +126,10 @@ model User {
   reviews                Review[]
   photos                 Photo[]
   ownedMarkets           Market[]                @relation("MarketOwner")
-  claimRequests          ClaimRequest[]          @relation("ClaimRequester")
-  reviewedClaims         ClaimRequest[]          @relation("ClaimReviewer")
+  marketMemberships      MarketMembership[]
   reviewedSubmissions    Submission[]            @relation("SubmissionReviewer")
   vendorProfile          VendorProfile?
   notifications          Notification[]
-  vendorClaimRequests    VendorClaimRequest[]    @relation("VendorClaimRequester")
-  vendorClaimReviews     VendorClaimRequest[]    @relation("VendorClaimReviewer")
   savedFilters           SavedFilter[]
   favoriteVendors        FavoriteVendor[]
   organizerEvents        Event[]                 @relation("OrganizerEvents")
@@ -328,7 +332,7 @@ model Market {
   events        Event[]
   reviews       Review[]
   photos        Photo[]
-  claimRequests ClaimRequest[]
+  memberships   MarketMembership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -555,26 +559,6 @@ model Submission {
   @@map("submissions")
 }
 
-model ClaimRequest {
-  id          String           @id @default(cuid())
-  marketId    String
-  userId      String
-  proof       String           @db.Text
-  status      ModerationStatus @default(PENDING)
-  reviewerId  String?
-  reviewNotes String?          @db.Text
-
-  market   Market @relation(fields: [marketId], references: [id], onDelete: Cascade)
-  user     User   @relation("ClaimRequester", fields: [userId], references: [id], onDelete: Cascade)
-  reviewer User?  @relation("ClaimReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, marketId])
-  @@map("claim_requests")
-}
-
 model Notification {
   id           String    @id @default(cuid())
   userId       String
@@ -600,26 +584,6 @@ model Notification {
   @@index([userId, severity])
   @@index([userId, category])
   @@map("notifications")
-}
-
-model VendorClaimRequest {
-  id              String           @id @default(cuid())
-  vendorProfileId String
-  userId          String
-  proof           String           @db.Text
-  status          ModerationStatus @default(PENDING)
-  reviewerId      String?
-  reviewNotes     String?          @db.Text
-
-  vendorProfile VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
-  user          User          @relation("VendorClaimRequester", fields: [userId], references: [id], onDelete: Cascade)
-  reviewer      User?         @relation("VendorClaimReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, vendorProfileId])
-  @@map("vendor_claim_requests")
 }
 
 model Subscriber {
@@ -687,7 +651,6 @@ model VendorProfile {
   vendorIntents   EventVendorIntent[]
   vendorRoster    EventVendorRoster[]
   favoriteVendors FavoriteVendor[]
-  claimRequests   VendorClaimRequest[]
   promotions      Promotion[]
 
   createdAt DateTime @default(now())
@@ -748,6 +711,23 @@ model EventVendorRoster {
   @@unique([eventId, vendorProfileId])
   @@index([eventId, status])
   @@map("event_vendor_roster")
+}
+
+model MarketMembership {
+  id       String               @id @default(cuid())
+  marketId String
+  userId   String
+  role     MarketMembershipRole @default(OWNER)
+
+  market Market @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([marketId, userId])
+  @@index([userId, role])
+  @@map("market_memberships")
 }
 
 model SavedFilter {

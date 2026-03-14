@@ -57,21 +57,36 @@ export async function verifyMarket(id: string) {
   await requireAdminAction();
   const market = await db.market.findUnique({
     where: { id },
-    select: { ownerId: true, name: true, slug: true },
+    select: {
+      ownerId: true,
+      name: true,
+      slug: true,
+      memberships: {
+        where: { role: { in: ["OWNER", "MANAGER"] } },
+        select: { userId: true },
+      },
+    },
   });
   await db.market.update({
     where: { id },
     data: { verificationStatus: "VERIFIED" },
   });
-  if (market?.ownerId) {
-    await createNotification({
-      userId: market.ownerId,
-      type: "MARKET_VERIFIED",
-      title: `Your market ${market.name} is now verified`,
-      link: `/markets/${market.slug}`,
-      objectType: "market",
-      objectId: id,
-    });
+  const recipients = new Set<string>();
+  if (market?.ownerId) recipients.add(market.ownerId);
+  for (const membership of market?.memberships ?? []) {
+    recipients.add(membership.userId);
+  }
+  if (market) {
+    for (const recipientId of recipients) {
+      await createNotification({
+        userId: recipientId,
+        type: "MARKET_VERIFIED",
+        title: `Your market ${market.name} is now verified`,
+        link: `/markets/${market.slug}`,
+        objectType: "market",
+        objectId: id,
+      });
+    }
   }
   revalidatePath("/admin/markets");
 }
@@ -83,21 +98,36 @@ export async function setMarketVerificationStatus(
   await requireAdminAction();
   const market = await db.market.findUnique({
     where: { id },
-    select: { ownerId: true, name: true, slug: true },
+    select: {
+      ownerId: true,
+      name: true,
+      slug: true,
+      memberships: {
+        where: { role: { in: ["OWNER", "MANAGER"] } },
+        select: { userId: true },
+      },
+    },
   });
   await db.market.update({
     where: { id },
     data: { verificationStatus: status },
   });
-  if (status === "VERIFIED" && market?.ownerId) {
-    await createNotification({
-      userId: market.ownerId,
-      type: "MARKET_VERIFIED",
-      title: `Your market ${market.name} is now verified`,
-      link: `/markets/${market.slug}`,
-      objectType: "market",
-      objectId: id,
-    });
+  if (status === "VERIFIED" && market) {
+    const recipients = new Set<string>();
+    if (market.ownerId) recipients.add(market.ownerId);
+    for (const membership of market.memberships) {
+      recipients.add(membership.userId);
+    }
+    for (const recipientId of recipients) {
+      await createNotification({
+        userId: recipientId,
+        type: "MARKET_VERIFIED",
+        title: `Your market ${market.name} is now verified`,
+        link: `/markets/${market.slug}`,
+        objectType: "market",
+        objectId: id,
+      });
+    }
   }
   revalidatePath("/admin/markets");
 }

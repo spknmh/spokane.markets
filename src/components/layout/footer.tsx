@@ -85,7 +85,7 @@ export async function Footer() {
               </li>
               <li>
                 <Link
-                  href="/markets"
+                  href="/organizer/markets/new"
                   className="text-sm text-primary-foreground/90 transition-colors hover:text-primary-foreground"
                 >
                   Create Market

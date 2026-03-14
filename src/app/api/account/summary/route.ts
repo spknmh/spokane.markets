@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { computeVendorProfileCompletion } from "@/lib/vendor-profile";
+import { organizerAnyMarketWhere, organizerManageMarketWhere } from "@/lib/market-membership";
 
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -125,14 +126,14 @@ export async function GET() {
 
   if (role === "ORGANIZER" || role === "ADMIN") {
     const [marketsCount, eventsCount, pendingReviewsCount] = await Promise.all([
-      db.market.count({ where: { ownerId: userId } }),
+      db.market.count({ where: organizerAnyMarketWhere(userId) }),
       db.event.count({ where: { submittedById: userId } }),
       db.review.count({
         where: {
           status: "PENDING",
           OR: [
             { event: { submittedById: userId } },
-            { market: { ownerId: userId } },
+            { market: organizerManageMarketWhere(userId) },
           ],
         },
       }),

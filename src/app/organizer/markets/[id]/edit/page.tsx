@@ -24,13 +24,27 @@ export default async function OrganizerMarketEditPage({
   const [market, neighborhoods] = await Promise.all([
     db.market.findUnique({
       where: { id },
-      include: { venue: { select: { name: true } } },
+      include: {
+        venue: { select: { name: true } },
+        memberships: {
+          where: { role: { in: ["OWNER", "MANAGER"] } },
+          select: { userId: true },
+        },
+      },
     }),
     getNeighborhoodOptions(),
   ]);
 
   if (!market) notFound();
-  if (market.ownerId !== session.user.id) notFound();
+  if (
+    session.user.role !== "ADMIN" &&
+    !(
+      market.ownerId === session.user.id ||
+      market.memberships.some((membership) => membership.userId === session.user.id)
+    )
+  ) {
+    notFound();
+  }
   if (market.verificationStatus !== "VERIFIED") {
     notFound();
   }

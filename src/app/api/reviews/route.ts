@@ -68,17 +68,42 @@ export async function POST(request: Request) {
   if (eventId) {
     const event = await db.event.findUnique({
       where: { id: eventId },
-      select: { submittedById: true, slug: true, market: { select: { ownerId: true } } },
+      select: {
+        submittedById: true,
+        slug: true,
+        market: {
+          select: {
+            ownerId: true,
+            memberships: {
+              where: { role: { in: ["OWNER", "MANAGER"] } },
+              select: { userId: true },
+            },
+          },
+        },
+      },
     });
     if (event?.submittedById) recipientIds.add(event.submittedById);
     if (event?.market?.ownerId) recipientIds.add(event.market.ownerId);
+    for (const membership of event?.market?.memberships ?? []) {
+      recipientIds.add(membership.userId);
+    }
     link = event ? `/events/${event.slug}` : null;
   } else if (marketId) {
     const market = await db.market.findUnique({
       where: { id: marketId },
-      select: { ownerId: true, slug: true },
+      select: {
+        ownerId: true,
+        slug: true,
+        memberships: {
+          where: { role: { in: ["OWNER", "MANAGER"] } },
+          select: { userId: true },
+        },
+      },
     });
     if (market?.ownerId) recipientIds.add(market.ownerId);
+    for (const membership of market?.memberships ?? []) {
+      recipientIds.add(membership.userId);
+    }
     link = market ? `/markets/${market.slug}` : null;
   }
 

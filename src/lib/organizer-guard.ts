@@ -1,7 +1,13 @@
 import type { Event } from "@prisma/client";
 
 export interface EventWithMarket extends Event {
-  market?: { ownerId: string | null } | null;
+  market?: {
+    ownerId: string | null;
+    memberships?: Array<{
+      userId: string;
+      role: "OWNER" | "MANAGER" | "VOLUNTEER" | "STAFF";
+    }>;
+  } | null;
 }
 
 /**
@@ -16,5 +22,12 @@ export function canManageEventRoster(
   if (userRole === "ADMIN") return true;
   if (event.submittedById === userId) return true;
   if (event.market?.ownerId === userId) return true;
+  if (
+    event.market?.memberships?.some(
+      (m) => m.userId === userId && (m.role === "OWNER" || m.role === "MANAGER")
+    )
+  ) {
+    return true;
+  }
   return false;
 }
