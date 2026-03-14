@@ -16,6 +16,13 @@ enum Role {
   ADMIN
 }
 
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+  DEACTIVATED
+}
+
 enum MarketMembershipRole {
   OWNER
   MANAGER
@@ -96,6 +103,20 @@ enum ReportStatus {
   DISMISSED
 }
 
+enum ReportSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ReportEscalationStatus {
+  NEW
+  TRIAGED
+  ESCALATED
+  CLOSED
+}
+
 enum ReportTargetType {
   EVENT
   MARKET
@@ -114,6 +135,7 @@ enum ContactMessageStatus {
 model User {
   id             String  @id @default(cuid())
   role           Role    @default(USER)
+  accountStatus  AccountStatus @default(ACTIVE)
   name           String?
   email          String  @unique
   emailVerified  Boolean @default(false)
@@ -134,6 +156,7 @@ model User {
   favoriteVendors        FavoriteVendor[]
   organizerEvents        Event[]                 @relation("OrganizerEvents")
   reports                Report[]
+  assignedReports        Report[]                @relation("ReportAssignee")
   auditLogs              AuditLog[]
   rosterApprovals        EventVendorRoster[]     @relation("RosterApprover")
   siteStateUpdates       SiteState[]
@@ -195,16 +218,24 @@ model AuditLog {
 model Report {
   id         String   @id @default(cuid())
   userId     String?
+  assigneeUserId String?
   targetType ReportTargetType
   targetId   String
   reason     String? // spam | inappropriate | other
   notes      String?  @db.Text
+  internalNotes String? @db.Text
+  severity   ReportSeverity @default(MEDIUM)
+  escalationStatus ReportEscalationStatus @default(NEW)
   status     ReportStatus @default(PENDING)
   createdAt  DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  assignee User? @relation("ReportAssignee", fields: [assigneeUserId], references: [id], onDelete: SetNull)
 
   @@index([status])
+  @@index([severity])
+  @@index([escalationStatus])
+  @@index([assigneeUserId])
   @@index([targetType, targetId])
   @@map("reports")
 }
@@ -297,9 +328,11 @@ model Venue {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   @@unique([name, address])
   @@index([neighborhood])
+  @@index([deletedAt])
   @@map("venues")
 }
 
@@ -336,9 +369,11 @@ model Market {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   @@index([venueId])
   @@index([ownerId])
+  @@index([deletedAt])
   @@map("markets")
 }
 
@@ -382,12 +417,14 @@ model Event {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   @@index([startDate])
   @@index([status])
   @@index([status, startDate])
   @@index([marketId])
   @@index([submittedById])
+  @@index([deletedAt])
   @@map("events")
 }
 
@@ -655,7 +692,9 @@ model VendorProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
+  @@index([deletedAt])
   @@map("vendor_profiles")
 }
 
@@ -815,6 +854,8 @@ enum ApplicationStatus {
   PENDING
   APPROVED
   REJECTED
+  NEEDS_INFO
+  DUPLICATE
 }
 
 model ApplicationForm {
