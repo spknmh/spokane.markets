@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SITE_NAME } from "@/lib/constants";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { DashboardNavSection } from "@/lib/dashboard-nav";
 import {
@@ -101,12 +101,20 @@ export function DashboardSidebar({
       })),
     [sections, collapsedSections]
   );
+  const sectionButtonClassName =
+    "flex w-full items-center justify-between rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:bg-muted";
+  const navItemClassName =
+    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors";
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   return (
     <>
       <button
         aria-label={open ? "Close sidebar" : "Open sidebar"}
-        className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-md bg-background border border-border"
+        className="fixed left-4 top-4 z-50 rounded-md border border-border bg-background p-2 shadow-sm lg:hidden"
         onClick={() => setOpen(!open)}
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -121,24 +129,25 @@ export function DashboardSidebar({
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border flex flex-col transition-transform lg:translate-x-0 lg:static lg:z-auto",
+          "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-border bg-card transition-transform lg:static lg:z-auto lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="p-6 border-b border-border">
-          <Link href="/dashboard" className="text-lg font-bold">
+        <div className="border-b border-border p-6">
+          <Link href="/dashboard" className="text-lg font-bold tracking-tight">
             {SITE_NAME}
           </Link>
-          <p className="text-xs text-muted-foreground">{subtitle ?? title}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{subtitle ?? title}</p>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-4 space-y-3">
+        <nav className="flex-1 space-y-3 overflow-y-auto p-4">
           {normalizedSections.map((section) => (
             <div key={section.id} className="space-y-1">
               <button
                 type="button"
                 onClick={() => toggleSection(section.id)}
-                className="flex w-full items-center justify-between rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:bg-muted"
+                aria-expanded={section.isOpen}
+                className={sectionButtonClassName}
               >
                 <span>{section.label}</span>
                 <ChevronDown
@@ -155,8 +164,9 @@ export function DashboardSidebar({
                         key={item.href + item.label}
                         href={item.href}
                         onClick={() => setOpen(false)}
+                        aria-current={active ? "page" : undefined}
                         className={cn(
-                          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                          navItemClassName,
                           active
                             ? "bg-primary text-primary-foreground"
                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -173,16 +183,17 @@ export function DashboardSidebar({
           ))}
         </nav>
 
-        <div className="p-4 border-t border-border space-y-1">
+        <div className="space-y-1 border-t border-border p-4">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className={cn(navItemClassName, "text-muted-foreground hover:bg-muted hover:text-foreground")}
           >
+            <LayoutDashboard className="h-4 w-4 shrink-0" />
             My Account
           </Link>
           <Link
             href={backHref}
-            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
+            className={cn(navItemClassName, "text-muted-foreground hover:bg-muted hover:text-primary")}
           >
             &larr; {backLabel}
           </Link>
