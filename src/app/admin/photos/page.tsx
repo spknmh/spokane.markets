@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
-import { updatePhotoStatus } from "../actions";
+import { bulkUpdatePhotoStatus, updatePhotoStatus } from "../actions";
 import { formatDate, cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
@@ -76,7 +76,25 @@ export default async function AdminPhotosPage({
         ))}
       </div>
 
-      <div className="space-y-4">
+      <form className="space-y-4">
+        {statusFilter === "PENDING" && (
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              formAction={bulkUpdatePhotoStatus.bind(null, "APPROVED")}
+              className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
+            >
+              Bulk approve selected
+            </button>
+            <button
+              type="submit"
+              formAction={bulkUpdatePhotoStatus.bind(null, "REJECTED")}
+              className="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-3 text-sm font-medium text-destructive-foreground"
+            >
+              Bulk reject selected
+            </button>
+          </div>
+        )}
         {photos.length === 0 ? (
           <p className="text-muted-foreground py-8 text-center">
             No {statusFilter.toLowerCase()} photos.
@@ -87,6 +105,16 @@ export default async function AdminPhotosPage({
               key={photo.id}
               className="border border-border rounded-lg p-4 space-y-3 flex flex-col sm:flex-row gap-4"
             >
+              {statusFilter === "PENDING" && (
+                <div className="shrink-0">
+                  <input
+                    type="checkbox"
+                    name="selectedIds"
+                    value={photo.id}
+                    className="mt-1 h-4 w-4"
+                  />
+                </div>
+              )}
               <div className="shrink-0">
                 <Image
                   src={photo.url}
@@ -157,7 +185,7 @@ export default async function AdminPhotosPage({
             </div>
           ))
         )}
-      </div>
+      </form>
       <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
     </div>
   );

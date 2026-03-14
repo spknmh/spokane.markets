@@ -18,29 +18,133 @@ async function requireAdminAction() {
 
 export async function deleteEvent(id: string) {
   const session = await requireAdminAction();
-  await db.event.delete({ where: { id } });
-  await logAudit(session.user.id, "DELETE_EVENT", "EVENT", id);
+  const current = await db.event.findUnique({
+    where: { id },
+    select: { deletedAt: true, title: true, status: true },
+  });
+  if (!current) return;
+  await db.event.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  });
+  await logAudit(session.user.id, "SOFT_DELETE_EVENT", "EVENT", id, {
+    previousValue: current,
+    newValue: { ...current, deletedAt: "now" },
+  });
   revalidatePath("/admin/events");
 }
 
 export async function deleteVenue(id: string) {
   const session = await requireAdminAction();
-  await db.venue.delete({ where: { id } });
-  await logAudit(session.user.id, "DELETE_VENUE", "VENUE", id);
+  const current = await db.venue.findUnique({
+    where: { id },
+    select: { deletedAt: true, name: true },
+  });
+  if (!current) return;
+  await db.venue.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  });
+  await logAudit(session.user.id, "SOFT_DELETE_VENUE", "VENUE", id, {
+    previousValue: current,
+    newValue: { ...current, deletedAt: "now" },
+  });
   revalidatePath("/admin/venues");
 }
 
 export async function deleteMarket(id: string) {
   const session = await requireAdminAction();
-  await db.market.delete({ where: { id } });
-  await logAudit(session.user.id, "DELETE_MARKET", "MARKET", id);
+  const current = await db.market.findUnique({
+    where: { id },
+    select: { deletedAt: true, name: true, verificationStatus: true },
+  });
+  if (!current) return;
+  await db.market.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  });
+  await logAudit(session.user.id, "SOFT_DELETE_MARKET", "MARKET", id, {
+    previousValue: current,
+    newValue: { ...current, deletedAt: "now" },
+  });
   revalidatePath("/admin/markets");
 }
 
 export async function deleteVendor(id: string) {
   const session = await requireAdminAction();
-  await db.vendorProfile.delete({ where: { id } });
-  await logAudit(session.user.id, "DELETE_VENDOR", "VENDOR_PROFILE", id);
+  const current = await db.vendorProfile.findUnique({
+    where: { id },
+    select: { deletedAt: true, businessName: true },
+  });
+  if (!current) return;
+  await db.vendorProfile.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  });
+  await logAudit(session.user.id, "SOFT_DELETE_VENDOR", "VENDOR_PROFILE", id, {
+    previousValue: current,
+    newValue: { ...current, deletedAt: "now" },
+  });
+  revalidatePath("/admin/vendors");
+}
+
+export async function restoreEvent(id: string) {
+  const session = await requireAdminAction();
+  const current = await db.event.findUnique({
+    where: { id },
+    select: { deletedAt: true },
+  });
+  if (!current?.deletedAt) return;
+  await db.event.update({ where: { id }, data: { deletedAt: null } });
+  await logAudit(session.user.id, "RESTORE_EVENT", "EVENT", id, {
+    previousValue: current,
+    newValue: { deletedAt: null },
+  });
+  revalidatePath("/admin/events");
+}
+
+export async function restoreVenue(id: string) {
+  const session = await requireAdminAction();
+  const current = await db.venue.findUnique({
+    where: { id },
+    select: { deletedAt: true },
+  });
+  if (!current?.deletedAt) return;
+  await db.venue.update({ where: { id }, data: { deletedAt: null } });
+  await logAudit(session.user.id, "RESTORE_VENUE", "VENUE", id, {
+    previousValue: current,
+    newValue: { deletedAt: null },
+  });
+  revalidatePath("/admin/venues");
+}
+
+export async function restoreMarket(id: string) {
+  const session = await requireAdminAction();
+  const current = await db.market.findUnique({
+    where: { id },
+    select: { deletedAt: true },
+  });
+  if (!current?.deletedAt) return;
+  await db.market.update({ where: { id }, data: { deletedAt: null } });
+  await logAudit(session.user.id, "RESTORE_MARKET", "MARKET", id, {
+    previousValue: current,
+    newValue: { deletedAt: null },
+  });
+  revalidatePath("/admin/markets");
+}
+
+export async function restoreVendor(id: string) {
+  const session = await requireAdminAction();
+  const current = await db.vendorProfile.findUnique({
+    where: { id },
+    select: { deletedAt: true },
+  });
+  if (!current?.deletedAt) return;
+  await db.vendorProfile.update({ where: { id }, data: { deletedAt: null } });
+  await logAudit(session.user.id, "RESTORE_VENDOR", "VENDOR_PROFILE", id, {
+    previousValue: current,
+    newValue: { deletedAt: null },
+  });
   revalidatePath("/admin/vendors");
 }
 
@@ -139,7 +243,7 @@ export async function updateSubmissionStatus(
   const session = await requireAdminAction();
   const submission = await db.submission.findUnique({
     where: { id },
-    select: { submitterEmail: true },
+    select: { submitterEmail: true, status: true },
   });
   if (!submission) return;
   await db.submission.update({
@@ -166,7 +270,8 @@ export async function updateSubmissionStatus(
     });
   }
   await logAudit(session.user.id, "UPDATE_SUBMISSION_STATUS", "SUBMISSION", id, {
-    status,
+    previousValue: { status: submission.status },
+    newValue: { status },
   });
   revalidatePath("/admin/submissions");
   revalidatePath("/admin/queues");
@@ -176,8 +281,9 @@ export async function updateReviewStatus(id: string, status: "APPROVED" | "REJEC
   const session = await requireAdminAction();
   const review = await db.review.findUnique({
     where: { id },
-    select: { userId: true },
+    select: { userId: true, status: true },
   });
+  if (!review) return;
   await db.review.update({
     where: { id },
     data: { status },
@@ -185,18 +291,29 @@ export async function updateReviewStatus(id: string, status: "APPROVED" | "REJEC
   if (status === "APPROVED" && review?.userId) {
     evaluateAndGrantBadges(review.userId).catch(() => {});
   }
-  await logAudit(session.user.id, "UPDATE_REVIEW_STATUS", "REVIEW", id, { status });
+  await logAudit(session.user.id, "UPDATE_REVIEW_STATUS", "REVIEW", id, {
+    previousValue: { status: review.status },
+    newValue: { status },
+  });
   revalidatePath("/admin/reviews");
   revalidatePath("/admin/queues");
 }
 
 export async function updatePhotoStatus(id: string, status: "APPROVED" | "REJECTED") {
   const session = await requireAdminAction();
+  const photo = await db.photo.findUnique({
+    where: { id },
+    select: { status: true },
+  });
+  if (!photo) return;
   await db.photo.update({
     where: { id },
     data: { status },
   });
-  await logAudit(session.user.id, "UPDATE_PHOTO_STATUS", "PHOTO", id, { status });
+  await logAudit(session.user.id, "UPDATE_PHOTO_STATUS", "PHOTO", id, {
+    previousValue: { status: photo.status },
+    newValue: { status },
+  });
   revalidatePath("/admin/photos");
   revalidatePath("/admin/queues");
 }
@@ -206,11 +323,145 @@ export async function updateReportStatus(
   status: "RESOLVED" | "DISMISSED"
 ) {
   const session = await requireAdminAction();
+  const report = await db.report.findUnique({
+    where: { id },
+    select: { status: true },
+  });
+  if (!report) return;
   await db.report.update({
     where: { id },
+    data: {
+      status,
+      ...(status === "RESOLVED" ? { escalationStatus: "CLOSED" } : {}),
+    },
+  });
+  await logAudit(session.user.id, "UPDATE_REPORT_STATUS", "REPORT", id, {
+    previousValue: { status: report.status },
+    newValue: { status },
+  });
+  revalidatePath("/admin/reports");
+  revalidatePath("/admin/queues");
+}
+
+export async function updateReportTriage(
+  id: string,
+  updates: {
+    severity?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+    escalationStatus?: "NEW" | "TRIAGED" | "ESCALATED" | "CLOSED";
+    internalNotes?: string;
+  }
+) {
+  const session = await requireAdminAction();
+  const report = await db.report.findUnique({
+    where: { id },
+    select: {
+      severity: true,
+      escalationStatus: true,
+      internalNotes: true,
+    },
+  });
+  if (!report) return;
+  await db.report.update({
+    where: { id },
+    data: {
+      ...(updates.severity ? { severity: updates.severity } : {}),
+      ...(updates.escalationStatus
+        ? { escalationStatus: updates.escalationStatus }
+        : {}),
+      ...(updates.internalNotes !== undefined
+        ? { internalNotes: updates.internalNotes || null }
+        : {}),
+    },
+  });
+  await logAudit(session.user.id, "UPDATE_REPORT_TRIAGE", "REPORT", id, {
+    previousValue: report,
+    newValue: updates,
+  });
+  revalidatePath("/admin/reports");
+}
+
+function getSelectedIds(formData: FormData): string[] {
+  return formData
+    .getAll("selectedIds")
+    .map((v) => String(v))
+    .filter(Boolean);
+}
+
+export async function bulkUpdateSubmissionStatus(
+  status: "APPROVED" | "REJECTED",
+  formData: FormData
+) {
+  const session = await requireAdminAction();
+  const ids = getSelectedIds(formData);
+  if (ids.length === 0) return;
+  await db.submission.updateMany({
+    where: { id: { in: ids }, status: "PENDING" },
+    data: { status, reviewerId: session.user.id },
+  });
+  await logAudit(session.user.id, "BULK_UPDATE_SUBMISSION_STATUS", "SUBMISSION", null, {
+    ids,
+    newValue: { status },
+  });
+  revalidatePath("/admin/submissions");
+  revalidatePath("/admin/queues");
+}
+
+export async function bulkUpdateReviewStatus(
+  status: "APPROVED" | "REJECTED",
+  formData: FormData
+) {
+  const session = await requireAdminAction();
+  const ids = getSelectedIds(formData);
+  if (ids.length === 0) return;
+  await db.review.updateMany({
+    where: { id: { in: ids }, status: "PENDING" },
     data: { status },
   });
-  await logAudit(session.user.id, "UPDATE_REPORT_STATUS", "REPORT", id, { status });
+  await logAudit(session.user.id, "BULK_UPDATE_REVIEW_STATUS", "REVIEW", null, {
+    ids,
+    newValue: { status },
+  });
+  revalidatePath("/admin/reviews");
+  revalidatePath("/admin/queues");
+}
+
+export async function bulkUpdatePhotoStatus(
+  status: "APPROVED" | "REJECTED",
+  formData: FormData
+) {
+  const session = await requireAdminAction();
+  const ids = getSelectedIds(formData);
+  if (ids.length === 0) return;
+  await db.photo.updateMany({
+    where: { id: { in: ids }, status: "PENDING" },
+    data: { status },
+  });
+  await logAudit(session.user.id, "BULK_UPDATE_PHOTO_STATUS", "PHOTO", null, {
+    ids,
+    newValue: { status },
+  });
+  revalidatePath("/admin/photos");
+  revalidatePath("/admin/queues");
+}
+
+export async function bulkUpdateReportStatus(
+  status: "RESOLVED" | "DISMISSED",
+  formData: FormData
+) {
+  const session = await requireAdminAction();
+  const ids = getSelectedIds(formData);
+  if (ids.length === 0) return;
+  await db.report.updateMany({
+    where: { id: { in: ids }, status: "PENDING" },
+    data: {
+      status,
+      ...(status === "RESOLVED" ? { escalationStatus: "CLOSED" } : {}),
+    },
+  });
+  await logAudit(session.user.id, "BULK_UPDATE_REPORT_STATUS", "REPORT", null, {
+    ids,
+    newValue: { status },
+  });
   revalidatePath("/admin/reports");
   revalidatePath("/admin/queues");
 }

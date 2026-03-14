@@ -28,6 +28,14 @@ export default async function AdminApplicationsPage() {
     },
   });
 
+  const duplicateCounts = await db.application.groupBy({
+    by: ["email"],
+    _count: { id: true },
+  });
+  const duplicateCountByEmail = new Map(
+    duplicateCounts.map((item) => [item.email.toLowerCase(), item._count.id])
+  );
+
   // Serialize for client (dates become strings)
   const serialized = applications.map((app) => ({
     ...app,
@@ -39,6 +47,8 @@ export default async function AdminApplicationsPage() {
     createdAt: app.createdAt.toISOString(),
     updatedAt: app.updatedAt.toISOString(),
     reviewedAt: app.reviewedAt?.toISOString() ?? null,
+    potentialDuplicateCount:
+      duplicateCountByEmail.get(app.email.toLowerCase()) ?? 1,
   }));
 
   return <ApplicationsClient applications={serialized} />;

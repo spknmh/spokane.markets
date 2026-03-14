@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { UserRoleSelect } from "@/components/admin/user-role-select";
 import { UserDeleteButton } from "@/components/admin/user-delete-button";
 import { UserResetPasswordButton } from "@/components/admin/user-reset-password-button";
+import { UserAccountStatusSelect } from "@/components/admin/user-account-status-select";
 import { Pagination } from "@/components/pagination";
 import { UserFilters } from "@/components/admin/user-filters";
 import Link from "next/link";
@@ -92,6 +93,7 @@ export default async function AdminUsersPage({
               <th className="text-left p-3 font-medium">Name</th>
               <th className="text-left p-3 font-medium">Email</th>
               <th className="text-left p-3 font-medium">Role</th>
+              <th className="text-left p-3 font-medium">Status</th>
               <th className="text-left p-3 font-medium">Markets</th>
               <th className="text-left p-3 font-medium">Reviews</th>
               <th className="text-left p-3 font-medium">Joined</th>
@@ -101,7 +103,7 @@ export default async function AdminUsersPage({
           <tbody className="divide-y divide-border">
             {users.length === 0 ? (
               <tr>
-                <td colSpan={7} className="p-6 text-center text-muted-foreground">
+                <td colSpan={8} className="p-6 text-center text-muted-foreground">
                   No users found.
                 </td>
               </tr>
@@ -121,6 +123,12 @@ export default async function AdminUsersPage({
                     <UserRoleSelect
                       userId={user.id}
                       currentRole={user.role}
+                    />
+                  </td>
+                  <td className="p-3">
+                    <UserAccountStatusSelect
+                      userId={user.id}
+                      currentStatus={user.accountStatus}
                     />
                   </td>
                   <td className="p-3 text-muted-foreground">

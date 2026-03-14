@@ -22,7 +22,12 @@ import {
 } from "@/components/ui/dialog";
 import { formatDate, cn } from "@/lib/utils";
 
-type ApplicationStatus = "PENDING" | "APPROVED" | "REJECTED";
+type ApplicationStatus =
+  | "PENDING"
+  | "APPROVED"
+  | "REJECTED"
+  | "NEEDS_INFO"
+  | "DUPLICATE";
 
 type FormField = {
   id: string;
@@ -44,6 +49,7 @@ type SerializedApplication = {
   reviewedBy: string | null;
   createdAt: string;
   updatedAt: string;
+  potentialDuplicateCount: number;
   form: {
     type: string;
     title: string;
@@ -62,19 +68,30 @@ const STATUS_TABS: { label: string; value: "all" | ApplicationStatus }[] = [
   { label: "Pending", value: "PENDING" },
   { label: "Approved", value: "APPROVED" },
   { label: "Rejected", value: "REJECTED" },
+  { label: "Needs info", value: "NEEDS_INFO" },
+  { label: "Duplicate", value: "DUPLICATE" },
 ];
 
 const statusBadgeVariant: Record<
   ApplicationStatus,
-  "outline" | "default" | "destructive"
+  "outline" | "default" | "destructive" | "secondary"
 > = {
   PENDING: "outline",
   APPROVED: "default",
   REJECTED: "destructive",
+  NEEDS_INFO: "secondary",
+  DUPLICATE: "secondary",
 };
 
 function getStatusCounts(applications: SerializedApplication[]) {
-  const counts = { all: applications.length, PENDING: 0, APPROVED: 0, REJECTED: 0 };
+  const counts = {
+    all: applications.length,
+    PENDING: 0,
+    APPROVED: 0,
+    REJECTED: 0,
+    NEEDS_INFO: 0,
+    DUPLICATE: 0,
+  };
   for (const app of applications) {
     counts[app.status]++;
   }
@@ -100,7 +117,7 @@ export function ApplicationsClient({ applications }: Props) {
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     applicationId: string;
-    action: "APPROVED" | "REJECTED";
+    action: "APPROVED" | "REJECTED" | "NEEDS_INFO" | "DUPLICATE";
     applicantName: string;
   } | null>(null);
   const [notes, setNotes] = useState("");
@@ -110,7 +127,7 @@ export function ApplicationsClient({ applications }: Props) {
 
   const openConfirm = (
     id: string,
-    action: "APPROVED" | "REJECTED",
+    action: "APPROVED" | "REJECTED" | "NEEDS_INFO" | "DUPLICATE",
     applicantName: string
   ) => {
     setConfirmDialog({ open: true, applicationId: id, action, applicantName });
@@ -150,7 +167,8 @@ export function ApplicationsClient({ applications }: Props) {
         <h1 className="text-3xl font-bold tracking-tight">Applications</h1>
         <p className="mt-1 text-muted-foreground">
           {counts.all} total · {counts.PENDING} pending · {counts.APPROVED}{" "}
-          approved · {counts.REJECTED} rejected
+          approved · {counts.REJECTED} rejected · {counts.NEEDS_INFO} needs info ·{" "}
+          {counts.DUPLICATE} duplicate
         </p>
       </div>
 
@@ -184,6 +202,8 @@ export function ApplicationsClient({ applications }: Props) {
               application={app}
               onApprove={() => openConfirm(app.id, "APPROVED", app.name)}
               onReject={() => openConfirm(app.id, "REJECTED", app.name)}
+              onNeedsInfo={() => openConfirm(app.id, "NEEDS_INFO", app.name)}
+              onDuplicate={() => openConfirm(app.id, "DUPLICATE", app.name)}
             />
           ))
         )}
@@ -195,16 +215,9 @@ export function ApplicationsClient({ applications }: Props) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {confirmDialog?.action === "APPROVED" ? "Approve" : "Reject"}{" "}
-              application
-            </DialogTitle>
+            <DialogTitle>Update application status</DialogTitle>
             <DialogDescription>
-              {confirmDialog?.action === "APPROVED"
-                ? "Approve"
-                : "Reject"}{" "}
-              {confirmDialog?.applicantName}&apos;s application. Add optional
-              notes below.
+              Set a new status for {confirmDialog?.applicantName}&apos;s application and add optional notes.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -234,9 +247,7 @@ export function ApplicationsClient({ applications }: Props) {
             >
               {isPending
                 ? "Processing..."
-                : confirmDialog?.action === "APPROVED"
-                  ? "Approve"
-                  : "Reject"}
+                : "Save status"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -249,10 +260,14 @@ function ApplicationCard({
   application,
   onApprove,
   onReject,
+  onNeedsInfo,
+  onDuplicate,
 }: {
   application: SerializedApplication;
   onApprove: () => void;
   onReject: () => void;
+  onNeedsInfo: () => void;
+  onDuplicate: () => void;
 }) {
   const fields = (application.form.fields ?? []) as FormField[];
   const answers = application.answers ?? {};
@@ -303,6 +318,12 @@ function ApplicationCard({
           </p>
         )}
 
+        {application.potentialDuplicateCount > 1 && (
+          <p className="text-sm text-amber-700">
+            Potential duplicate: {application.potentialDuplicateCount} applications found with this email.
+          </p>
+        )}
+
         {application.notes && (
           <div className="rounded-md bg-muted/50 p-3 text-sm">
             <p className="font-medium text-muted-foreground">Admin notes</p>
@@ -317,6 +338,12 @@ function ApplicationCard({
             </Button>
             <Button size="sm" variant="destructive" onClick={onReject}>
               Reject
+            </Button>
+            <Button size="sm" variant="outline" onClick={onNeedsInfo}>
+              Needs info
+            </Button>
+            <Button size="sm" variant="outline" onClick={onDuplicate}>
+              Mark duplicate
             </Button>
           </div>
         )}

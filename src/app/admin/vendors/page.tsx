@@ -3,27 +3,40 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DeleteButton } from "@/components/admin/action-buttons";
+import { Input } from "@/components/ui/input";
+import { DeleteButton, StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
-import { deleteVendor } from "../actions";
+import { deleteVendor, restoreVendor } from "../actions";
+import { parseAdminPagination, parseFlag, parseQuery } from "@/lib/admin/table-query";
 
 export const dynamic = "force-dynamic";
-
-const DEFAULT_LIMIT = 25;
 
 export default async function AdminVendorsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; limit?: string; orphaned?: string }>;
+  searchParams: Promise<{ page?: string; limit?: string; orphaned?: string; archived?: string; q?: string }>;
 }) {
   await requireAdmin();
 
   const params = await searchParams;
-  const page = Math.max(1, parseInt(params.page ?? "1", 10));
-  const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
-  const orphanedOnly = params.orphaned === "1" || params.orphaned === "true";
+  const { page, limit } = parseAdminPagination(params);
+  const orphanedOnly = parseFlag(params.orphaned);
+  const archived = parseFlag(params.archived);
+  const q = parseQuery(params.q);
 
-  const where = orphanedOnly ? { userId: null } : undefined;
+  const where = {
+    ...(orphanedOnly ? { userId: null } : {}),
+    ...(archived ? {} : { deletedAt: null }),
+    ...(q
+      ? {
+          OR: [
+            { businessName: { contains: q, mode: "insensitive" as const } },
+            { slug: { contains: q, mode: "insensitive" as const } },
+            { specialties: { contains: q, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
+  };
 
   const [total, vendors] = await Promise.all([
     db.vendorProfile.count({ where }),
@@ -57,12 +70,31 @@ export default async function AdminVendorsPage({
                 {orphanedOnly ? "All vendors" : "Unlinked only"}
               </Link>
             </Button>
+            <Button variant={archived ? "default" : "outline"} size="sm" asChild>
+              <Link href={archived ? "/admin/vendors" : "/admin/vendors?archived=1"}>
+                {archived ? "Hide archived" : "Show archived"}
+              </Link>
+            </Button>
           </div>
         </div>
         <Button asChild>
           <Link href="/admin/vendors/new">Create Vendor</Link>
         </Button>
       </div>
+
+      <form className="flex items-center gap-2">
+        <Input name="q" defaultValue={q} placeholder="Search business, slug, specialty..." />
+        {orphanedOnly && <input type="hidden" name="orphaned" value="1" />}
+        {archived && <input type="hidden" name="archived" value="1" />}
+        <Button type="submit" variant="outline">Search</Button>
+        <Button type="button" variant="outline" asChild>
+          <Link
+            href={`/api/admin/data/export/entity?entity=vendors${orphanedOnly ? "&orphaned=1" : ""}${archived ? "&archived=1" : ""}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+          >
+            Export CSV
+          </Link>
+        </Button>
+      </form>
 
       <div className="rounded-lg border border-border overflow-hidden">
         <table className="w-full text-sm">
@@ -93,9 +125,12 @@ export default async function AdminVendorsPage({
                     {v.specialties ?? "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant={v.userId ? "default" : "secondary"}>
-                      {v.userId ? "Managed" : "Unassigned"}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={v.userId ? "default" : "secondary"}>
+                        {v.userId ? "Managed" : "Unassigned"}
+                      </Badge>
+                      {v.deletedAt && <Badge variant="secondary">Archived</Badge>}
+                    </div>
                   </td>
                   <td className="px-4 py-3">{v._count.vendorEvents}</td>
                   <td className="px-4 py-3">
@@ -110,11 +145,20 @@ export default async function AdminVendorsPage({
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/admin/vendors/${v.id}/edit`}>Edit</Link>
                     </Button>
-                    <DeleteButton
-                      action={deleteVendor.bind(null, v.id)}
-                      title="Delete vendor"
-                      description={`Are you sure you want to delete "${v.businessName}"? This will remove the vendor profile and all associated data.`}
-                    />
+                    {v.deletedAt ? (
+                      <StatusButton
+                        action={restoreVendor.bind(null, v.id)}
+                        label="Restore"
+                        variant="outline"
+                      />
+                    ) : (
+                      <DeleteButton
+                        action={deleteVendor.bind(null, v.id)}
+                        title="Archive vendor"
+                        description={`Archive "${v.businessName}"? You can restore it later from archived vendors.`}
+                        label="Archive"
+                      />
+                    )}
                   </td>
                 </tr>
               ))

@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { UserRoleSelect } from "@/components/admin/user-role-select";
+import { UserAccountStatusSelect } from "@/components/admin/user-account-status-select";
 import { UserDeleteButton } from "@/components/admin/user-delete-button";
 import { UserResetPasswordButton } from "@/components/admin/user-reset-password-button";
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +81,10 @@ export default async function AdminUserDetailPage({
         </div>
         <div className="flex items-center gap-2">
           <UserRoleSelect userId={user.id} currentRole={user.role} />
+          <UserAccountStatusSelect
+            userId={user.id}
+            currentStatus={user.accountStatus}
+          />
           <UserResetPasswordButton
             userId={user.id}
             userName={user.name}
@@ -116,6 +121,14 @@ export default async function AdminUserDetailPage({
             Role
           </div>
           <p className="text-foreground">{user.role}</p>
+        </div>
+
+        <div className="rounded-lg border border-border p-4 space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Shield className="h-4 w-4" />
+            Account status
+          </div>
+          <p className="text-foreground">{user.accountStatus}</p>
         </div>
 
         <div className="rounded-lg border border-border p-4 space-y-2">

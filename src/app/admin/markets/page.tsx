@@ -2,15 +2,15 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { DeleteButton, StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
-import { deleteMarket, verifyMarket } from "../actions";
+import { deleteMarket, restoreMarket, verifyMarket } from "../actions";
 import Link from "next/link";
 import type { VerificationStatus } from "@prisma/client";
+import { parseAdminPagination, parseFlag, parseQuery } from "@/lib/admin/table-query";
 
 export const dynamic = "force-dynamic";
-
-const DEFAULT_LIMIT = 25;
 
 const verificationVariant: Record<VerificationStatus, "secondary" | "default" | "outline"> = {
   UNVERIFIED: "secondary",
@@ -21,17 +21,39 @@ const verificationVariant: Record<VerificationStatus, "secondary" | "default" | 
 export default async function AdminMarketsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; limit?: string }>;
+  searchParams: Promise<{ page?: string; limit?: string; archived?: string; q?: string }>;
 }) {
   await requireAdmin();
 
   const params = await searchParams;
-  const page = Math.max(1, parseInt(params.page ?? "1", 10));
-  const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
+  const { page, limit } = parseAdminPagination(params);
+  const archived = parseFlag(params.archived);
+  const q = parseQuery(params.q);
+  const where = {
+    ...(archived ? {} : { deletedAt: null }),
+    ...(q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" as const } },
+            { slug: { contains: q, mode: "insensitive" as const } },
+            { baseArea: { contains: q, mode: "insensitive" as const } },
+            {
+              owner: {
+                OR: [
+                  { name: { contains: q, mode: "insensitive" as const } },
+                  { email: { contains: q, mode: "insensitive" as const } },
+                ],
+              },
+            },
+          ],
+        }
+      : {}),
+  };
 
   const [total, markets] = await Promise.all([
-    db.market.count(),
+    db.market.count({ where }),
     db.market.findMany({
+      where,
       orderBy: { name: "asc" },
       include: {
         _count: { select: { events: true } },
@@ -47,10 +69,30 @@ export default async function AdminMarketsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Markets</h1>
-        <Button asChild>
-          <Link href="/admin/markets/new">Create Market</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant={archived ? "default" : "outline"}>
+            <Link href={archived ? "/admin/markets" : "/admin/markets?archived=1"}>
+              {archived ? "Hide archived" : "Show archived"}
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/markets/new">Create Market</Link>
+          </Button>
+        </div>
       </div>
+
+      <form className="flex items-center gap-2">
+        <Input name="q" defaultValue={q} placeholder="Search market, slug, owner..." />
+        {archived && <input type="hidden" name="archived" value="1" />}
+        <Button type="submit" variant="outline">Search</Button>
+        <Button type="button" variant="outline" asChild>
+          <Link
+            href={`/api/admin/data/export/entity?entity=markets${archived ? "&archived=1" : ""}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+          >
+            Export CSV
+          </Link>
+        </Button>
+      </form>
 
       <div className="border border-border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
@@ -83,9 +125,12 @@ export default async function AdminMarketsPage({
                     {market.owner?.name || market.owner?.email || "—"}
                   </td>
                   <td className="p-3">
-                    <Badge variant={verificationVariant[market.verificationStatus]}>
-                      {market.verificationStatus}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={verificationVariant[market.verificationStatus]}>
+                        {market.verificationStatus}
+                      </Badge>
+                      {market.deletedAt && <Badge variant="secondary">Archived</Badge>}
+                    </div>
                   </td>
                   <td className="p-3">
                     <Badge variant={market.ownerId ? "default" : "secondary"}>
@@ -96,7 +141,7 @@ export default async function AdminMarketsPage({
                     {market._count.events}
                   </td>
                   <td className="p-3 text-right space-x-2">
-                    {market.verificationStatus !== "VERIFIED" && (
+                    {market.verificationStatus !== "VERIFIED" && !market.deletedAt && (
                       <StatusButton
                         action={verifyMarket.bind(null, market.id)}
                         label="Verify"
@@ -105,11 +150,20 @@ export default async function AdminMarketsPage({
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/admin/markets/${market.id}/edit`}>Edit</Link>
                     </Button>
-                    <DeleteButton
-                        action={deleteMarket.bind(null, market.id)}
-                        title="Delete market"
-                        description={`Are you sure you want to delete "${market.name}"? This will remove the market and all associated data.`}
+                    {market.deletedAt ? (
+                      <StatusButton
+                        action={restoreMarket.bind(null, market.id)}
+                        label="Restore"
+                        variant="outline"
                       />
+                    ) : (
+                      <DeleteButton
+                        action={deleteMarket.bind(null, market.id)}
+                        title="Archive market"
+                        description={`Archive "${market.name}"? You can restore it later from archived markets.`}
+                        label="Archive"
+                      />
+                    )}
                   </td>
                 </tr>
               ))

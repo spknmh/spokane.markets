@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
-import { updateReviewStatus } from "../actions";
+import { bulkUpdateReviewStatus, updateReviewStatus } from "../actions";
 import { formatDate, cn } from "@/lib/utils";
 import Link from "next/link";
 import type { ModerationStatus } from "@prisma/client";
@@ -98,7 +98,25 @@ export default async function AdminReviewsPage({
         })}
       </div>
 
-      <div className="space-y-4">
+      <form className="space-y-4">
+        {statusFilter === "PENDING" && (
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              formAction={bulkUpdateReviewStatus.bind(null, "APPROVED")}
+              className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
+            >
+              Bulk approve selected
+            </button>
+            <button
+              type="submit"
+              formAction={bulkUpdateReviewStatus.bind(null, "REJECTED")}
+              className="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-3 text-sm font-medium text-destructive-foreground"
+            >
+              Bulk reject selected
+            </button>
+          </div>
+        )}
         {reviews.length === 0 ? (
           <p className="text-muted-foreground py-8 text-center">
             No {statusFilter.toLowerCase()} reviews.
@@ -110,7 +128,16 @@ export default async function AdminReviewsPage({
               className="border border-border rounded-lg p-4 space-y-3"
             >
               <div className="flex items-start justify-between">
-                <div>
+                <div className="flex items-start gap-3">
+                  {statusFilter === "PENDING" && (
+                    <input
+                      type="checkbox"
+                      name="selectedIds"
+                      value={review.id}
+                      className="mt-1 h-4 w-4"
+                    />
+                  )}
+                  <div>
                   <p className="font-semibold">
                     {"★".repeat(review.rating)}
                     {"☆".repeat(5 - review.rating)}
@@ -125,6 +152,7 @@ export default async function AdminReviewsPage({
                         ? `Market: ${review.market.name}`
                         : ""}
                   </p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={statusVariant[review.status]}>
@@ -154,7 +182,7 @@ export default async function AdminReviewsPage({
             </div>
           ))
         )}
-      </div>
+      </form>
       <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
     </div>
   );

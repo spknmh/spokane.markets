@@ -42,6 +42,11 @@ const QUEUE_ICONS: Record<QueueType, typeof Inbox> = {
 
 export default async function AdminOverviewPage() {
   await requireAdmin();
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - 7);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const [
     totalEvents,
@@ -59,6 +64,9 @@ export default async function AdminOverviewPage() {
     recentSubmissions,
     recentReviews,
     recentUsers,
+    newUsersToday,
+    newUsersWeek,
+    newUsersMonth,
   ] = await Promise.all([
     db.event.count(),
     db.event.count({ where: { status: "PUBLISHED" } }),
@@ -90,6 +98,9 @@ export default async function AdminOverviewPage() {
       orderBy: { createdAt: "desc" },
       select: { id: true, name: true, email: true, role: true, createdAt: true },
     }),
+    db.user.count({ where: { createdAt: { gte: startOfToday } } }),
+    db.user.count({ where: { createdAt: { gte: startOfWeek } } }),
+    db.user.count({ where: { createdAt: { gte: startOfMonth } } }),
   ]);
 
   const roleCounts = Object.fromEntries(
@@ -98,6 +109,9 @@ export default async function AdminOverviewPage() {
 
   const metricStats = [
     { label: "Total Users", value: totalUsers, icon: Users },
+    { label: "New Users Today", value: newUsersToday, icon: Users },
+    { label: "New Users (7d)", value: newUsersWeek, icon: Users },
+    { label: "New Users (MTD)", value: newUsersMonth, icon: Users },
     { label: "Published Events", value: publishedEvents, sub: `of ${totalEvents}`, icon: Calendar },
     { label: "Markets", value: totalMarkets, icon: Store },
     { label: "Vendors", value: totalVendors, icon: Store },
@@ -170,6 +184,29 @@ export default async function AdminOverviewPage() {
             );
           })}
         </div>
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-lg font-semibold">Alerts</h2>
+        <Card>
+          <CardContent className="pt-6">
+            <ul className="space-y-2 text-sm">
+              {queueSummary
+                .filter((q) => q.count > 0)
+                .map((q) => (
+                  <li key={q.type} className="flex items-center justify-between">
+                    <span>
+                      {QUEUE_LABELS[q.type]} requires review
+                    </span>
+                    <span className="font-semibold">{q.count}</span>
+                  </li>
+                ))}
+              {queueSummary.every((q) => q.count === 0) && (
+                <li className="text-muted-foreground">No pending operational alerts.</li>
+              )}
+            </ul>
+          </CardContent>
+        </Card>
       </section>
 
       <section>

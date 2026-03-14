@@ -2,16 +2,16 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatDateRangeInTimezone, cn } from "@/lib/utils";
-import { DeleteButton } from "@/components/admin/action-buttons";
+import { DeleteButton, StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
-import { deleteEvent } from "../actions";
+import { deleteEvent, restoreEvent } from "../actions";
 import Link from "next/link";
 import type { EventStatus } from "@prisma/client";
+import { parseAdminPagination, parseFlag, parseQuery } from "@/lib/admin/table-query";
 
 export const dynamic = "force-dynamic";
-
-const DEFAULT_LIMIT = 25;
 
 const STATUS_TABS = [
   { label: "All", value: "" },
@@ -41,16 +41,29 @@ const statusLabel: Record<EventStatus, string> = {
 export default async function AdminEventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; limit?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; limit?: string; archived?: string; q?: string }>;
 }) {
   await requireAdmin();
 
   const params = await searchParams;
   const statusFilter = params.status as EventStatus | undefined;
-  const page = Math.max(1, parseInt(params.page ?? "1", 10));
-  const limit = Math.min(100, Math.max(1, parseInt(params.limit ?? String(DEFAULT_LIMIT), 10)));
+  const archived = parseFlag(params.archived);
+  const q = parseQuery(params.q);
+  const { page, limit } = parseAdminPagination(params);
 
-  const where = statusFilter ? { status: statusFilter } : undefined;
+  const where = {
+    ...(statusFilter ? { status: statusFilter } : {}),
+    ...(archived ? {} : { deletedAt: null }),
+    ...(q
+      ? {
+          OR: [
+            { title: { contains: q, mode: "insensitive" as const } },
+            { slug: { contains: q, mode: "insensitive" as const } },
+            { venue: { name: { contains: q, mode: "insensitive" as const } } },
+          ],
+        }
+      : {}),
+  };
   const [total, events] = await Promise.all([
     db.event.count({ where }),
     db.event.findMany({
@@ -67,16 +80,37 @@ export default async function AdminEventsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Events</h1>
-        <Button asChild>
-          <Link href="/admin/events/new">Create Event</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant={archived ? "default" : "outline"}>
+            <Link href={archived ? "/admin/events" : "/admin/events?archived=1"}>
+              {archived ? "Hide archived" : "Show archived"}
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/events/new">Create Event</Link>
+          </Button>
+        </div>
       </div>
+
+      <form className="flex items-center gap-2">
+        <Input name="q" defaultValue={q} placeholder="Search title, slug, venue..." />
+        {statusFilter && <input type="hidden" name="status" value={statusFilter} />}
+        {archived && <input type="hidden" name="archived" value="1" />}
+        <Button type="submit" variant="outline">Search</Button>
+        <Button type="button" variant="outline" asChild>
+          <Link
+            href={`/api/admin/data/export/entity?entity=events${statusFilter ? `&status=${statusFilter}` : ""}${archived ? "&archived=1" : ""}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+          >
+            Export CSV
+          </Link>
+        </Button>
+      </form>
 
       <div className="flex gap-2 border-b border-border pb-2">
         {STATUS_TABS.map((tab) => (
           <Link
             key={tab.value}
-            href={tab.value ? `/admin/events?status=${tab.value}&page=1` : "/admin/events?page=1"}
+            href={tab.value ? `/admin/events?status=${tab.value}&page=1${archived ? "&archived=1" : ""}` : `/admin/events?page=1${archived ? "&archived=1" : ""}`}
             className={cn(
               "px-3 py-1.5 text-sm rounded-md transition-colors",
               (statusFilter ?? "") === tab.value
@@ -116,19 +150,31 @@ export default async function AdminEventsPage({
                   </td>
                   <td className="p-3 text-muted-foreground">{event.venue.name}</td>
                   <td className="p-3">
-                    <Badge variant={statusVariant[event.status]}>
-                      {statusLabel[event.status]}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={statusVariant[event.status]}>
+                        {statusLabel[event.status]}
+                      </Badge>
+                      {event.deletedAt && <Badge variant="secondary">Archived</Badge>}
+                    </div>
                   </td>
                   <td className="p-3 text-right space-x-2">
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/admin/events/${event.id}/edit`}>Edit</Link>
                     </Button>
-                    <DeleteButton
-                      action={deleteEvent.bind(null, event.id)}
-                      title="Delete event"
-                      description={`Are you sure you want to delete "${event.title}"? This will remove the event and cannot be undone.`}
-                    />
+                    {event.deletedAt ? (
+                      <StatusButton
+                        action={restoreEvent.bind(null, event.id)}
+                        label="Restore"
+                        variant="outline"
+                      />
+                    ) : (
+                      <DeleteButton
+                        action={deleteEvent.bind(null, event.id)}
+                        title="Archive event"
+                        description={`Archive "${event.title}"? You can restore it later from archived events.`}
+                        label="Archive"
+                      />
+                    )}
                   </td>
                 </tr>
               ))

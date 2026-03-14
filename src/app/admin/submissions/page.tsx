@@ -4,7 +4,7 @@ import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount";
 import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
-import { updateSubmissionStatus } from "../actions";
+import { bulkUpdateSubmissionStatus, updateSubmissionStatus } from "../actions";
 import { formatDate, formatTime12hr, cn } from "@/lib/utils";
 import Link from "next/link";
 import type { ModerationStatus } from "@prisma/client";
@@ -84,7 +84,25 @@ export default async function AdminSubmissionsPage({
         ))}
       </div>
 
-      <div className="space-y-4">
+      <form className="space-y-4">
+        {statusFilter === "PENDING" && (
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              formAction={bulkUpdateSubmissionStatus.bind(null, "APPROVED")}
+              className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
+            >
+              Bulk approve selected
+            </button>
+            <button
+              type="submit"
+              formAction={bulkUpdateSubmissionStatus.bind(null, "REJECTED")}
+              className="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-3 text-sm font-medium text-destructive-foreground"
+            >
+              Bulk reject selected
+            </button>
+          </div>
+        )}
         {submissions.length === 0 ? (
           <p className="text-muted-foreground py-8 text-center">
             No {statusFilter.toLowerCase()} submissions.
@@ -96,7 +114,16 @@ export default async function AdminSubmissionsPage({
               className="border border-border rounded-lg p-4 space-y-3"
             >
               <div className="flex items-start justify-between">
-                <div>
+                <div className="flex items-start gap-3">
+                  {statusFilter === "PENDING" && (
+                    <input
+                      type="checkbox"
+                      name="selectedIds"
+                      value={sub.id}
+                      className="mt-1 h-4 w-4"
+                    />
+                  )}
+                  <div>
                   <h3 className="font-semibold">{sub.eventTitle}</h3>
                   <p className="text-sm text-muted-foreground">
                     Submitted by {sub.submitterName} ({sub.submitterEmail})
@@ -117,6 +144,7 @@ export default async function AdminSubmissionsPage({
                       Market: {marketMap.get(sub.marketId)}
                     </p>
                   )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={statusVariant[sub.status]}>
@@ -180,7 +208,7 @@ export default async function AdminSubmissionsPage({
             </div>
           ))
         )}
-      </div>
+      </form>
       <Pagination page={page} totalPages={totalPages} totalItems={total} limit={limit} />
     </div>
   );

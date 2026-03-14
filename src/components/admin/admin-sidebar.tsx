@@ -83,7 +83,9 @@ const navGroups: NavGroup[] = [
     defaultOpen: true,
     items: [
       { label: "Site Settings", href: "/admin/settings", icon: LayoutTemplate },
+      { label: "Permissions", href: "/admin/permissions", icon: Users },
       { label: "Data", href: "/admin/data", icon: Database },
+      { label: "System Health", href: "/admin/system-health", icon: ClipboardList },
       { label: "Audit Log", href: "/admin/audit-log", icon: FileText },
     ],
   },
