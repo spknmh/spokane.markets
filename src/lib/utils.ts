@@ -102,24 +102,44 @@ export function buildInstagramUrl(handle: string): string {
   return h ? `https://instagram.com/${h}` : "";
 }
 
-/**
- * Returns https://facebook.com/... URL from a handle or legacy full URL.
- * Handles both "johndoe" and "https://facebook.com/johndoe".
- */
-export function getFacebookDisplayUrl(value: string | null | undefined): string | null {
+function toCanonicalSocialUrl(
+  value: string | null | undefined,
+  platform: "facebook" | "instagram"
+): string | null {
   if (!value?.trim()) return null;
-  const handle = extractSocialHandle(value, "facebook");
-  return handle ? buildFacebookUrl(handle) : null;
+
+  const trimmed = value.trim();
+  const domain = platform === "facebook" ? "facebook.com" : "instagram.com";
+
+  // If it's already a platform URL (with or without protocol), preserve its full path/query.
+  try {
+    const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const parsed = new URL(withProtocol);
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+    const isPlatformHost = host === domain || host.endsWith(`.${domain}`);
+    if (isPlatformHost) {
+      parsed.protocol = "https:";
+      return parsed.toString();
+    }
+  } catch {
+    // Fall through and treat as handle.
+  }
+
+  const handle = extractSocialHandle(trimmed.replace(/^@/, ""), platform)
+    .replace(/^@/, "")
+    .trim();
+  if (!handle) return null;
+  return platform === "facebook" ? buildFacebookUrl(handle) : buildInstagramUrl(handle);
 }
 
-/**
- * Returns https://instagram.com/... URL from a handle or legacy full URL.
- * Handles both "johndoe" and "https://instagram.com/johndoe".
- */
+/** Returns a canonical clickable Facebook URL from a handle or full URL input. */
+export function getFacebookDisplayUrl(value: string | null | undefined): string | null {
+  return toCanonicalSocialUrl(value, "facebook");
+}
+
+/** Returns a canonical clickable Instagram URL from a handle or full URL input. */
 export function getInstagramDisplayUrl(value: string | null | undefined): string | null {
-  if (!value?.trim()) return null;
-  const handle = extractSocialHandle(value, "instagram");
-  return handle ? buildInstagramUrl(handle) : null;
+  return toCanonicalSocialUrl(value, "instagram");
 }
 
 /**

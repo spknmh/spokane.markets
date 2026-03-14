@@ -32,10 +32,6 @@ export default async function AdminVendorsPage({
       orderBy: { businessName: "asc" },
       include: {
         _count: { select: { vendorEvents: true } },
-        claimRequests: {
-          where: { status: "PENDING" },
-          select: { id: true },
-        },
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -75,7 +71,7 @@ export default async function AdminVendorsPage({
               <th className="px-4 py-3 text-left font-medium">Business Name</th>
               <th className="px-4 py-3 text-left font-medium">Slug</th>
               <th className="px-4 py-3 text-left font-medium">Specialties</th>
-              <th className="px-4 py-3 text-left font-medium">Claim</th>
+              <th className="px-4 py-3 text-left font-medium">Ownership</th>
               <th className="px-4 py-3 text-left font-medium">Events</th>
               <th className="px-4 py-3 text-left font-medium">Link</th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
@@ -97,20 +93,8 @@ export default async function AdminVendorsPage({
                     {v.specialties ?? "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge
-                      variant={
-                        v.userId
-                          ? "default"
-                          : v.claimRequests.length > 0
-                            ? "outline"
-                            : "secondary"
-                      }
-                    >
-                      {v.userId
-                        ? "Claimed"
-                        : v.claimRequests.length > 0
-                          ? "Claim pending review"
-                          : "Unclaimed"}
+                    <Badge variant={v.userId ? "default" : "secondary"}>
+                      {v.userId ? "Managed" : "Unassigned"}
                     </Badge>
                   </td>
                   <td className="px-4 py-3">{v._count.vendorEvents}</td>

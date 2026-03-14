@@ -246,15 +246,15 @@ export default async function OrganizerDashboardPage() {
         </div>
       )}
 
-      {/* Browse to claim CTA */}
+      {/* Market onboarding CTA */}
       {markets.length === 0 && (
         <Card className="mt-6 border-2 border-dashed">
           <CardContent className="flex flex-col items-center justify-center gap-3 py-8 text-center sm:flex-row">
             <p className="text-muted-foreground">
-              Don&apos;t own a market? Browse markets to claim one.
+              Ready to organize? Create your first market profile to get started.
             </p>
             <Button asChild variant="outline">
-              <Link href="/markets">Browse Markets</Link>
+              <Link href="/markets">Create Market</Link>
             </Button>
           </CardContent>
         </Card>
@@ -265,11 +265,11 @@ export default async function OrganizerDashboardPage() {
         <h2 className="text-xl font-semibold">Your Markets</h2>
         {markets.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
-            You don&apos;t own any markets yet.{" "}
+            You don&apos;t manage any markets yet.{" "}
             <Link href="/markets" className="text-primary hover:underline">
-              Browse markets
+              Create a market profile
             </Link>{" "}
-            and claim one from its detail page to get started.
+            to start publishing events and managing vendor requests.
           </p>
         ) : (
           <div className="mt-4 grid gap-4 sm:grid-cols-2">

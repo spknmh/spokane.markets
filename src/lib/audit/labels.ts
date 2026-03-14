@@ -47,8 +47,8 @@ const TARGET_HREFS: Record<string, string> = {
   SUBMISSION: "/admin/submissions",
   REVIEW: "/admin/reviews",
   PHOTO: "/admin/photos",
-  CLAIM: "/admin/claims",
-  VENDOR_CLAIM: "/admin/claims",
+  CLAIM: "/admin/queues",
+  VENDOR_CLAIM: "/admin/queues",
   REPORT: "/admin/reports",
   SITE_STATE: "/admin/settings",
 };

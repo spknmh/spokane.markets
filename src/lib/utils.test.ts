@@ -5,6 +5,8 @@ import {
   buildInstagramUrl,
   formatPhoneNumber,
   formatPhoneInput,
+  getFacebookDisplayUrl,
+  getInstagramDisplayUrl,
   normalizeUrlToHttps,
 } from "./utils";
 
@@ -100,5 +102,27 @@ describe("buildFacebookUrl / buildInstagramUrl", () => {
   it("builds correct URLs from handles", () => {
     expect(buildFacebookUrl("johndoe")).toBe("https://facebook.com/johndoe");
     expect(buildInstagramUrl("johndoe")).toBe("https://instagram.com/johndoe");
+  });
+});
+
+describe("getFacebookDisplayUrl / getInstagramDisplayUrl", () => {
+  it("builds clickable URLs from handles", () => {
+    expect(getFacebookDisplayUrl("johndoe")).toBe("https://facebook.com/johndoe");
+    expect(getInstagramDisplayUrl("johndoe")).toBe("https://instagram.com/johndoe");
+  });
+
+  it("normalizes existing social URLs and preserves path/query", () => {
+    expect(getFacebookDisplayUrl("facebook.com/johndoe")).toBe("https://facebook.com/johndoe");
+    expect(getFacebookDisplayUrl("https://m.facebook.com/story.php?story_fbid=1&id=2"))
+      .toBe("https://m.facebook.com/story.php?story_fbid=1&id=2");
+    expect(getInstagramDisplayUrl("http://instagram.com/johndoe/"))
+      .toBe("https://instagram.com/johndoe/");
+  });
+
+  it("supports @handles and empty values", () => {
+    expect(getFacebookDisplayUrl("@johndoe")).toBe("https://facebook.com/johndoe");
+    expect(getInstagramDisplayUrl("@johndoe")).toBe("https://instagram.com/johndoe");
+    expect(getFacebookDisplayUrl("")).toBeNull();
+    expect(getInstagramDisplayUrl(undefined)).toBeNull();
   });
 });

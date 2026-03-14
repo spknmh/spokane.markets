@@ -19,7 +19,6 @@ import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
 import { ReportButton } from "@/components/report-button";
 import { TrackMarketView } from "@/components/track-content-view";
-import { ClaimMarketButton } from "@/components/vendor/claim-market-button";
 import type { Metadata } from "next";
 import type { VerificationStatus } from "@prisma/client";
 import { SITE_NAME } from "@/lib/constants";
@@ -311,13 +310,6 @@ export default async function MarketDetailPage({ params }: PageProps) {
               </div>
             )}
 
-            {market.verificationStatus !== "VERIFIED" && (
-              <ClaimMarketButton
-                marketId={market.id}
-                marketSlug={market.slug}
-                session={session}
-              />
-            )}
           </div>
         </aside>
       </div>

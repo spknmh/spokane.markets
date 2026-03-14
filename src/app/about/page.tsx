@@ -45,7 +45,7 @@ export default async function AboutPage() {
         <ul className="mt-3 space-y-2 text-muted-foreground">
           <li>• Index and normalize event information from across the region</li>
           <li>• Filter by date, neighborhood, category, and features</li>
-          <li>• Support verified organizers and market claims</li>
+          <li>• Support verified organizers and transparent market profiles</li>
           <li>• Help vendors find events and build their pipeline</li>
           <li>• Provide structured reviews and trust signals</li>
         </ul>

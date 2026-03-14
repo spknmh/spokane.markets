@@ -9,8 +9,6 @@ const TYPE_LABELS: Record<QueueItem["type"], string> = {
   submission: "Submission",
   review: "Review",
   photo: "Photo",
-  market_claim: "Market Claim",
-  vendor_claim: "Vendor Claim",
   report: "Report",
   application: "Application",
 };

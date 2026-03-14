@@ -15,8 +15,6 @@ export function getStaticSitemapRoutes(
     { url: `${baseUrl}/events/calendar`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/markets`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/vendors`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${baseUrl}/apply/vendor`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${baseUrl}/apply/market`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/submit`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/about/backstory`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },

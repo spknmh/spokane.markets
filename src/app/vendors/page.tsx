@@ -57,7 +57,7 @@ export default async function VendorsPage({
       }
     : undefined;
 
-  const [session, vendors, totalCount, banners, applicationForms, vendorOfWeek] = await Promise.all([
+  const [session, vendors, totalCount, banners, vendorOfWeek] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
     db.vendorProfile.findMany({
       where,
@@ -68,22 +68,11 @@ export default async function VendorsPage({
     }),
     db.vendorProfile.count({ where }),
     getBannerImages(),
-    db.applicationForm.findMany({
-      where: { type: { in: ["VENDOR", "MARKET"] } },
-      select: { type: true, active: true },
-    }),
     getVendorOfWeek(),
   ]);
 
   const totalPages = Math.ceil(totalCount / limit);
   const showVendorOfWeek = !q && page === 1 && !!vendorOfWeek;
-  const vendorApplicationsOpen = applicationForms.some(
-    (form) => form.type === "VENDOR" && form.active
-  );
-  const marketApplicationsOpen = applicationForms.some(
-    (form) => form.type === "MARKET" && form.active
-  );
-
   const favoriteIds = session?.user
     ? (
         await db.favoriteVendor.findMany({
@@ -142,21 +131,15 @@ export default async function VendorsPage({
           <CardHeader>
             <CardTitle className="text-xl">Own this kind of profile?</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Vendors can apply for a profile to showcase their business and share where they&apos;ll be next.
+              Create your vendor profile to showcase your business and share where you&apos;ll be next.
             </p>
           </CardHeader>
           <CardContent className="flex flex-wrap items-center gap-3">
-            {vendorApplicationsOpen ? (
-              <Button asChild>
-                <Link href="/apply/vendor" prefetch={false}>
-                  Apply for a Vendor Profile
-                </Link>
-              </Button>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Vendor applications are currently closed. Please check back soon.
-              </p>
-            )}
+            <Button asChild>
+              <Link href="/vendor/profile/edit" prefetch={false}>
+                Create Vendor Profile
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 
@@ -164,21 +147,15 @@ export default async function VendorsPage({
           <CardHeader>
             <CardTitle className="text-xl">Run a market or event series?</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Market organizers can request a listing so shoppers and vendors can find recurring markets more easily.
+              Get started as an organizer by claiming your market listing from the market page.
             </p>
           </CardHeader>
           <CardContent className="flex flex-wrap items-center gap-3">
-            {marketApplicationsOpen ? (
-              <Button asChild variant="outline">
-                <Link href="/apply/market" prefetch={false}>
-                  List Your Market
-                </Link>
-              </Button>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Market applications are currently closed. Please check back soon.
-              </p>
-            )}
+            <Button asChild variant="outline">
+              <Link href="/markets" prefetch={false}>
+                Create Market
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </section>

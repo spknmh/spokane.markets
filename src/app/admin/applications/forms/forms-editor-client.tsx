@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import type { FormField } from "./page";
 import { ChevronDown, ChevronUp, GripVertical, Trash2 } from "lucide-react";
 
-type ApplicationFormType = "VENDOR" | "MARKET";
+type ApplicationFormType = "VENDOR" | "MARKET" | "VENDOR_VERIFICATION";
 
 interface SerializedForm {
   id: string;

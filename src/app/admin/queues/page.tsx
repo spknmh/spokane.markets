@@ -11,8 +11,6 @@ const TABS: { label: string; value: QueueType | "all" }[] = [
   { label: "Submissions", value: "submission" },
   { label: "Reviews", value: "review" },
   { label: "Photos", value: "photo" },
-  { label: "Market Claims", value: "market_claim" },
-  { label: "Vendor Claims", value: "vendor_claim" },
   { label: "Reports", value: "report" },
   { label: "Applications", value: "application" },
 ];
@@ -21,8 +19,6 @@ const VIEW_ALL_HREFS: Record<QueueType, string> = {
   submission: "/admin/submissions?status=PENDING",
   review: "/admin/reviews?status=PENDING",
   photo: "/admin/photos?status=PENDING",
-  market_claim: "/admin/claims?tab=market&status=PENDING",
-  vendor_claim: "/admin/claims?tab=vendor&status=PENDING",
   report: "/admin/reports?status=PENDING",
   application: "/admin/applications?status=PENDING",
 };

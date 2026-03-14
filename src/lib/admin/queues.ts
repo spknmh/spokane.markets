@@ -5,8 +5,6 @@ export type QueueType =
   | "submission"
   | "review"
   | "photo"
-  | "market_claim"
-  | "vendor_claim"
   | "report"
   | "application";
 
@@ -30,15 +28,13 @@ export type QueueSummary = {
 
 const LIMIT_PER_TYPE = 50;
 const LIMIT_ALL = 50;
-const ALL_QUEUE_TYPE_COUNT = 7;
+const ALL_QUEUE_TYPE_COUNT = 5;
 
 export async function getQueuesSummary(): Promise<QueueSummary[]> {
   const [
     submissions,
     reviews,
     photos,
-    marketClaims,
-    vendorClaims,
     reports,
     applications,
   ] = await Promise.all([
@@ -60,18 +56,6 @@ export async function getQueuesSummary(): Promise<QueueSummary[]> {
       take: 1,
       select: { createdAt: true },
     }),
-    db.claimRequest.findMany({
-      where: { status: "PENDING" },
-      orderBy: { createdAt: "asc" },
-      take: 1,
-      select: { createdAt: true },
-    }),
-    db.vendorClaimRequest.findMany({
-      where: { status: "PENDING" },
-      orderBy: { createdAt: "asc" },
-      take: 1,
-      select: { createdAt: true },
-    }),
     db.report.findMany({
       where: { status: "PENDING" },
       orderBy: { createdAt: "asc" },
@@ -86,13 +70,11 @@ export async function getQueuesSummary(): Promise<QueueSummary[]> {
     }),
   ]);
 
-  const [subCount, revCount, photoCount, mClaimCount, vClaimCount, reportCount, appCount] =
+  const [subCount, revCount, photoCount, reportCount, appCount] =
     await Promise.all([
       db.submission.count({ where: { status: "PENDING" } }),
       db.review.count({ where: { status: "PENDING" } }),
       db.photo.count({ where: { status: "PENDING" } }),
-      db.claimRequest.count({ where: { status: "PENDING" } }),
-      db.vendorClaimRequest.count({ where: { status: "PENDING" } }),
       db.report.count({ where: { status: "PENDING" } }),
       db.application.count({ where: { status: "PENDING" } }),
     ]);
@@ -112,16 +94,6 @@ export async function getQueuesSummary(): Promise<QueueSummary[]> {
       type: "photo",
       count: photoCount,
       oldestAt: photos[0]?.createdAt ?? null,
-    },
-    {
-      type: "market_claim",
-      count: mClaimCount,
-      oldestAt: marketClaims[0]?.createdAt ?? null,
-    },
-    {
-      type: "vendor_claim",
-      count: vClaimCount,
-      oldestAt: vendorClaims[0]?.createdAt ?? null,
     },
     {
       type: "report",
@@ -147,7 +119,7 @@ export async function getQueueItems(opts: {
 
   if (type === "all") {
     const perTypeTake = Math.ceil(take / ALL_QUEUE_TYPE_COUNT);
-    const [subs, revs, photos, mClaims, vClaims, reports, applications] = await Promise.all([
+    const [subs, revs, photos, reports, applications] = await Promise.all([
       db.submission.findMany({
         where: { status: "PENDING" },
         orderBy: { createdAt: orderBy },
@@ -177,24 +149,6 @@ export async function getQueueItems(opts: {
           uploadedBy: { select: { name: true, email: true } },
           event: { select: { title: true } },
           market: { select: { name: true } },
-        },
-      }),
-      db.claimRequest.findMany({
-        where: { status: "PENDING" },
-        orderBy: { createdAt: orderBy },
-        take: perTypeTake,
-        include: {
-          market: { select: { name: true } },
-          user: { select: { name: true, email: true } },
-        },
-      }),
-      db.vendorClaimRequest.findMany({
-        where: { status: "PENDING" },
-        orderBy: { createdAt: orderBy },
-        take: perTypeTake,
-        include: {
-          vendorProfile: { select: { businessName: true } },
-          user: { select: { name: true, email: true } },
         },
       }),
       db.report.findMany({
@@ -246,24 +200,6 @@ export async function getQueueItems(opts: {
         status: "pending" as const,
         href: "/admin/photos?status=PENDING",
         imageUrl: p.url,
-      })),
-      ...mClaims.map((c) => ({
-        type: "market_claim" as const,
-        id: c.id,
-        createdAt: c.createdAt,
-        title: c.market.name,
-        subtitle: `by ${c.user.name ?? c.user.email}`,
-        status: "pending" as const,
-        href: "/admin/claims?tab=market&status=PENDING",
-      })),
-      ...vClaims.map((c) => ({
-        type: "vendor_claim" as const,
-        id: c.id,
-        createdAt: c.createdAt,
-        title: c.vendorProfile.businessName,
-        subtitle: `by ${c.user.name ?? c.user.email}`,
-        status: "pending" as const,
-        href: "/admin/claims?tab=vendor&status=PENDING",
       })),
       ...reports.map((r, i) => ({
         type: "report" as const,
@@ -357,46 +293,6 @@ export async function getQueueItems(opts: {
         status: "pending" as const,
         href: "/admin/photos?status=PENDING",
         imageUrl: p.url,
-      }));
-    }
-    case "market_claim": {
-      const claims = await db.claimRequest.findMany({
-        where: { status: "PENDING" },
-        orderBy: { createdAt: orderBy },
-        take,
-        include: {
-          market: { select: { name: true } },
-          user: { select: { name: true, email: true } },
-        },
-      });
-      return claims.map((c) => ({
-        type: "market_claim" as const,
-        id: c.id,
-        createdAt: c.createdAt,
-        title: c.market.name,
-        subtitle: `by ${c.user.name ?? c.user.email}`,
-        status: "pending" as const,
-        href: "/admin/claims?tab=market&status=PENDING",
-      }));
-    }
-    case "vendor_claim": {
-      const claims = await db.vendorClaimRequest.findMany({
-        where: { status: "PENDING" },
-        orderBy: { createdAt: orderBy },
-        take,
-        include: {
-          vendorProfile: { select: { businessName: true } },
-          user: { select: { name: true, email: true } },
-        },
-      });
-      return claims.map((c) => ({
-        type: "vendor_claim" as const,
-        id: c.id,
-        createdAt: c.createdAt,
-        title: c.vendorProfile.businessName,
-        subtitle: `by ${c.user.name ?? c.user.email}`,
-        status: "pending" as const,
-        href: "/admin/claims?tab=vendor&status=PENDING",
       }));
     }
     case "report": {

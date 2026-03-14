@@ -6,7 +6,6 @@ const ACTION_CONFIG: Record<string, { windowMs: number; maxRequests: number }> =
   register: { windowMs: 60 * 1000, maxRequests: 5 },
   reviews: { windowMs: 60 * 60 * 1000, maxRequests: 10 },
   uploads: { windowMs: 60 * 60 * 1000, maxRequests: 20 },
-  claims: { windowMs: 60 * 60 * 1000, maxRequests: 5 },
   vendorSurvey: { windowMs: 60 * 1000, maxRequests: 5 },
   reports: { windowMs: 60 * 60 * 1000, maxRequests: 5 },
   contact: { windowMs: 60 * 60 * 1000, maxRequests: 5 },

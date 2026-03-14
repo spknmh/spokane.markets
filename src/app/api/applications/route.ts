@@ -6,7 +6,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 
 const submitSchema = z.object({
-  formType: z.enum(["VENDOR", "MARKET"]),
+  formType: z.enum(["VENDOR", "MARKET", "VENDOR_VERIFICATION"]),
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Valid email is required"),
   answers: z.record(z.string(), z.union([z.string(), z.array(z.string())])),

@@ -10,7 +10,6 @@ import {
   Calendar,
   Inbox,
   MessageSquare,
-  Shield,
   Mail,
   Users,
   Store,
@@ -29,8 +28,6 @@ const QUEUE_LABELS: Record<QueueType, string> = {
   submission: "Pending Submissions",
   review: "Pending Reviews",
   photo: "Pending Photos",
-  market_claim: "Pending Market Claims",
-  vendor_claim: "Pending Vendor Claims",
   report: "Pending Reports",
   application: "Pending Applications",
 };
@@ -39,8 +36,6 @@ const QUEUE_ICONS: Record<QueueType, typeof Inbox> = {
   submission: Inbox,
   review: MessageSquare,
   photo: ImageIcon,
-  market_claim: Shield,
-  vendor_claim: Shield,
   report: Flag,
   application: FileText,
 };

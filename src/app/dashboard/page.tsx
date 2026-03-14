@@ -50,7 +50,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   });
   if (!user) redirect("/auth/signin");
 
-  const [savedFilters, attendances, favoriteVendors] = await Promise.all([
+  const [
+    savedFilters,
+    attendances,
+    favoriteVendors,
+    organizerOwnedMarketsCount,
+    organizerSubmittedEventsCount,
+  ] = await Promise.all([
     db.savedFilter.findMany({
       where: { userId: session.user.id! },
       orderBy: { createdAt: "desc" },
@@ -71,11 +77,20 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       orderBy: { createdAt: "desc" },
       take: 10,
     }),
+    db.market.count({
+      where: { ownerId: session.user.id! },
+    }),
+    db.event.count({
+      where: { submittedById: session.user.id! },
+    }),
   ]);
 
   const upcomingRsvps = attendances.filter(
     (a) => a.event.startDate >= new Date() && a.event.status === "PUBLISHED"
   );
+  const hasOrganizerOwnershipOrMembership =
+    organizerOwnedMarketsCount > 0 || organizerSubmittedEventsCount > 0;
+  const showFirstRunOnboarding = !user.vendorProfile && !hasOrganizerOwnershipOrMembership;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
@@ -102,6 +117,37 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           icon: ub.badge.icon,
         }))}
       />
+
+      {showFirstRunOnboarding && (
+        <Card className="mt-6 border-primary/30 bg-primary/5">
+          <CardHeader>
+            <CardTitle>Get started</CardTitle>
+            <CardDescription>
+              Pick your first step to set up your presence and discover opportunities.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-3">
+            <Link
+              href="/vendor/profile/edit"
+              className="min-h-[44px] rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              Create Vendor Profile
+            </Link>
+            <Link
+              href="/markets"
+              className="min-h-[44px] rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              Create Market
+            </Link>
+            <Link
+              href="/events"
+              className="min-h-[44px] rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              Browse Events
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="mt-8 flex flex-col gap-6 sm:gap-8">
         {/* Saved Filters */}

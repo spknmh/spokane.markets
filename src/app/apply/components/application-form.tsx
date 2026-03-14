@@ -32,7 +32,7 @@ type ApplicationFormProps = {
     description: string | null;
     fields: unknown;
   };
-  formType: "VENDOR" | "MARKET";
+  formType: "VENDOR" | "MARKET" | "VENDOR_VERIFICATION";
 };
 
 function formatApiError(error: unknown): string {

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Image from "next/image";
 import { Mail, Phone } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -16,7 +15,6 @@ import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FavoriteVendorButton } from "@/components/vendor/favorite-vendor-button";
-import { AuthGate } from "@/components/auth-gate";
 import { Card, CardContent } from "@/components/ui/card";
 import { EventCard } from "@/components/event/event-card";
 import { ReportButton } from "@/components/report-button";
@@ -273,7 +271,7 @@ export default async function VendorProfilePage({ params }: PageProps) {
                     rel="noopener noreferrer"
                     className="inline-flex min-h-[44px] items-center text-primary hover:underline"
                   >
-                    Fb
+                    Facebook
                   </a>
                 )}
                 {instagramLink && (
@@ -283,7 +281,7 @@ export default async function VendorProfilePage({ params }: PageProps) {
                     rel="noopener noreferrer"
                     className="inline-flex min-h-[44px] items-center text-primary hover:underline"
                   >
-                    Ig
+                    Instagram
                   </a>
                 )}
               </div>
@@ -318,19 +316,6 @@ export default async function VendorProfilePage({ params }: PageProps) {
                   )}
                 </div>
               </div>
-            )}
-
-            {vendor.userId == null && (
-              <AuthGate
-                session={session}
-                callbackUrl={`/vendors/${vendor.slug}/claim`}
-              >
-                <Button asChild className="w-full">
-                  <Link href={`/vendors/${vendor.slug}/claim`}>
-                    Claim This Vendor
-                  </Link>
-                </Button>
-              </AuthGate>
             )}
 
             <div className="border-t border-border pt-4">

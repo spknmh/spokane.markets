@@ -12,7 +12,6 @@ import {
   MapPin,
   Inbox,
   MessageSquare,
-  Shield,
   Mail,
   Users,
   Menu,
@@ -77,7 +76,6 @@ const navGroups: NavGroup[] = [
       { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
       { label: "Photos", href: "/admin/photos", icon: ImageIcon },
       { label: "Reports", href: "/admin/reports", icon: Flag },
-      { label: "Claims", href: "/admin/claims", icon: Shield },
     ],
   },
   {

@@ -63,7 +63,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>Submissions and listings:</strong> such as event details, market
-            information, vendor profiles, claim requests, roster requests, edits, supporting
+            information, vendor profiles, verification requests, roster requests, edits, supporting
             documents, and related submission content
           </li>
           <li>
@@ -124,7 +124,7 @@ export default function PrivacyPage() {
           analytics providers, email delivery providers, social platforms you choose to link
           or visit, and other service providers that support our operations. We may also
           receive information from market organizers, vendors, or other users when they submit
-          content involving you, such as roster requests, public reviews, or claim-related
+          content involving you, such as roster requests, public reviews, or verification-related
           information.
         </p>
 
@@ -153,7 +153,7 @@ export default function PrivacyPage() {
           <li>Provide, operate, maintain, and improve the Service</li>
           <li>Create and manage accounts and authenticate users</li>
           <li>Publish, review, moderate, verify, and manage listings and submissions</li>
-          <li>Process market claims, vendor requests, roster requests, reviews, and edits</li>
+          <li>Process market onboarding, vendor verification requests, roster requests, reviews, and edits</li>
           <li>Send account, security, transactional, and support communications</li>
           <li>Send newsletters, alerts, and other optional communications you request or enable</li>
           <li>Personalize aspects of the Service, such as saved preferences and alerts</li>
@@ -204,7 +204,7 @@ export default function PrivacyPage() {
             shared parts of the Service
           </li>
           <li>
-            <strong>Organizers, vendors, or claim participants:</strong> where needed to
+            <strong>Organizers, vendors, or verification participants:</strong> where needed to
             process submissions, requests, approvals, disputes, or related workflows
           </li>
           <li>

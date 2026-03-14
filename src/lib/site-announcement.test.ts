@@ -6,7 +6,7 @@ import {
 
 describe("isValidSiteAnnouncementUrl", () => {
   it("accepts internal and absolute urls", () => {
-    expect(isValidSiteAnnouncementUrl("/apply/vendor")).toBe(true);
+    expect(isValidSiteAnnouncementUrl("/vendor/profile/edit")).toBe(true);
     expect(isValidSiteAnnouncementUrl("https://spokane.markets/apply")).toBe(
       true
     );
@@ -42,13 +42,13 @@ describe("normalizeSiteAnnouncement", () => {
         enabled: true,
         text: " Vendor applications are open. ",
         linkLabel: " Apply now ",
-        linkUrl: "/apply/vendor",
+        linkUrl: "/vendor/profile/edit",
       })
     ).toEqual({
       enabled: true,
       text: "Vendor applications are open.",
       linkLabel: "Apply now",
-      linkUrl: "/apply/vendor",
+      linkUrl: "/vendor/profile/edit",
     });
   });
 

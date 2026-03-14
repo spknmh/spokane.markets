@@ -54,12 +54,6 @@ export const adminVendorProfileSchema = vendorProfileSchema.extend({
 });
 export type AdminVendorProfileInput = z.infer<typeof adminVendorProfileSchema>;
 
-export const vendorClaimRequestSchema = z.object({
-  vendorProfileId: z.string().min(1),
-  proof: z.string().min(10, "Proof required"),
-});
-export type VendorClaimRequestInput = z.infer<typeof vendorClaimRequestSchema>;
-
 export const vendorEventsSchema = z.object({
   eventId: z.string().cuid("Invalid event ID"),
 });

@@ -36,7 +36,6 @@ export default async function AdminUserDetailPage({
         select: {
           reviews: true,
           ownedMarkets: true,
-          claimRequests: true,
           photos: true,
         },
       },
@@ -223,19 +222,12 @@ export default async function AdminUserDetailPage({
         </div>
       )}
 
-      {(user._count.claimRequests > 0 || user._count.photos > 0 || user.vendorProfile != null) && (
+      {(user._count.photos > 0 || user.vendorProfile != null) && (
         <div className="rounded-lg border border-border p-4 space-y-2">
           <h2 className="text-sm font-medium text-muted-foreground">
             Other activity
           </h2>
           <ul className="text-sm space-y-1">
-            {user._count.claimRequests > 0 && (
-              <li>
-                <Link href="/admin/claims" className="text-primary hover:underline">
-                  {user._count.claimRequests} claim request(s)
-                </Link>
-              </li>
-            )}
             {user._count.photos > 0 && (
               <li>
                 <Link href="/admin/photos" className="text-primary hover:underline">

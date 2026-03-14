@@ -121,7 +121,7 @@ export function SiteAnnouncementForm({
             id="announcement-link-url"
             value={linkUrl}
             onChange={(e) => setLinkUrl(e.target.value)}
-            placeholder="/apply/vendor"
+            placeholder="/vendor/profile/edit"
           />
           <p className="text-xs text-muted-foreground">
             Use a relative path or a full `https://` URL.

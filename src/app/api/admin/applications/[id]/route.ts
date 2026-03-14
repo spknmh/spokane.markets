@@ -43,24 +43,36 @@ export async function PATCH(
       });
 
       if (status === "APPROVED" && app.userId) {
-        const newRole = app.form.type === "VENDOR" ? "VENDOR" : "ORGANIZER";
-        await tx.user.update({
-          where: { id: app.userId },
-          data: { role: newRole },
-        });
+        const newRole =
+          app.form.type === "VENDOR"
+            ? "VENDOR"
+            : app.form.type === "MARKET"
+              ? "ORGANIZER"
+              : null;
+        if (newRole) {
+          await tx.user.update({
+            where: { id: app.userId },
+            data: { role: newRole },
+          });
+        }
       }
 
       return app;
     });
 
     if (status === "APPROVED" && application.userId) {
-      const newRole = application.form.type === "VENDOR" ? "VENDOR" : "ORGANIZER";
+      const newRole =
+        application.form.type === "VENDOR"
+          ? "VENDOR"
+          : application.form.type === "MARKET"
+            ? "ORGANIZER"
+            : null;
       await logAudit(
         session.user.id,
         "APPROVE_APPLICATION",
         "APPLICATION",
         id,
-        { email: application.email, newRole }
+        { email: application.email, ...(newRole ? { newRole } : {}) }
       );
     } else {
       await logAudit(

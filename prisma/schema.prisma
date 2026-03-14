@@ -678,6 +678,7 @@ model VendorProfile {
   contactPhone       String?
   galleryUrls        String[] @default([])
   specialties        String?
+  verificationStatus VerificationStatus @default(UNVERIFIED)
   contactVisible     Boolean  @default(true)
   socialLinksVisible Boolean  @default(true)
 
@@ -827,6 +828,7 @@ model SiteConfig {
 enum ApplicationFormType {
   VENDOR
   MARKET
+  VENDOR_VERIFICATION
 }
 
 enum ApplicationStatus {

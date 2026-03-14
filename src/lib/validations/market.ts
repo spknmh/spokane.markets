@@ -44,8 +44,3 @@ export const organizerMarketPatchSchema = z.object({
 });
 export type OrganizerMarketPatchInput = z.infer<typeof organizerMarketPatchSchema>;
 
-export const claimRequestSchema = z.object({
-  marketId: z.string().min(1, "Market is required"),
-  proof: z.string().min(10, "Please provide proof of your connection to this market (minimum 10 characters)"),
-});
-export type ClaimRequestInput = z.infer<typeof claimRequestSchema>;

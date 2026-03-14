@@ -49,7 +49,7 @@ export default async function MarketsPage({
   const params = await searchParams;
   const q = (params.q ?? "").trim();
 
-  const [banners, markets, applicationForms] = await Promise.all([
+  const [banners, markets] = await Promise.all([
     getBannerImages(),
     db.market.findMany({
       where: q
@@ -67,17 +67,7 @@ export default async function MarketsPage({
         },
       },
     }),
-    db.applicationForm.findMany({
-      where: { type: { in: ["VENDOR", "MARKET"] } },
-      select: { type: true, active: true },
-    }),
   ]);
-  const vendorApplicationsOpen = applicationForms.some(
-    (form) => form.type === "VENDOR" && form.active
-  );
-  const marketApplicationsOpen = applicationForms.some(
-    (form) => form.type === "MARKET" && form.active
-  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -113,21 +103,15 @@ export default async function MarketsPage({
           <CardHeader>
             <CardTitle className="text-xl">Run a market or recurring event?</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Organizers can apply for a market profile to publish their listing and improve discovery across the site.
+              Start organizing by claiming your market listing from the market detail page.
             </p>
           </CardHeader>
           <CardContent className="flex flex-wrap items-center gap-3">
-            {marketApplicationsOpen ? (
-              <Button asChild>
-                <Link href="/apply/market" prefetch={false}>
-                  List Your Market
-                </Link>
-              </Button>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Market applications are currently closed. Please check back soon.
-              </p>
-            )}
+            <Button asChild>
+              <Link href="/markets" prefetch={false}>
+                Create Market
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 
@@ -135,21 +119,15 @@ export default async function MarketsPage({
           <CardHeader>
             <CardTitle className="text-xl">Vend at local markets?</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Vendors can also apply for a profile to share their business and connect with upcoming events.
+              Build your vendor profile and connect with upcoming events.
             </p>
           </CardHeader>
           <CardContent className="flex flex-wrap items-center gap-3">
-            {vendorApplicationsOpen ? (
-              <Button asChild variant="outline">
-                <Link href="/apply/vendor" prefetch={false}>
-                  Apply for a Vendor Profile
-                </Link>
-              </Button>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Vendor applications are currently closed. Please check back soon.
-              </p>
-            )}
+            <Button asChild variant="outline">
+              <Link href="/vendor/profile/edit" prefetch={false}>
+                Create Vendor Profile
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </section>

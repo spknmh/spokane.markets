@@ -19,6 +19,9 @@ import { VendorProfileProgress } from "@/components/vendor-profile-progress";
 import { ExternalLink, Heart } from "lucide-react";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { computeVendorProfileCompletion } from "@/lib/vendor-profile";
+import { evaluateVendorVerificationReadiness } from "@/lib/vendor-verification";
+import { RequestVerificationButton } from "@/components/vendor/request-verification-button";
+import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
 
@@ -137,12 +140,18 @@ export default async function VendorDashboardPage() {
   );
 
   const favoritedCount = profile._count.favoriteVendors;
-  const profileComplete = !!(
-    profile.businessName &&
-    profile.description &&
-    profile.contactEmail
-  );
   const profileCompletionPercent = computeVendorProfileCompletion(profile);
+  const readiness = evaluateVendorVerificationReadiness({ user, profile });
+  const profileComplete = profileCompletionPercent >= 80;
+  const verificationStatus = profile.verificationStatus;
+  const verificationBadgeVariant =
+    verificationStatus === "VERIFIED"
+      ? "success"
+      : verificationStatus === "PENDING"
+        ? "warning"
+        : "secondary";
+  const canRequestVerification =
+    readiness.isEligible && verificationStatus === "UNVERIFIED";
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -183,6 +192,54 @@ export default async function VendorDashboardPage() {
         profileComplete={profileComplete}
         className="mt-6"
       />
+
+      <Card className="mt-6">
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <CardTitle>Verification</CardTitle>
+              <CardDescription className="mt-1">
+                Verified vendors build trust and stand out in directory listings.
+              </CardDescription>
+            </div>
+            <Badge variant={verificationBadgeVariant}>
+              {verificationStatus}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {verificationStatus === "VERIFIED" ? (
+            <p className="text-sm text-muted-foreground">
+              Your vendor profile is verified.
+            </p>
+          ) : verificationStatus === "PENDING" ? (
+            <p className="text-sm text-muted-foreground">
+              Your verification request is pending review.
+            </p>
+          ) : canRequestVerification ? (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Your profile is eligible. Submit your request when ready.
+              </p>
+              <RequestVerificationButton />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Complete the checklist below to request verification.
+              </p>
+              <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                {readiness.unmetRequirements.map((requirement) => (
+                  <li key={requirement.code}>{requirement.message}</li>
+                ))}
+              </ul>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/vendor/profile/edit">Finish Profile</Link>
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="mt-8">
         <CardHeader>

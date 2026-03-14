@@ -29,7 +29,7 @@ export default async function AdminApplicationFormsPage() {
           Application Form Fields
         </h1>
         <p className="text-muted-foreground mt-1">
-          Configure form fields for Vendor and Market applications.
+          Configure form fields for Vendor, Market, and Vendor Verification applications.
         </p>
       </div>
       <FormsEditorClient initialForms={serialized} />

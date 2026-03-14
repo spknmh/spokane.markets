@@ -16,7 +16,9 @@ export async function GET(request: Request) {
   const applications = await db.application.findMany({
     where: {
       ...(status ? { status: status as "PENDING" | "APPROVED" | "REJECTED" } : {}),
-      ...(type ? { form: { type: type as "VENDOR" | "MARKET" } } : {}),
+      ...(type
+        ? { form: { type: type as "VENDOR" | "MARKET" | "VENDOR_VERIFICATION" } }
+        : {}),
     },
     include: {
       form: { select: { type: true, title: true } },

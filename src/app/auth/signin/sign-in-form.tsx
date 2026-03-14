@@ -347,18 +347,13 @@ export function SignInForm({
           </p>
 
           <div className="w-full space-y-2 rounded-lg border border-border bg-muted/30 p-3 text-center text-sm">
-            <p className="font-medium text-foreground">Are you a vendor or market organizer?</p>
+            <p className="font-medium text-foreground">Running a vendor booth or market?</p>
             <p className="text-muted-foreground">
-              <Link href="/apply/vendor" className="text-primary hover:underline">
-                Apply for a vendor profile
-              </Link>
-              {" "}to share where you&apos;ll be next and get discovered by shoppers.
-            </p>
-            <p className="text-muted-foreground">
-              <Link href="/apply/market" className="text-primary hover:underline">
-                List your market or event
-              </Link>
-              {" "}to reach visitors planning their weekend.
+              Sign in, then use your{" "}
+              <Link href="/dashboard" className="text-primary hover:underline">
+                account dashboard
+              </Link>{" "}
+              to create your vendor profile, start organizing a market, or browse events.
             </p>
           </div>
         </CardFooter>

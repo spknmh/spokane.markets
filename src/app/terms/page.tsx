@@ -30,8 +30,8 @@ export default function TermsPage() {
         <p>
           The Service provides a platform to discover local markets, craft fairs, vendor events, and
           community gatherings in the Spokane area. You may browse events, markets, and vendor profiles, create
-          an account to save favorites, submit events, write reviews, and claim markets or vendor profiles
-          where applicable.
+          an account to save favorites, submit events, write reviews, create vendor profiles, and manage market
+          listings where applicable.
         </p>
         <p>
           You agree to provide accurate information when creating an account or submitting content. You are

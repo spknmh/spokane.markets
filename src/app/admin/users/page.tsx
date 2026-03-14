@@ -57,7 +57,7 @@ export default async function AdminUsersPage({
       orderBy: { createdAt: "desc" },
       include: {
         _count: {
-          select: { ownedMarkets: true, claimRequests: true, reviews: true },
+          select: { ownedMarkets: true, reviews: true },
         },
       },
       skip: (page - 1) * limit,
