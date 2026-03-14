@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { requireApiAdmin } from "@/lib/api-auth";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
@@ -16,7 +16,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { session, error } = await requireApiAdmin();
+    const { session, error } = await requireApiAdminPermission("admin.moderation.manage");
     if (error) return error;
 
     const { id } = await params;
@@ -29,6 +29,10 @@ export async function PATCH(
     const { status, notes } = parsed.data;
 
     const application = await db.$transaction(async (tx) => {
+      const before = await tx.application.findUnique({
+        where: { id },
+        select: { status: true },
+      });
       const app = await tx.application.update({
         where: { id },
         data: {
@@ -59,21 +63,21 @@ export async function PATCH(
 
       if (app.form.type === "VENDOR_VERIFICATION" && app.userId) {
         await tx.vendorProfile.updateMany({
-          where: { userId: app.userId },
+          where: { userId: app.userId, deletedAt: null },
           data: {
             verificationStatus: status === "APPROVED" ? "VERIFIED" : "UNVERIFIED",
           },
         });
       }
 
-      return app;
+      return { app, previousStatus: before?.status ?? null };
     });
 
-    if (status === "APPROVED" && application.userId) {
+    if (status === "APPROVED" && application.app.userId) {
       const newRole =
-        application.form.type === "VENDOR"
+        application.app.form.type === "VENDOR"
           ? "VENDOR"
-          : application.form.type === "MARKET"
+          : application.app.form.type === "MARKET"
             ? "ORGANIZER"
             : null;
       await logAudit(
@@ -81,7 +85,12 @@ export async function PATCH(
         "APPROVE_APPLICATION",
         "APPLICATION",
         id,
-        { email: application.email, ...(newRole ? { newRole } : {}) }
+        {
+          email: application.app.email,
+          previousValue: { status: application.previousStatus },
+          newValue: { status },
+          ...(newRole ? { newRole } : {}),
+        }
       );
     } else {
       await logAudit(
@@ -96,14 +105,14 @@ export async function PATCH(
         "APPLICATION",
         id,
         {
-          email: application.email,
-          previousValue: { status: "PENDING" },
+          email: application.app.email,
+          previousValue: { status: application.previousStatus },
           newValue: { status },
         }
       );
     }
 
-    if (application.userId) {
+    if (application.app.userId) {
       const statusText =
         status === "APPROVED"
           ? "approved"
@@ -113,15 +122,15 @@ export async function PATCH(
               ? "marked as needing more information"
               : "marked as duplicate";
       await createNotification({
-        userId: application.userId,
+        userId: application.app.userId,
         type: "APPLICATION_STATUS",
-        title: `Your ${application.form.type.toLowerCase()} application has been ${statusText}`,
+        title: `Your ${application.app.form.type.toLowerCase()} application has been ${statusText}`,
         link: `/dashboard`,
         objectType: "application",
       });
     }
 
-    return NextResponse.json(application);
+    return NextResponse.json(application.app);
   } catch (err) {
     console.error("[PATCH /api/admin/applications/:id]", err);
     return apiError("Internal server error", 500);
@@ -133,7 +142,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.moderation.manage");
     if (error) return error;
 
     const { id } = await params;

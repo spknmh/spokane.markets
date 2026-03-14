@@ -1,20 +1,14 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { eventSchema } from "@/lib/validations";
 import { parseDateOnlyToUTCNoon, parseDateTimeInTimezone } from "@/lib/utils";
 import { logAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const { session, error } = await requireApiAdminPermission("admin.listings.manage");
+  if (error) return error;
 
   const body = await request.json();
   const parsed = eventSchema.safeParse(body);
@@ -70,6 +64,30 @@ export async function POST(request: Request) {
       { error: { message: "Select a venue or enter an address" } },
       { status: 400 }
     );
+  }
+
+  const venueExists = await db.venue.findFirst({
+    where: { id: venueId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!venueExists) {
+    return NextResponse.json(
+      { error: { message: "Selected venue is archived or missing" } },
+      { status: 400 }
+    );
+  }
+
+  if (data.marketId) {
+    const marketExists = await db.market.findFirst({
+      where: { id: data.marketId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!marketExists) {
+      return NextResponse.json(
+        { error: { message: "Selected market is archived or missing" } },
+        { status: 400 }
+      );
+    }
   }
 
   const event = await db.event.create({

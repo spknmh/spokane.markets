@@ -7,17 +7,36 @@ import { createNotification } from "@/lib/notifications";
 import { logAudit } from "@/lib/audit";
 import { evaluateAndGrantBadges } from "@/lib/badges";
 import { revalidatePath } from "next/cache";
+import {
+  normalizePermissionMatrix,
+  type AdminPermissionKey,
+} from "@/lib/admin/permissions";
 
-async function requireAdminAction() {
+async function requireAdminAction(permission: AdminPermissionKey) {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user || session.user.role !== "ADMIN") {
+  if (
+    !session?.user ||
+    session.user.role !== "ADMIN" ||
+    session.user.accountStatus !== "ACTIVE"
+  ) {
     throw new Error("Unauthorized");
+  }
+  const row = await db.siteConfig.findUnique({
+    where: { key: "admin_permissions_matrix" },
+    select: { value: true },
+  });
+  const matrix = normalizePermissionMatrix(
+    row?.value ? JSON.parse(row.value) : null
+  );
+  const allowed = matrix[session.user.role]?.includes(permission) ?? false;
+  if (!allowed) {
+    throw new Error("Forbidden");
   }
   return session;
 }
 
 export async function deleteEvent(id: string) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.listings.manage");
   const current = await db.event.findUnique({
     where: { id },
     select: { deletedAt: true, title: true, status: true },
@@ -35,7 +54,7 @@ export async function deleteEvent(id: string) {
 }
 
 export async function deleteVenue(id: string) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.listings.manage");
   const current = await db.venue.findUnique({
     where: { id },
     select: { deletedAt: true, name: true },
@@ -53,7 +72,7 @@ export async function deleteVenue(id: string) {
 }
 
 export async function deleteMarket(id: string) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.listings.manage");
   const current = await db.market.findUnique({
     where: { id },
     select: { deletedAt: true, name: true, verificationStatus: true },
@@ -71,7 +90,7 @@ export async function deleteMarket(id: string) {
 }
 
 export async function deleteVendor(id: string) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.listings.manage");
   const current = await db.vendorProfile.findUnique({
     where: { id },
     select: { deletedAt: true, businessName: true },
@@ -89,7 +108,7 @@ export async function deleteVendor(id: string) {
 }
 
 export async function restoreEvent(id: string) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.listings.manage");
   const current = await db.event.findUnique({
     where: { id },
     select: { deletedAt: true },
@@ -104,7 +123,7 @@ export async function restoreEvent(id: string) {
 }
 
 export async function restoreVenue(id: string) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.listings.manage");
   const current = await db.venue.findUnique({
     where: { id },
     select: { deletedAt: true },
@@ -119,7 +138,7 @@ export async function restoreVenue(id: string) {
 }
 
 export async function restoreMarket(id: string) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.listings.manage");
   const current = await db.market.findUnique({
     where: { id },
     select: { deletedAt: true },
@@ -134,7 +153,7 @@ export async function restoreMarket(id: string) {
 }
 
 export async function restoreVendor(id: string) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.listings.manage");
   const current = await db.vendorProfile.findUnique({
     where: { id },
     select: { deletedAt: true },
@@ -149,7 +168,7 @@ export async function restoreVendor(id: string) {
 }
 
 export async function deletePromotion(id: string) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.listings.manage");
   await db.promotion.delete({ where: { id } });
   await logAudit(session.user.id, "DELETE_PROMOTION", "PROMOTION", id);
   revalidatePath("/admin/promotions");
@@ -158,7 +177,7 @@ export async function deletePromotion(id: string) {
 }
 
 export async function verifyMarket(id: string) {
-  await requireAdminAction();
+  await requireAdminAction("admin.listings.manage");
   const market = await db.market.findUnique({
     where: { id },
     select: {
@@ -199,7 +218,7 @@ export async function setMarketVerificationStatus(
   id: string,
   status: "UNVERIFIED" | "PENDING" | "VERIFIED"
 ) {
-  await requireAdminAction();
+  await requireAdminAction("admin.listings.manage");
   const market = await db.market.findUnique({
     where: { id },
     select: {
@@ -240,7 +259,7 @@ export async function updateSubmissionStatus(
   id: string,
   status: "APPROVED" | "REJECTED"
 ) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.moderation.manage");
   const submission = await db.submission.findUnique({
     where: { id },
     select: { submitterEmail: true, status: true },
@@ -278,7 +297,7 @@ export async function updateSubmissionStatus(
 }
 
 export async function updateReviewStatus(id: string, status: "APPROVED" | "REJECTED") {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.moderation.manage");
   const review = await db.review.findUnique({
     where: { id },
     select: { userId: true, status: true },
@@ -300,7 +319,7 @@ export async function updateReviewStatus(id: string, status: "APPROVED" | "REJEC
 }
 
 export async function updatePhotoStatus(id: string, status: "APPROVED" | "REJECTED") {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.moderation.manage");
   const photo = await db.photo.findUnique({
     where: { id },
     select: { status: true },
@@ -322,7 +341,7 @@ export async function updateReportStatus(
   id: string,
   status: "RESOLVED" | "DISMISSED"
 ) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.moderation.manage");
   const report = await db.report.findUnique({
     where: { id },
     select: { status: true },
@@ -351,7 +370,7 @@ export async function updateReportTriage(
     internalNotes?: string;
   }
 ) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.moderation.manage");
   const report = await db.report.findUnique({
     where: { id },
     select: {
@@ -380,6 +399,63 @@ export async function updateReportTriage(
   revalidatePath("/admin/reports");
 }
 
+export async function assignReportToMe(id: string) {
+  const session = await requireAdminAction("admin.moderation.manage");
+  const current = await db.report.findUnique({
+    where: { id },
+    select: { assigneeUserId: true },
+  });
+  if (!current) return;
+  await db.report.update({
+    where: { id },
+    data: { assigneeUserId: session.user.id },
+  });
+  await logAudit(session.user.id, "ASSIGN_REPORT", "REPORT", id, {
+    previousValue: { assigneeUserId: current.assigneeUserId },
+    newValue: { assigneeUserId: session.user.id },
+  });
+  revalidatePath("/admin/reports");
+}
+
+export async function unassignReport(id: string) {
+  const session = await requireAdminAction("admin.moderation.manage");
+  const current = await db.report.findUnique({
+    where: { id },
+    select: { assigneeUserId: true },
+  });
+  if (!current?.assigneeUserId) return;
+  await db.report.update({
+    where: { id },
+    data: { assigneeUserId: null },
+  });
+  await logAudit(session.user.id, "UNASSIGN_REPORT", "REPORT", id, {
+    previousValue: { assigneeUserId: current.assigneeUserId },
+    newValue: { assigneeUserId: null },
+  });
+  revalidatePath("/admin/reports");
+}
+
+export async function updateReportInternalNotes(formData: FormData) {
+  const session = await requireAdminAction("admin.moderation.manage");
+  const id = String(formData.get("reportId") ?? "");
+  const internalNotes = String(formData.get("internalNotes") ?? "").trim();
+  if (!id) return;
+  const current = await db.report.findUnique({
+    where: { id },
+    select: { internalNotes: true },
+  });
+  if (!current) return;
+  await db.report.update({
+    where: { id },
+    data: { internalNotes: internalNotes || null },
+  });
+  await logAudit(session.user.id, "UPDATE_REPORT_INTERNAL_NOTES", "REPORT", id, {
+    previousValue: { internalNotes: current.internalNotes },
+    newValue: { internalNotes: internalNotes || null },
+  });
+  revalidatePath("/admin/reports");
+}
+
 function getSelectedIds(formData: FormData): string[] {
   return formData
     .getAll("selectedIds")
@@ -391,17 +467,23 @@ export async function bulkUpdateSubmissionStatus(
   status: "APPROVED" | "REJECTED",
   formData: FormData
 ) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.moderation.manage");
   const ids = getSelectedIds(formData);
   if (ids.length === 0) return;
   await db.submission.updateMany({
     where: { id: { in: ids }, status: "PENDING" },
     data: { status, reviewerId: session.user.id },
   });
-  await logAudit(session.user.id, "BULK_UPDATE_SUBMISSION_STATUS", "SUBMISSION", null, {
+  await logAudit(
+    session.user.id,
+    "BULK_UPDATE_SUBMISSION_STATUS",
+    "SUBMISSION",
+    undefined,
+    {
     ids,
     newValue: { status },
-  });
+    }
+  );
   revalidatePath("/admin/submissions");
   revalidatePath("/admin/queues");
 }
@@ -410,14 +492,14 @@ export async function bulkUpdateReviewStatus(
   status: "APPROVED" | "REJECTED",
   formData: FormData
 ) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.moderation.manage");
   const ids = getSelectedIds(formData);
   if (ids.length === 0) return;
   await db.review.updateMany({
     where: { id: { in: ids }, status: "PENDING" },
     data: { status },
   });
-  await logAudit(session.user.id, "BULK_UPDATE_REVIEW_STATUS", "REVIEW", null, {
+  await logAudit(session.user.id, "BULK_UPDATE_REVIEW_STATUS", "REVIEW", undefined, {
     ids,
     newValue: { status },
   });
@@ -429,14 +511,14 @@ export async function bulkUpdatePhotoStatus(
   status: "APPROVED" | "REJECTED",
   formData: FormData
 ) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.moderation.manage");
   const ids = getSelectedIds(formData);
   if (ids.length === 0) return;
   await db.photo.updateMany({
     where: { id: { in: ids }, status: "PENDING" },
     data: { status },
   });
-  await logAudit(session.user.id, "BULK_UPDATE_PHOTO_STATUS", "PHOTO", null, {
+  await logAudit(session.user.id, "BULK_UPDATE_PHOTO_STATUS", "PHOTO", undefined, {
     ids,
     newValue: { status },
   });
@@ -448,7 +530,7 @@ export async function bulkUpdateReportStatus(
   status: "RESOLVED" | "DISMISSED",
   formData: FormData
 ) {
-  const session = await requireAdminAction();
+  const session = await requireAdminAction("admin.moderation.manage");
   const ids = getSelectedIds(formData);
   if (ids.length === 0) return;
   await db.report.updateMany({
@@ -458,7 +540,7 @@ export async function bulkUpdateReportStatus(
       ...(status === "RESOLVED" ? { escalationStatus: "CLOSED" } : {}),
     },
   });
-  await logAudit(session.user.id, "BULK_UPDATE_REPORT_STATUS", "REPORT", null, {
+  await logAudit(session.user.id, "BULK_UPDATE_REPORT_STATUS", "REPORT", undefined, {
     ids,
     newValue: { status },
   });

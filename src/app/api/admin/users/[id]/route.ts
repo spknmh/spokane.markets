@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { requireApiAdmin } from "@/lib/api-auth";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 import { apiError, apiValidationError, apiNotFound } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
@@ -18,7 +18,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { session, error } = await requireApiAdmin();
+    const { session, error } = await requireApiAdminPermission("admin.users.manage");
     if (error) return error;
 
     const { id } = await params;
@@ -64,6 +64,11 @@ export async function PATCH(
     });
     if (!existing) {
       return apiNotFound("User");
+    }
+
+    if (role) {
+      const rolePermissionCheck = await requireApiAdminPermission("admin.roles.manage");
+      if (rolePermissionCheck.error) return rolePermissionCheck.error;
     }
 
     const nextRole = role ?? existing.role;
@@ -128,7 +133,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { session, error } = await requireApiAdmin();
+    const { session, error } = await requireApiAdminPermission("admin.users.manage");
     if (error) return error;
 
     const { id } = await params;

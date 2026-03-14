@@ -1,4 +1,4 @@
-import { requireApiAdmin } from "@/lib/api-auth";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { adminVendorProfileSchema } from "@/lib/validations";
@@ -30,8 +30,8 @@ async function generateUniqueSlug(base: string, excludeId?: string): Promise<str
   let candidate = slug;
   let n = 0;
   while (true) {
-    const existing = await db.vendorProfile.findUnique({
-      where: { slug: candidate },
+    const existing = await db.vendorProfile.findFirst({
+      where: { slug: candidate, deletedAt: null },
       select: { id: true },
     });
     if (!existing || (excludeId && existing.id === excludeId)) break;
@@ -46,7 +46,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.listings.manage");
     if (error) return error;
 
     const { id } = await params;
@@ -61,16 +61,16 @@ export async function PUT(
     let slug = data.slug;
 
     if (slug) {
-      const existing = await db.vendorProfile.findUnique({
-        where: { slug },
+      const existing = await db.vendorProfile.findFirst({
+        where: { slug, deletedAt: null },
         select: { id: true },
       });
       if (existing && existing.id !== id) {
         return apiError(`Slug "${slug}" is already taken.`, 400);
       }
     } else {
-      const current = await db.vendorProfile.findUnique({
-        where: { id },
+      const current = await db.vendorProfile.findFirst({
+        where: { id, deletedAt: null },
         select: { businessName: true },
       });
       slug = current
@@ -86,6 +86,14 @@ export async function PUT(
             .map((s) => s.trim())
             .filter((s) => s.startsWith("http"))
         : undefined);
+
+    const existingVendor = await db.vendorProfile.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!existingVendor) {
+      return apiError("Vendor not found or archived", 404);
+    }
 
     const vendor = await db.vendorProfile.update({
       where: { id },
@@ -122,7 +130,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.listings.manage");
     if (error) return error;
 
     const { id } = await params;

@@ -1,9 +1,8 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { assertNeighborhoodSlugList } from "@/lib/neighborhoods";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 
 const updateSchema = z.object({
   email: z.string().email("Valid email is required").optional(),
@@ -14,10 +13,8 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const { error } = await requireApiAdminPermission("admin.settings.manage");
+  if (error) return error;
 
   const { id } = await params;
   const body = await request.json();
@@ -71,10 +68,8 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const { error } = await requireApiAdminPermission("admin.settings.manage");
+  if (error) return error;
 
   const { id } = await params;
   const existing = await db.subscriber.findUnique({ where: { id } });

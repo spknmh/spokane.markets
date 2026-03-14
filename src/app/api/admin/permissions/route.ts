@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiAdmin } from "@/lib/api-auth";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 import { apiError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import {
@@ -12,7 +12,7 @@ const PERMISSIONS_KEY = "admin_permissions_matrix";
 
 export async function GET() {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.roles.manage");
     if (error) return error;
     const row = await db.siteConfig.findUnique({
       where: { key: PERMISSIONS_KEY },
@@ -28,7 +28,7 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const { session, error } = await requireApiAdmin();
+    const { session, error } = await requireApiAdminPermission("admin.roles.manage");
     if (error) return error;
     const body = await request.json();
     const matrix = normalizePermissionMatrix(body);

@@ -43,6 +43,9 @@ const ACTION_MESSAGES: Record<string, (entry: AuditEntry) => string> = {
     if (status === "DISMISSED") return "dismissed a report";
     return "resolved a report";
   },
+  ASSIGN_REPORT: () => "assigned a report",
+  UNASSIGN_REPORT: () => "unassigned a report",
+  UPDATE_REPORT_INTERNAL_NOTES: () => "updated report internal notes",
   UPDATE_USER_ROLE: (e) => {
     const role = (e.metadata as { newRole?: string })?.newRole;
     return role ? `changed user role to ${role}` : "updated user role";

@@ -1,4 +1,4 @@
-import { requireApiAdmin } from "@/lib/api-auth";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
@@ -10,7 +10,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.listings.manage");
     if (error) return error;
 
     const { id } = await params;
@@ -31,6 +31,21 @@ export async function PUT(
         400
       );
     }
+    const existing = await db.market.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!existing) {
+      return apiError("Market not found or archived", 404);
+    }
+    const activeVenue = await db.venue.findFirst({
+      where: { id: data.venueId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!activeVenue) {
+      return apiError("Selected venue is archived or missing", 400);
+    }
+
     const market = await db.market.update({
       where: { id },
       data: {
@@ -78,7 +93,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.listings.manage");
     if (error) return error;
 
     const { id } = await params;

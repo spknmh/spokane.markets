@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth-utils";
+import { requireAdminPermission } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import {
   DEFAULT_ADMIN_PERMISSION_MATRIX,
@@ -9,7 +9,7 @@ import { PermissionsMatrix } from "@/components/admin/permissions-matrix";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPermissionsPage() {
-  await requireAdmin();
+  await requireAdminPermission("admin.roles.manage");
   const row = await db.siteConfig.findUnique({
     where: { key: "admin_permissions_matrix" },
   });

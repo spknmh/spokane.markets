@@ -1,16 +1,10 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { importData, parseVenuesCsv, type ImportPayload } from "@/lib/admin/data-import";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const { error } = await requireApiAdminPermission("admin.settings.manage");
+  if (error) return error;
 
   const formData = await request.formData();
   const file = formData.get("file") as File | null;

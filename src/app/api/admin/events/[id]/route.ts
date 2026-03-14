@@ -1,4 +1,4 @@
-import { requireApiAdmin } from "@/lib/api-auth";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { eventSchema } from "@/lib/validations";
@@ -12,7 +12,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.listings.manage");
     if (error) return error;
 
     const { id } = await params;
@@ -67,10 +67,30 @@ export async function PUT(
       return apiError("Select a venue or enter an address", 400);
     }
 
-    const existing = await db.event.findUnique({
-      where: { id },
+    const activeVenue = await db.venue.findFirst({
+      where: { id: venueId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!activeVenue) {
+      return apiError("Selected venue is archived or missing", 400);
+    }
+    if (data.marketId) {
+      const activeMarket = await db.market.findFirst({
+        where: { id: data.marketId, deletedAt: null },
+        select: { id: true },
+      });
+      if (!activeMarket) {
+        return apiError("Selected market is archived or missing", 400);
+      }
+    }
+
+    const existing = await db.event.findFirst({
+      where: { id, deletedAt: null },
       select: { status: true, submittedById: true, title: true, slug: true },
     });
+    if (!existing) {
+      return apiError("Event not found or archived", 404);
+    }
 
     const event = await db.event.update({
       where: { id },
@@ -172,7 +192,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.listings.manage");
     if (error) return error;
 
     const { id } = await params;

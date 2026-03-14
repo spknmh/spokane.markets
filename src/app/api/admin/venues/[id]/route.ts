@@ -1,4 +1,4 @@
-import { requireApiAdmin } from "@/lib/api-auth";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
@@ -10,7 +10,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.listings.manage");
     if (error) return error;
 
     const { id } = await params;
@@ -34,6 +34,14 @@ export async function PUT(
       );
     }
 
+    const existing = await db.venue.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!existing) {
+      return apiError("Venue not found or archived", 404);
+    }
+
     const venue = await db.venue.update({
       where: { id },
       data: {
@@ -55,7 +63,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.listings.manage");
     if (error) return error;
 
     const { id } = await params;

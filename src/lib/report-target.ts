@@ -7,8 +7,8 @@ export async function getReportTargetInfo(
 ): Promise<{ label: string; link: string | null }> {
   switch (targetType) {
     case "EVENT": {
-      const e = await db.event.findUnique({
-        where: { id: targetId },
+      const e = await db.event.findFirst({
+        where: { id: targetId, deletedAt: null },
         select: { title: true, slug: true },
       });
       return e
@@ -16,8 +16,8 @@ export async function getReportTargetInfo(
         : { label: targetId, link: null };
     }
     case "MARKET": {
-      const m = await db.market.findUnique({
-        where: { id: targetId },
+      const m = await db.market.findFirst({
+        where: { id: targetId, deletedAt: null },
         select: { name: true, slug: true },
       });
       return m
@@ -25,8 +25,8 @@ export async function getReportTargetInfo(
         : { label: targetId, link: null };
     }
     case "VENDOR": {
-      const v = await db.vendorProfile.findUnique({
-        where: { id: targetId },
+      const v = await db.vendorProfile.findFirst({
+        where: { id: targetId, deletedAt: null },
         select: { businessName: true, slug: true },
       });
       return v

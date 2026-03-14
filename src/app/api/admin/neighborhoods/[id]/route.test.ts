@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { requireApiAdminMock, dbMock } = vi.hoisted(() => ({
-  requireApiAdminMock: vi.fn(),
+const { requireApiAdminPermissionMock, dbMock } = vi.hoisted(() => ({
+  requireApiAdminPermissionMock: vi.fn(),
   dbMock: {
     neighborhood: { findUnique: vi.fn() },
     venue: { count: vi.fn() },
@@ -13,7 +13,7 @@ const { requireApiAdminMock, dbMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/api-auth", () => ({
-  requireApiAdmin: requireApiAdminMock,
+  requireApiAdminPermission: requireApiAdminPermissionMock,
 }));
 vi.mock("@/lib/db", () => ({
   db: dbMock,
@@ -24,7 +24,7 @@ import { DELETE } from "./route";
 describe("DELETE /api/admin/neighborhoods/:id", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    requireApiAdminMock.mockResolvedValue({ error: null });
+    requireApiAdminPermissionMock.mockResolvedValue({ error: null });
     dbMock.neighborhood.findUnique.mockResolvedValue({ id: "n1", slug: "downtown" });
   });
 
@@ -115,8 +115,14 @@ describe("DELETE /api/admin/neighborhoods/:id", () => {
     );
 
     expect(response.status).toBe(204);
-    expect(tx.venue.updateMany).toHaveBeenCalled();
-    expect(tx.market.updateMany).toHaveBeenCalled();
+    expect(tx.venue.updateMany).toHaveBeenCalledWith({
+      where: { neighborhood: "downtown", deletedAt: null },
+      data: { neighborhood: "south-hill" },
+    });
+    expect(tx.market.updateMany).toHaveBeenCalledWith({
+      where: { baseArea: "downtown", deletedAt: null },
+      data: { baseArea: "south-hill" },
+    });
     expect(tx.subscriber.update).toHaveBeenCalled();
     expect(tx.savedFilter.update).toHaveBeenCalled();
     expect(tx.neighborhood.delete).toHaveBeenCalledWith({ where: { id: "n1" } });

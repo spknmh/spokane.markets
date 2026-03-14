@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth-utils";
+import { requireAdminPermission } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
@@ -7,6 +7,7 @@ import { bulkUpdateReviewStatus, updateReviewStatus } from "../actions";
 import { formatDate, cn } from "@/lib/utils";
 import Link from "next/link";
 import type { ModerationStatus } from "@prisma/client";
+import { BulkActionButton } from "@/components/admin/bulk-action-button";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export default async function AdminReviewsPage({
 }: {
   searchParams: Promise<{ status?: string; page?: string; limit?: string; user?: string }>;
 }) {
-  await requireAdmin();
+  await requireAdminPermission("admin.moderation.manage");
 
   const params = await searchParams;
   const statusFilter = (params.status as ModerationStatus) || "PENDING";
@@ -101,20 +102,18 @@ export default async function AdminReviewsPage({
       <form className="space-y-4">
         {statusFilter === "PENDING" && (
           <div className="flex items-center gap-2">
-            <button
-              type="submit"
+            <BulkActionButton
+              label="Bulk approve selected"
+              confirmMessage="Approve all selected reviews?"
               formAction={bulkUpdateReviewStatus.bind(null, "APPROVED")}
               className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
-            >
-              Bulk approve selected
-            </button>
-            <button
-              type="submit"
+            />
+            <BulkActionButton
+              label="Bulk reject selected"
+              confirmMessage="Reject all selected reviews?"
               formAction={bulkUpdateReviewStatus.bind(null, "REJECTED")}
               className="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-3 text-sm font-medium text-destructive-foreground"
-            >
-              Bulk reject selected
-            </button>
+            />
           </div>
         )}
         {reviews.length === 0 ? (

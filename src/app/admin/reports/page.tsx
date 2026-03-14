@@ -1,12 +1,20 @@
-import { requireAdmin } from "@/lib/auth-utils";
+import { requireAdminPermission } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
-import { bulkUpdateReportStatus, updateReportStatus, updateReportTriage } from "../actions";
+import {
+  assignReportToMe,
+  bulkUpdateReportStatus,
+  unassignReport,
+  updateReportInternalNotes,
+  updateReportStatus,
+  updateReportTriage,
+} from "../actions";
 import { formatDate, cn } from "@/lib/utils";
 import { getReportTargetInfo } from "@/lib/report-target";
 import Link from "next/link";
+import { BulkActionButton } from "@/components/admin/bulk-action-button";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +31,7 @@ export default async function AdminReportsPage({
 }: {
   searchParams: Promise<{ status?: string; page?: string; limit?: string; severity?: string; escalation?: string }>;
 }) {
-  await requireAdmin();
+  await requireAdminPermission("admin.moderation.manage");
 
   const params = await searchParams;
   const statusFilter = (params.status ?? "PENDING") as "PENDING" | "RESOLVED" | "DISMISSED";
@@ -54,6 +62,7 @@ export default async function AdminReportsPage({
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { name: true, email: true } },
+        assignee: { select: { name: true, email: true } },
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -101,24 +110,49 @@ export default async function AdminReportsPage({
           </Link>
         ))}
       </div>
+      <div className="flex flex-wrap gap-2 text-sm">
+        <Link
+          href={`/admin/reports?status=${statusFilter}${severityFilter ? `&severity=${severityFilter}` : ""}&page=1`}
+          className={cn(
+            "px-3 py-1.5 rounded-md transition-colors",
+            !escalationFilter
+              ? "bg-muted text-foreground"
+              : "text-muted-foreground hover:bg-muted"
+          )}
+        >
+          All escalation states
+        </Link>
+        {(["NEW", "TRIAGED", "ESCALATED", "CLOSED"] as const).map((state) => (
+          <Link
+            key={state}
+            href={`/admin/reports?status=${statusFilter}${severityFilter ? `&severity=${severityFilter}` : ""}&escalation=${state}&page=1`}
+            className={cn(
+              "px-3 py-1.5 rounded-md transition-colors",
+              escalationFilter === state
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted"
+            )}
+          >
+            {state}
+          </Link>
+        ))}
+      </div>
 
       <form className="space-y-4">
         {statusFilter === "PENDING" && (
           <div className="flex gap-2">
-            <button
-              type="submit"
+            <BulkActionButton
+              label="Bulk resolve selected"
+              confirmMessage="Resolve all selected reports?"
               formAction={bulkUpdateReportStatus.bind(null, "RESOLVED")}
               className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
-            >
-              Bulk resolve selected
-            </button>
-            <button
-              type="submit"
+            />
+            <BulkActionButton
+              label="Bulk dismiss selected"
+              confirmMessage="Dismiss all selected reports?"
               formAction={bulkUpdateReportStatus.bind(null, "DISMISSED")}
               className="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium"
-            >
-              Bulk dismiss selected
-            </button>
+            />
           </div>
         )}
         {reports.length === 0 ? (
@@ -165,6 +199,9 @@ export default async function AdminReportsPage({
                     </div>
                     <p className="text-sm text-muted-foreground mt-0.5">
                       Reported by {report.user?.name || report.user?.email || "Unknown"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Assigned: {report.assignee?.name || report.assignee?.email || "Unassigned"}
                     </p>
                     {report.internalNotes && (
                       <p className="text-xs text-muted-foreground mt-1">
@@ -219,8 +256,37 @@ export default async function AdminReportsPage({
                       label="Mark triaged"
                       variant="outline"
                     />
+                    {report.assignee ? (
+                      <StatusButton
+                        action={unassignReport.bind(null, report.id)}
+                        label="Unassign"
+                        variant="outline"
+                      />
+                    ) : (
+                      <StatusButton
+                        action={assignReportToMe.bind(null, report.id)}
+                        label="Assign to me"
+                        variant="outline"
+                      />
+                    )}
                   </div>
                 )}
+                <form action={updateReportInternalNotes} className="space-y-2">
+                  <input type="hidden" name="reportId" value={report.id} />
+                  <textarea
+                    name="internalNotes"
+                    defaultValue={report.internalNotes ?? ""}
+                    className="w-full rounded-md border border-border bg-background p-2 text-sm"
+                    rows={2}
+                    placeholder="Internal moderation notes..."
+                  />
+                  <button
+                    type="submit"
+                    className="inline-flex h-8 items-center justify-center rounded-md border border-border px-3 text-xs font-medium"
+                  >
+                    Save internal notes
+                  </button>
+                </form>
               </div>
             );
           })

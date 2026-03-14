@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiAdmin } from "@/lib/api-auth";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { neighborhoodSchema } from "@/lib/validations";
@@ -13,7 +13,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.settings.manage");
     if (error) return error;
 
     const { id } = await params;
@@ -44,7 +44,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireApiAdmin();
+    const { error } = await requireApiAdminPermission("admin.settings.manage");
     if (error) return error;
 
     const { id } = await params;
@@ -62,8 +62,12 @@ export async function DELETE(
 
     const [venueCount, marketCount, subscriberCount, filterCount] =
       await Promise.all([
-        db.venue.count({ where: { neighborhood: neighborhood.slug } }),
-        db.market.count({ where: { baseArea: neighborhood.slug } }),
+        db.venue.count({
+          where: { neighborhood: neighborhood.slug, deletedAt: null },
+        }),
+        db.market.count({
+          where: { baseArea: neighborhood.slug, deletedAt: null },
+        }),
         db.subscriber.count({ where: { areas: { has: neighborhood.slug } } }),
         db.savedFilter.count({
           where: { neighborhoods: { has: neighborhood.slug } },
@@ -103,11 +107,11 @@ export async function DELETE(
         }
 
         await tx.venue.updateMany({
-          where: { neighborhood: neighborhood.slug },
+          where: { neighborhood: neighborhood.slug, deletedAt: null },
           data: { neighborhood: reassignToSlug },
         });
         await tx.market.updateMany({
-          where: { baseArea: neighborhood.slug },
+          where: { baseArea: neighborhood.slug, deletedAt: null },
           data: { baseArea: reassignToSlug },
         });
 

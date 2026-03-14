@@ -1,9 +1,8 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { assertNeighborhoodSlugList } from "@/lib/neighborhoods";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 
 const createSchema = z.object({
   email: z.string().email("Valid email is required"),
@@ -11,10 +10,8 @@ const createSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const { error } = await requireApiAdminPermission("admin.settings.manage");
+  if (error) return error;
 
   const body = await request.json();
   const parsed = createSchema.safeParse(body);

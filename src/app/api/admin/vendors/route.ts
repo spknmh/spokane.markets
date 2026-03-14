@@ -1,9 +1,8 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { adminVendorProfileSchema } from "@/lib/validations";
 import { extractSocialHandle, normalizeUrlToHttps, slugify } from "@/lib/utils";
 import { NextResponse } from "next/server";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 
 function toOptional(value: string | undefined): string | undefined {
   if (value === undefined || value === "") return undefined;
@@ -29,8 +28,8 @@ async function generateUniqueSlug(base: string, excludeId?: string): Promise<str
   let candidate = slug;
   let n = 0;
   while (true) {
-    const existing = await db.vendorProfile.findUnique({
-      where: { slug: candidate },
+    const existing = await db.vendorProfile.findFirst({
+      where: { slug: candidate, deletedAt: null },
       select: { id: true },
     });
     if (!existing || (excludeId && existing.id === excludeId)) break;
@@ -41,13 +40,8 @@ async function generateUniqueSlug(base: string, excludeId?: string): Promise<str
 }
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const { error } = await requireApiAdminPermission("admin.listings.manage");
+  if (error) return error;
 
   const body = await request.json();
   const parsed = adminVendorProfileSchema.safeParse(body);
@@ -59,7 +53,9 @@ export async function POST(request: Request) {
   const data = parsed.data;
   const slug = data.slug || (await generateUniqueSlug(data.businessName));
 
-  const existing = await db.vendorProfile.findUnique({ where: { slug } });
+  const existing = await db.vendorProfile.findFirst({
+    where: { slug, deletedAt: null },
+  });
   if (existing) {
     return NextResponse.json(
       { error: `Slug "${slug}" is already taken.` },

@@ -1,8 +1,7 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import { join } from "path";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 
 const BACKUP_DIR = join(process.cwd(), "uploads", "backups");
 
@@ -10,13 +9,8 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ filename: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const { error } = await requireApiAdminPermission("admin.system.read");
+  if (error) return error;
 
   const { filename } = await params;
   if (!filename || !/^backup-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.json$/.test(filename)) {

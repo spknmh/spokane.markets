@@ -1,13 +1,10 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const { error } = await requireApiAdminPermission("admin.moderation.manage");
+  if (error) return error;
 
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status") ?? undefined;
@@ -15,7 +12,16 @@ export async function GET(request: Request) {
 
   const applications = await db.application.findMany({
     where: {
-      ...(status ? { status: status as "PENDING" | "APPROVED" | "REJECTED" } : {}),
+      ...(status
+        ? {
+            status: status as
+              | "PENDING"
+              | "APPROVED"
+              | "REJECTED"
+              | "NEEDS_INFO"
+              | "DUPLICATE",
+          }
+        : {}),
       ...(type
         ? { form: { type: type as "VENDOR" | "MARKET" | "VENDOR_VERIFICATION" } }
         : {}),

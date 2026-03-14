@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiAdmin } from "@/lib/api-auth";
+import { requireApiAdminPermission } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 
 type Entity = "events" | "markets" | "vendors" | "venues";
@@ -23,7 +23,7 @@ function toCsv(rows: Record<string, unknown>[]) {
 }
 
 export async function GET(request: Request) {
-  const { error } = await requireApiAdmin();
+  const { error } = await requireApiAdminPermission("admin.system.read");
   if (error) return error;
 
   const { searchParams } = new URL(request.url);
