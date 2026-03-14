@@ -16,15 +16,35 @@ import { requireApiAuth, requireApiAdmin, requireApiRole } from "./api-auth";
 import { auth } from "@/lib/auth";
 
 type MockSession = {
-  user: { id: string; name: string; email: string; role: string };
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    accountStatus?: "ACTIVE" | "SUSPENDED" | "BANNED" | "DEACTIVATED";
+  };
   session: { id: string };
 };
 
-const mockSession = (role: string): MockSession =>
+const mockSession = (
+  role: string,
+  accountStatus: MockSession["user"]["accountStatus"] = "ACTIVE"
+): MockSession =>
   ({
-    user: { id: "u1", name: "Test User", email: "test@test.com", role },
+    user: {
+      id: "u1",
+      name: "Test User",
+      email: "test@test.com",
+      role,
+      accountStatus,
+    },
     session: { id: "s1" },
   });
+
+const mockSessionWithoutStatus = (role: string): MockSession => ({
+  user: { id: "u1", name: "Test User", email: "test@test.com", role },
+  session: { id: "s1" },
+});
 
 describe("requireApiAuth", () => {
   beforeEach(() => {
@@ -47,6 +67,16 @@ describe("requireApiAuth", () => {
     expect(result.error).toBeNull();
     expect(result.session).not.toBeNull();
     expect(result.session!.user.email).toBe("test@test.com");
+  });
+
+  it("returns 403 when accountStatus is missing", async () => {
+    vi.mocked(auth.api.getSession).mockResolvedValue(mockSessionWithoutStatus("USER"));
+    const result = await requireApiAuth();
+    expect(result.session).toBeNull();
+    expect(result.error).not.toBeNull();
+    expect(result.error!.status).toBe(403);
+    const body = await result.error!.json();
+    expect(body.error.message).toBe("Account is not active");
   });
 });
 

@@ -1,6 +1,11 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import {
+  normalizePermissionMatrix,
+  type AdminPermissionKey,
+} from "@/lib/admin/permissions";
 
 type Session = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
 
@@ -19,7 +24,7 @@ export async function requireApiAuth(): Promise<AuthResult> {
       ),
     };
   }
-  if (session.user.accountStatus && session.user.accountStatus !== "ACTIVE") {
+  if (session.user.accountStatus !== "ACTIVE") {
     return {
       session: null,
       error: NextResponse.json(
@@ -39,6 +44,32 @@ export async function requireApiAdmin(): Promise<AuthResult> {
       session: null,
       error: NextResponse.json(
         { error: { message: "Forbidden: admin access required" } },
+        { status: 403 }
+      ),
+    };
+  }
+  return result;
+}
+
+export async function requireApiAdminPermission(
+  permission: AdminPermissionKey
+): Promise<AuthResult> {
+  const result = await requireApiAdmin();
+  if (result.error) return result;
+
+  const row = await db.siteConfig.findUnique({
+    where: { key: "admin_permissions_matrix" },
+    select: { value: true },
+  });
+  const matrix = normalizePermissionMatrix(
+    row?.value ? JSON.parse(row.value) : null
+  );
+  const allowed = matrix[result.session.user.role]?.includes(permission) ?? false;
+  if (!allowed) {
+    return {
+      session: null,
+      error: NextResponse.json(
+        { error: { message: `Forbidden: ${permission} permission required` } },
         { status: 403 }
       ),
     };

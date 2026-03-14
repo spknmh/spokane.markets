@@ -1,7 +1,12 @@
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { isValidCallbackUrl } from "@/lib/utils";
+import {
+  normalizePermissionMatrix,
+  type AdminPermissionKey,
+} from "@/lib/admin/permissions";
 
 export async function requireAuth(callbackPath?: string) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -14,7 +19,7 @@ export async function requireAuth(callbackPath?: string) {
     const safePath = isValidCallbackUrl(callbackPath) ? callbackPath : "/";
     redirect(`/auth/signin?callbackUrl=${encodeURIComponent(safePath || "/")}`);
   }
-  if (session.user.accountStatus && session.user.accountStatus !== "ACTIVE") {
+  if (session.user.accountStatus !== "ACTIVE") {
     redirect("/unauthorized");
   }
   return session;
@@ -30,6 +35,22 @@ export async function requireRole(role: string) {
 
 export async function requireAdmin() {
   return requireRole("ADMIN");
+}
+
+export async function requireAdminPermission(permission: AdminPermissionKey) {
+  const session = await requireAdmin();
+  const row = await db.siteConfig.findUnique({
+    where: { key: "admin_permissions_matrix" },
+    select: { value: true },
+  });
+  const matrix = normalizePermissionMatrix(
+    row?.value ? JSON.parse(row.value) : null
+  );
+  const allowed = matrix[session.user.role]?.includes(permission) ?? false;
+  if (!allowed) {
+    redirect("/unauthorized");
+  }
+  return session;
 }
 
 export async function getSession() {
