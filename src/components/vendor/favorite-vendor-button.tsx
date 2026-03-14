@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useOptimistic, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, Lock } from "lucide-react";
+import { Heart } from "lucide-react";
 import { AuthRequiredModal } from "@/components/auth-required-modal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -97,7 +97,6 @@ export function FavoriteVendorButton({
             optimistic.favorited ? "Remove from favorites" : "Add to favorites"
           }
         >
-          {!isLoggedIn && <Lock className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />}
           <Heart
             className={cn(
               "h-4 w-4",

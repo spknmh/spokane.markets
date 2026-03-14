@@ -19,8 +19,8 @@ import { FavoriteVendorButton } from "@/components/vendor/favorite-vendor-button
 import { AuthGate } from "@/components/auth-gate";
 import { Card, CardContent } from "@/components/ui/card";
 import { EventCard } from "@/components/event/event-card";
-import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { ReportButton } from "@/components/report-button";
+import { ShareButton } from "@/components/share-button";
 import { TrackVendorView } from "@/components/track-content-view";
 
 export const dynamic = "force-dynamic";
@@ -141,6 +141,9 @@ export default async function VendorProfilePage({ params }: PageProps) {
     ...(vendor.contactEmail && { email: vendor.contactEmail }),
     ...(vendor.contactPhone && { telephone: vendor.contactPhone }),
   };
+  const websiteLink = vendor.websiteUrl ? normalizeUrlToHttps(vendor.websiteUrl) : null;
+  const facebookLink = getFacebookDisplayUrl(vendor.facebookUrl);
+  const instagramLink = getInstagramDisplayUrl(vendor.instagramUrl);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
@@ -252,12 +255,38 @@ export default async function VendorProfilePage({ params }: PageProps) {
               callbackUrl={`/vendors/${vendor.slug}`}
             />
             {vendor.socialLinksVisible !== false && (
-              <VendorSocialLinks
-                vendorId={vendor.slug}
-                websiteUrl={vendor.websiteUrl}
-                facebookUrl={vendor.facebookUrl}
-                instagramUrl={vendor.instagramUrl}
-              />
+              <div className="space-y-1.5 text-sm">
+                {websiteLink && (
+                  <a
+                    href={websiteLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-[44px] items-center rounded-md bg-gradient-to-r from-sky-600 to-indigo-600 px-3 py-1.5 font-medium text-white transition-opacity hover:opacity-90"
+                  >
+                    Website
+                  </a>
+                )}
+                {facebookLink && (
+                  <a
+                    href={facebookLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-[44px] items-center text-primary hover:underline"
+                  >
+                    Fb
+                  </a>
+                )}
+                {instagramLink && (
+                  <a
+                    href={instagramLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-[44px] items-center text-primary hover:underline"
+                  >
+                    Ig
+                  </a>
+                )}
+              </div>
             )}
 
             {vendor.contactVisible !== false &&
@@ -305,11 +334,20 @@ export default async function VendorProfilePage({ params }: PageProps) {
             )}
 
             <div className="border-t border-border pt-4">
-              <ReportButton
-                targetType="VENDOR"
-                targetId={vendor.id}
-                isLoggedIn={!!session?.user}
-              />
+              <div className="flex items-center justify-between gap-3">
+                <ShareButton
+                  url={vendorUrl}
+                  title={vendor.businessName}
+                  text={vendor.description ?? undefined}
+                  analyticsEventName="vendor_share_click"
+                  analyticsParams={{ vendor_id: vendor.id, surface: "detail_page" }}
+                />
+                <ReportButton
+                  targetType="VENDOR"
+                  targetId={vendor.id}
+                  isLoggedIn={!!session?.user}
+                />
+              </div>
             </div>
           </div>
         </aside>

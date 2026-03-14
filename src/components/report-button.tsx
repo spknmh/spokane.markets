@@ -102,6 +102,7 @@ export function ReportButton({
         title="Report"
       >
         <Flag className="h-4 w-4" aria-hidden />
+        <span className="ml-1.5">Report</span>
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-xl">
