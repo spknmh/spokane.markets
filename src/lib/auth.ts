@@ -31,6 +31,12 @@ export const auth = betterAuth({
         defaultValue: "USER",
         input: false,
       },
+      accountStatus: {
+        type: "string" as const,
+        required: false,
+        defaultValue: "ACTIVE",
+        input: false,
+      },
     },
   },
   session: {

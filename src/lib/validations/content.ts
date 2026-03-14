@@ -87,7 +87,9 @@ export type ReviewInput = z.infer<typeof reviewSchema>;
 export const reportSchema = z.object({
   targetType: z.enum(["EVENT", "MARKET", "VENDOR", "REVIEW"]),
   targetId: z.string().min(1, "Target ID is required"),
-  reason: z.enum(["spam", "inappropriate", "other"]).optional(),
+  reason: z
+    .enum(["spam", "scam_or_fraud", "inappropriate", "duplicate_listing", "other"])
+    .optional(),
   notes: z.string().max(500).optional(),
 });
 export type ReportInput = z.infer<typeof reportSchema>;

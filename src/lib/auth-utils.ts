@@ -14,6 +14,9 @@ export async function requireAuth(callbackPath?: string) {
     const safePath = isValidCallbackUrl(callbackPath) ? callbackPath : "/";
     redirect(`/auth/signin?callbackUrl=${encodeURIComponent(safePath || "/")}`);
   }
+  if (session.user.accountStatus && session.user.accountStatus !== "ACTIVE") {
+    redirect("/unauthorized");
+  }
   return session;
 }
 

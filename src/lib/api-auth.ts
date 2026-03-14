@@ -19,6 +19,15 @@ export async function requireApiAuth(): Promise<AuthResult> {
       ),
     };
   }
+  if (session.user.accountStatus && session.user.accountStatus !== "ACTIVE") {
+    return {
+      session: null,
+      error: NextResponse.json(
+        { error: { message: "Account is not active" } },
+        { status: 403 }
+      ),
+    };
+  }
   return { session, error: null };
 }
 

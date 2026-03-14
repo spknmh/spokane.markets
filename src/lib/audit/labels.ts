@@ -8,8 +8,16 @@ export type AuditEntry = {
 
 const ACTION_MESSAGES: Record<string, (entry: AuditEntry) => string> = {
   DELETE_EVENT: () => "deleted an event",
+  SOFT_DELETE_EVENT: () => "archived an event",
+  RESTORE_EVENT: () => "restored an event",
   DELETE_VENUE: () => "deleted a venue",
+  SOFT_DELETE_VENUE: () => "archived a venue",
+  RESTORE_VENUE: () => "restored a venue",
   DELETE_MARKET: () => "deleted a market",
+  SOFT_DELETE_MARKET: () => "archived a market",
+  RESTORE_MARKET: () => "restored a market",
+  SOFT_DELETE_VENDOR: () => "archived a vendor",
+  RESTORE_VENDOR: () => "restored a vendor",
   UPDATE_SUBMISSION_STATUS: (e) => {
     const status = (e.metadata as { status?: string })?.status;
     return status === "APPROVED" ? "approved a submission" : "rejected a submission";
@@ -30,11 +38,16 @@ const ACTION_MESSAGES: Record<string, (entry: AuditEntry) => string> = {
     const status = (e.metadata as { status?: string })?.status;
     return status === "APPROVED" ? "approved a vendor claim" : "rejected a vendor claim";
   },
-  UPDATE_REPORT_STATUS: () => "resolved a report",
+  UPDATE_REPORT_STATUS: (e) => {
+    const status = (e.metadata as { newValue?: { status?: string } })?.newValue?.status;
+    if (status === "DISMISSED") return "dismissed a report";
+    return "resolved a report";
+  },
   UPDATE_USER_ROLE: (e) => {
     const role = (e.metadata as { newRole?: string })?.newRole;
     return role ? `changed user role to ${role}` : "updated user role";
   },
+  UPDATE_USER: () => "updated a user",
   DELETE_USER: () => "deleted a user",
   UPDATE_MAINTENANCE_MODE: () => "updated maintenance mode",
 };
@@ -43,6 +56,7 @@ const TARGET_HREFS: Record<string, string> = {
   EVENT: "/admin/events",
   VENUE: "/admin/venues",
   MARKET: "/admin/markets",
+  VENDOR_PROFILE: "/admin/vendors",
   USER: "/admin/users",
   SUBMISSION: "/admin/submissions",
   REVIEW: "/admin/reviews",
