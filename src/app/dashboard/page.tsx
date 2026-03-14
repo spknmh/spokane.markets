@@ -91,6 +91,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   );
   const hasOrganizerOwnershipOrMembership =
     organizerOwnedMarketsCount > 0 || organizerSubmittedEventsCount > 0;
+  const hasVendorProfile = Boolean(user.vendorProfile);
   const showFirstRunOnboarding = !user.vendorProfile && !hasOrganizerOwnershipOrMembership;
 
   return (
@@ -373,7 +374,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   Admin Dashboard
                 </Link>
               )}
-              {user.role === "ORGANIZER" && (
+              {(user.role === "ORGANIZER" || hasOrganizerOwnershipOrMembership) && (
                 <Link
                   href="/organizer/dashboard"
                   className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border p-3 font-medium text-foreground transition-colors hover:bg-muted"
@@ -382,7 +383,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   Organizer Dashboard
                 </Link>
               )}
-              {user.role === "VENDOR" && (
+              {hasVendorProfile && (
                 <>
                   <Link
                     href="/vendor/dashboard"
@@ -391,15 +392,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                     <Store className="h-4 w-4" />
                     Vendor Dashboard
                   </Link>
-                  {user.vendorProfile && (
-                    <Link
-                      href="/vendor/profile/edit"
-                      className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border p-3 font-medium text-foreground transition-colors hover:bg-muted"
-                    >
-                      <Store className="h-4 w-4" />
-                      Edit Vendor Profile
-                    </Link>
-                  )}
+                  <Link
+                    href="/vendor/profile/edit"
+                    className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border p-3 font-medium text-foreground transition-colors hover:bg-muted"
+                  >
+                    <Store className="h-4 w-4" />
+                    Edit Vendor Profile
+                  </Link>
                 </>
               )}
             </div>

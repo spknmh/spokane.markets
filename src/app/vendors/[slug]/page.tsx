@@ -13,8 +13,8 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { FavoriteVendorButton } from "@/components/vendor/favorite-vendor-button";
+import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { Card, CardContent } from "@/components/ui/card";
 import { EventCard } from "@/components/event/event-card";
 import { ReportButton } from "@/components/report-button";
@@ -139,10 +139,6 @@ export default async function VendorProfilePage({ params }: PageProps) {
     ...(vendor.contactEmail && { email: vendor.contactEmail }),
     ...(vendor.contactPhone && { telephone: vendor.contactPhone }),
   };
-  const websiteLink = vendor.websiteUrl ? normalizeUrlToHttps(vendor.websiteUrl) : null;
-  const facebookLink = getFacebookDisplayUrl(vendor.facebookUrl);
-  const instagramLink = getInstagramDisplayUrl(vendor.instagramUrl);
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
       <script
@@ -253,38 +249,12 @@ export default async function VendorProfilePage({ params }: PageProps) {
               callbackUrl={`/vendors/${vendor.slug}`}
             />
             {vendor.socialLinksVisible !== false && (
-              <div className="space-y-1.5 text-sm">
-                {websiteLink && (
-                  <a
-                    href={websiteLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-[44px] items-center rounded-md bg-gradient-to-r from-sky-600 to-indigo-600 px-3 py-1.5 font-medium text-white transition-opacity hover:opacity-90"
-                  >
-                    Website
-                  </a>
-                )}
-                {facebookLink && (
-                  <a
-                    href={facebookLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-[44px] items-center text-primary hover:underline"
-                  >
-                    Facebook
-                  </a>
-                )}
-                {instagramLink && (
-                  <a
-                    href={instagramLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-[44px] items-center text-primary hover:underline"
-                  >
-                    Instagram
-                  </a>
-                )}
-              </div>
+              <VendorSocialLinks
+                vendorId={vendor.id}
+                websiteUrl={vendor.websiteUrl}
+                facebookUrl={vendor.facebookUrl}
+                instagramUrl={vendor.instagramUrl}
+              />
             )}
 
             {vendor.contactVisible !== false &&

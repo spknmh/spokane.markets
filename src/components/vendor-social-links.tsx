@@ -42,7 +42,7 @@ export function VendorSocialLinks({
 
   const linkClass = iconOnly
     ? "inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-    : "inline-flex items-center gap-1.5 text-sm text-primary hover:underline";
+    : "inline-flex min-h-[44px] items-center gap-1.5 rounded-md bg-gradient-to-r from-sky-600 to-indigo-600 px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90";
   const facebookClass = iconOnly
     ? "inline-flex items-center justify-center rounded-full border border-[#1877F2]/30 bg-[#1877F2]/10 p-2 text-[#1877F2] transition-colors hover:bg-[#1877F2]/20"
     : "inline-flex items-center gap-1.5 rounded-md bg-[#1877F2] px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#166fe5]";

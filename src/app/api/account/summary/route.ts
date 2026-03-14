@@ -75,23 +75,23 @@ export async function GET() {
     favoriteVendorsCount,
   };
 
-  if (role === "VENDOR" || role === "ADMIN") {
-    const vendorProfile = await db.vendorProfile.findUnique({
-      where: { userId },
-      include: {
-        vendorEvents: {
-          where: {
-            event: {
-              startDate: { gte: now },
-              status: "PUBLISHED",
-            },
+  const vendorProfile = await db.vendorProfile.findUnique({
+    where: { userId },
+    include: {
+      vendorEvents: {
+        where: {
+          event: {
+            startDate: { gte: now },
+            status: "PUBLISHED",
           },
-          include: { event: true },
         },
-        _count: { select: { favoriteVendors: true } },
+        include: { event: true },
       },
-    });
+      _count: { select: { favoriteVendors: true } },
+    },
+  });
 
+  if (vendorProfile || role === "VENDOR" || role === "ADMIN") {
     const profileComplete = !!(
       vendorProfile?.businessName &&
       vendorProfile?.description &&

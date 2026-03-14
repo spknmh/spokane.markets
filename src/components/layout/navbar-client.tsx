@@ -19,7 +19,7 @@ function getNavLinks(session: Session | null) {
     { href: "/vendors", label: "Vendors" },
     { href: "/submit", label: "Submit Event" },
   ];
-  if (session?.user?.role === "VENDOR") {
+  if (session?.user?.role === "VENDOR" || session?.user?.role === "ORGANIZER") {
     base.push({ href: "/vendor-survey", label: "Vendor Survey" });
   }
   return base;
@@ -196,7 +196,7 @@ function MobileNav({
                       Organizer Dashboard
                     </Link>
                   )}
-                  {session.user?.role === "VENDOR" && (
+                  {(session.user?.role === "VENDOR" || session.user?.role === "ORGANIZER") && (
                     <Link
                       href="/vendor/dashboard"
                       className="flex items-center gap-2 text-sm font-medium text-link transition-colors hover:text-link/90 hover:underline"

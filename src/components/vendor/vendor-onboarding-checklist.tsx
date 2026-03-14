@@ -15,16 +15,20 @@ interface VendorOnboardingChecklistProps {
 export function VendorOnboardingChecklist({
   showOnFirstCreate = false,
 }: VendorOnboardingChecklistProps) {
-  const [dismissed, setDismissed] = useState(true);
-
-  useEffect(() => {
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") {
+      return !showOnFirstCreate;
+    }
     const hasDismissed = window.localStorage.getItem(STORAGE_KEY) === "1";
     const visible = showOnFirstCreate || !hasDismissed;
-    setDismissed(!visible);
-    if (visible) {
+    return !visible;
+  });
+
+  useEffect(() => {
+    if (!dismissed) {
       trackEvent("vendor_onboarding_checklist_view", { surface: "vendor_dashboard" });
     }
-  }, [showOnFirstCreate]);
+  }, [dismissed]);
 
   if (dismissed) {
     return null;

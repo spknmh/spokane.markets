@@ -34,7 +34,7 @@ export function UserMenu({ session }: UserMenuProps) {
 
   const role = session.user?.role;
   const isAdmin = role === "ADMIN";
-  const isVendor = role === "VENDOR";
+  const isVendor = role === "VENDOR" || role === "ORGANIZER";
   const isOrganizer = role === "ORGANIZER";
 
   return (
