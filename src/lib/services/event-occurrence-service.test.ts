@@ -1,12 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mockFindUnique = vi.fn();
 const mockFindFirst = vi.fn();
 
 vi.mock("@/lib/db", () => ({
   db: {
     event: {
-      findUnique: (...args: unknown[]) => mockFindUnique(...args),
       findFirst: (...args: unknown[]) => mockFindFirst(...args),
     },
   },
@@ -15,7 +13,6 @@ vi.mock("@/lib/db", () => ({
 describe("EventOccurrenceService", () => {
   beforeEach(() => {
     vi.resetModules();
-    mockFindUnique.mockReset();
     mockFindFirst.mockReset();
   });
 
@@ -33,14 +30,14 @@ describe("EventOccurrenceService", () => {
       vendorRoster: [],
       vendorIntents: [],
     };
-    mockFindUnique.mockResolvedValue(mockDbResult);
+    mockFindFirst.mockResolvedValue(mockDbResult);
 
     const { findEventBySlug } = await import("./event-occurrence-service");
     const result = await findEventBySlug("test-event");
 
-    expect(mockFindUnique).toHaveBeenCalledWith(
+    expect(mockFindFirst).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { slug: "test-event" },
+        where: { slug: "test-event", deletedAt: null },
         include: expect.any(Object),
       })
     );
