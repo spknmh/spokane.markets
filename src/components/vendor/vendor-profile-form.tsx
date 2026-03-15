@@ -165,9 +165,6 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
           <div className="space-y-2">
             <Label>Your profile URL</Label>
             <div className="flex items-center overflow-hidden rounded-md border border-border">
-              <div className="bg-muted/40 px-3 py-2 font-mono text-sm text-muted-foreground">
-                {profileUrlPrefix}
-              </div>
               <Input
                 placeholder={suggestedSlug}
                 className="border-0 font-mono shadow-none focus-visible:ring-0"
