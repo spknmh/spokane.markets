@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import {
+  isRole,
   normalizePermissionMatrix,
   type AdminPermissionKey,
 } from "@/lib/admin/permissions";
@@ -56,6 +57,16 @@ export async function requireApiAdminPermission(
 ): Promise<AuthResult> {
   const result = await requireApiAdmin();
   if (result.error) return result;
+  const role = result.session.user.role;
+  if (!isRole(role)) {
+    return {
+      session: null,
+      error: NextResponse.json(
+        { error: { message: "Forbidden: role is required" } },
+        { status: 403 }
+      ),
+    };
+  }
 
   const row = await db.siteConfig.findUnique({
     where: { key: "admin_permissions_matrix" },
@@ -64,7 +75,7 @@ export async function requireApiAdminPermission(
   const matrix = normalizePermissionMatrix(
     row?.value ? JSON.parse(row.value) : null
   );
-  const allowed = matrix[result.session.user.role]?.includes(permission) ?? false;
+  const allowed = matrix[role]?.includes(permission) ?? false;
   if (!allowed) {
     return {
       session: null,

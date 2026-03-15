@@ -1,9 +1,11 @@
-export const VENDOR_DASHBOARD_INTENT_STATUSES = [
+import type { VendorIntentStatus } from "@prisma/client";
+
+export const VENDOR_DASHBOARD_INTENT_STATUSES: VendorIntentStatus[] = [
   "ATTENDING",
   "REQUESTED",
   "APPLIED",
   "WAITLISTED",
-] as const;
+];
 
 export function buildVendorDashboardProfileQuery(userId: string) {
   return {

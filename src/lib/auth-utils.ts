@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { isValidCallbackUrl } from "@/lib/utils";
 import {
+  isRole,
   normalizePermissionMatrix,
   type AdminPermissionKey,
 } from "@/lib/admin/permissions";
@@ -39,6 +40,10 @@ export async function requireAdmin() {
 
 export async function requireAdminPermission(permission: AdminPermissionKey) {
   const session = await requireAdmin();
+  const role = session.user.role;
+  if (!isRole(role)) {
+    redirect("/unauthorized");
+  }
   const row = await db.siteConfig.findUnique({
     where: { key: "admin_permissions_matrix" },
     select: { value: true },
@@ -46,7 +51,7 @@ export async function requireAdminPermission(permission: AdminPermissionKey) {
   const matrix = normalizePermissionMatrix(
     row?.value ? JSON.parse(row.value) : null
   );
-  const allowed = matrix[session.user.role]?.includes(permission) ?? false;
+  const allowed = matrix[role]?.includes(permission) ?? false;
   if (!allowed) {
     redirect("/unauthorized");
   }

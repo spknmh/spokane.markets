@@ -22,13 +22,19 @@ export const DEFAULT_ADMIN_PERMISSION_MATRIX: AdminPermissionMatrix = {
   ADMIN: [...ADMIN_PERMISSION_KEYS],
 };
 
+const KNOWN_ROLES: Role[] = ["USER", "VENDOR", "ORGANIZER", "ADMIN"];
+
+export function isRole(value: unknown): value is Role {
+  return typeof value === "string" && KNOWN_ROLES.includes(value as Role);
+}
+
 export function normalizePermissionMatrix(
   raw: unknown
 ): AdminPermissionMatrix {
   const fallback = DEFAULT_ADMIN_PERMISSION_MATRIX;
   if (!raw || typeof raw !== "object") return fallback;
   const candidate = raw as Partial<Record<Role, unknown>>;
-  const roles: Role[] = ["USER", "VENDOR", "ORGANIZER", "ADMIN"];
+  const roles: Role[] = KNOWN_ROLES;
   const matrix = {} as AdminPermissionMatrix;
   for (const role of roles) {
     const values = Array.isArray(candidate[role]) ? candidate[role] : [];
