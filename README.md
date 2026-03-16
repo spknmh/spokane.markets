@@ -28,7 +28,49 @@ Spokane Markets is a Next.js application with role-based workflows for admins, o
 - npm 10+
 - Docker + Docker Compose v2
 
-## Local Setup
+## Local Setup (Recommended: Docker Dev Stack)
+
+This is the fastest path to get a stable local environment for change testing.
+
+1. Create environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+2. Start local stack:
+
+```bash
+npm run dev:local:up
+```
+
+This starts:
+
+- `db` (PostgreSQL)
+- `init` (runs `prisma migrate deploy`)
+- `web` (Next.js with hot reload at `http://localhost:3000`)
+
+3. (Optional) Seed local DB:
+
+```bash
+npm run dev:local:seed
+```
+
+4. Stop stack:
+
+```bash
+npm run dev:local:down
+```
+
+5. Full reset (drop DB volume):
+
+```bash
+npm run dev:local:reset
+```
+
+## Local Setup (Host Next.js + Docker DB)
+
+Use this mode when you specifically want Node running on your machine.
 
 1. Install dependencies:
 
@@ -42,20 +84,26 @@ npm ci
 cp .env.example .env.local
 ```
 
-3. Start local database:
+3. Update `DATABASE_URL` in `.env.local` for host networking:
+
+```env
+DATABASE_URL=postgresql://postgres:changeme@localhost:5432/spokane_markets?schema=public
+```
+
+4. Start local database:
 
 ```bash
 npm run db:up
 ```
 
-4. Apply migrations and seed:
+5. Apply migrations and seed:
 
 ```bash
 npx prisma migrate deploy
 npx prisma db seed
 ```
 
-5. Start app:
+6. Start app:
 
 ```bash
 npm run dev
@@ -66,6 +114,11 @@ App runs at `http://localhost:3000`.
 ## Useful Scripts
 
 - `npm run dev` - start local app
+- `npm run dev:local:up` - start local dev stack (db/init/web)
+- `npm run dev:local:down` - stop local dev stack
+- `npm run dev:local:reset` - stop stack and remove volumes
+- `npm run dev:local:migrate` - run Prisma migrations in local stack
+- `npm run dev:local:seed` - seed database in local stack
 - `npm run build` - production build
 - `npm run start` - run production build
 - `npm run lint` - run ESLint

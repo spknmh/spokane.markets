@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:16-alpine
+    env_file: .env.local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  init:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    env_file: .env.local
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-spokane_markets}?schema=public
+    command: sh -c "npx prisma migrate deploy"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    env_file: .env.local
+    environment:
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: "1"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-spokane_markets}?schema=public
+    volumes:
+      - .:/app
+      - app_node_modules:/app/node_modules
+      - uploads_data:/app/uploads
+    command: sh -c "if [ ! -f node_modules/.package-lock.json ]; then echo 'Installing dependencies...' && npm ci && npx prisma generate; fi && exec npm run dev"
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
+  app_node_modules:
+  uploads_data:

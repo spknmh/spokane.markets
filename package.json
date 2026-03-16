@@ -9,6 +9,11 @@
   "scripts": {
     "dev": "next dev",
     "db:up": "docker compose -f docker-compose.db.yml up -d",
+    "dev:local:up": "docker compose -f docker-compose.local.yml up --build",
+    "dev:local:down": "docker compose -f docker-compose.local.yml down --remove-orphans",
+    "dev:local:reset": "docker compose -f docker-compose.local.yml down -v --remove-orphans",
+    "dev:local:migrate": "docker compose -f docker-compose.local.yml run --rm web npx prisma migrate deploy",
+    "dev:local:seed": "docker compose -f docker-compose.local.yml run --rm web npx prisma db seed",
     "dev:docker": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up",
     "build": "next build",
     "start": "next start",
