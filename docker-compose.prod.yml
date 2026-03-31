@@ -30,23 +30,18 @@ services:
       init:
         condition: service_completed_successfully
     restart: unless-stopped
+    # `deploy.resources` is ignored by `docker compose up` (non-Swarm). Use these so limits apply.
+    mem_limit: 1g
+    cpus: 1.0
     # In production, `docker compose up -d` (without --build) pulls the image.
     # The base `build` key is ignored when pulling a pre-built image.
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '1.0'
 
   db:
     restart: unless-stopped
     ports: !reset
     # DB port not exposed to host in production; access via internal network only.
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '1.0'
+    mem_limit: 512m
+    cpus: 1.0
 
   caddy:
     restart: unless-stopped
@@ -54,8 +49,5 @@ services:
       - "80:80/tcp"
       - "443:443/tcp"
       - "443:443/udp"
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.5'
+    mem_limit: 256m
+    cpus: 0.5

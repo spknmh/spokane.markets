@@ -42,6 +42,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Healthcheck in docker-compose.yml uses wget; slim node image does not include it.
+RUN apk add --no-cache wget
+
 # Keep the runtime UID/GID stable so the shared uploads volume can be
 # prepared by the init container with matching ownership.
 RUN addgroup --system --gid 1001 nodejs && \

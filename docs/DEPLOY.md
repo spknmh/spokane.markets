@@ -299,6 +299,31 @@ The `cron` service runs:
 
 ## 11) Troubleshooting
 
+### Site down (emergency triage)
+
+**Run on [SERVER-DEPLOY]:**
+
+```bash
+cd /opt/spokane.markets
+docker compose -f docker-compose.yml -f docker-compose.prod.yml ps -a
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs init --tail=120
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs web --tail=200
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs caddy --tail=80
+```
+
+Interpret quickly:
+
+- **`init` exited non-zero** — migrations failed; `web` never starts → fix DB / migration error, then `docker compose ... up -d` again.
+- **`web` restarting or exited** — read `logs web` for Node errors, OOM, or missing env (e.g. `DATABASE_URL`).
+- **`web` running but unhealthy** — from the host: `docker compose ... exec web wget -qO- http://127.0.0.1:3000/api/health/live` (must return JSON). If `wget` is missing in the image, redeploy after pulling an image that includes it (see Dockerfile `apk add wget`).
+- **Caddy 502** — usually `web` not listening; confirm `web` is `Up` and port 3000 responds inside the container as above.
+
+**Fast restart (after fixing the underlying error):**
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+```
+
 | Issue | Check |
 |---|---|
 | 502/Bad gateway | `docker compose ... ps` and `docker compose ... logs web` |
