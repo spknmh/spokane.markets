@@ -24,7 +24,7 @@ Spokane Markets is a Next.js application with role-based workflows for admins, o
 
 ## Requirements
 
-- Node.js 25+
+- Node.js 20.19+ / 22.12+ / 24+ / 25 (Prisma 7.6+; use `.nvmrc` for the team default)
 - npm 10+
 - Docker + Docker Compose v2
 

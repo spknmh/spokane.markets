@@ -1,4 +1,5 @@
 # ── base ──────────────────────────────────────────────────────────────
+# Node 25 — Prisma 7.6+ @prisma/studio-core declares `>=24.0` (covers 25).
 FROM node:25-alpine AS base
 WORKDIR /app
 COPY package.json package-lock.json ./
