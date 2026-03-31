@@ -38,9 +38,12 @@ networks:
     external: true
 
 volumes:
+  # Created under the old app project name; mark external so spokane-caddy reuses them without warnings.
   caddy_data:
+    external: true
     name: spokanemarkets_caddy_data
   caddy_config:
+    external: true
     name: spokanemarkets_caddy_config
   uploads_data:
     external: true

@@ -7,6 +7,15 @@ This directory holds a **separate** Docker Compose project for Caddy so the reve
 
 **Production**
 
+On a **brand-new** host (no prior `spokanemarkets` Caddy volumes), create TLS volumes once:
+
+```bash
+docker volume create spokanemarkets_caddy_data
+docker volume create spokanemarkets_caddy_config
+```
+
+Then:
+
 ```bash
 cd /opt/spokane.markets   # or your clone path
 docker compose -f caddy/docker-compose.yml -f caddy/docker-compose.prod.yml up -d
