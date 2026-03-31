@@ -315,7 +315,7 @@ Interpret quickly:
 
 - **`init` exited non-zero** — migrations failed; `web` never starts → fix DB / migration error, then `docker compose ... up -d` again.
 - **`web` restarting or exited** — read `logs web` for Node errors, OOM, or missing env (e.g. `DATABASE_URL`).
-- **`web` running but unhealthy** — from the host: `docker compose ... exec web wget -qO- http://127.0.0.1:3000/api/health/live` (must return JSON). If `wget` is missing in the image, redeploy after pulling an image that includes it (see Dockerfile `apk add wget`).
+- **`web` running but unhealthy** — often **Next bound only to the container hostname**, not `127.0.0.1`, because Docker sets `HOSTNAME`. The compose file sets `HOSTNAME=0.0.0.0` for `web` so `localhost:3000` works for healthchecks and Caddy. After fixing, `docker compose ... exec web wget -qO- http://127.0.0.1:3000/api/health/live` should return JSON.
 - **Caddy 502** — usually `web` not listening; confirm `web` is `Up` and port 3000 responds inside the container as above.
 
 **Fast restart (after fixing the underlying error):**

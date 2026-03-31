@@ -50,6 +50,9 @@ services:
     ports:
       - "3000:3000"
     env_file: .env.local
+    environment:
+      # Docker sets HOSTNAME to the container ID; Next.js binds to it, so nothing listens on 127.0.0.1 (healthcheck/Caddy).
+      HOSTNAME: "0.0.0.0"
     volumes:
       - uploads_data:/app/uploads
     healthcheck:
