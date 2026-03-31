@@ -22,6 +22,7 @@ import { VendorsSearch } from "@/components/vendor/vendors-search";
 import { VendorOfWeekCard } from "@/components/vendor/vendor-of-week-card";
 import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
 import { getVendorOfWeek } from "@/lib/vendor-of-week";
+import { MediaFrame } from "@/components/media";
 
 export const dynamic = "force-dynamic";
 
@@ -176,16 +177,15 @@ export default async function VendorsPage({
             >
               <Link href={`/vendors/${vendor.slug}`} prefetch={false} className="block">
                 {vendor.imageUrl ? (
-                  <div className="relative aspect-[16/9] w-full shrink-0 bg-muted">
-                    <Image
-                      src={vendor.imageUrl}
-                      alt={vendor.businessName}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      unoptimized={vendor.imageUrl.startsWith("/uploads/") || vendor.imageUrl.startsWith("http")}
-                    />
-                  </div>
+                  <MediaFrame
+                    src={vendor.imageUrl}
+                    alt={vendor.businessName}
+                    aspect="16/9"
+                    focalX={vendor.imageFocalX}
+                    focalY={vendor.imageFocalY}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="rounded-t-lg"
+                  />
                 ) : (
                   <div className="flex aspect-[16/9] w-full shrink-0 items-center justify-center bg-primary/10 text-4xl font-bold text-primary">
                     {vendor.businessName.charAt(0)}

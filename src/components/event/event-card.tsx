@@ -1,14 +1,10 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { Event, Venue, Tag, Feature } from "@prisma/client";
 import { TrackedLink } from "@/components/analytics/tracked-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  isMultiDayEvent,
-  formatTime12hr,
-  isBannerUnoptimized,
-} from "@/lib/utils";
+import { isMultiDayEvent, formatTime12hr } from "@/lib/utils";
+import { MediaFrame } from "@/components/media";
 
 type ScheduleDay = { date: Date; startTime: string; endTime: string; allDay: boolean };
 
@@ -99,17 +95,15 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
     <>
       <Card className="h-full min-h-[140px] overflow-hidden border-2 transition-all hover:border-primary/50 hover:shadow-lg">
         {showListImage && event.imageUrl ? (
-          <div className="relative aspect-[16/9] w-full shrink-0 bg-muted">
-            <Image
-              src={event.imageUrl}
-              alt={event.title}
-              fill
-              className="object-cover"
-              style={{ objectPosition: `${event.imageFocalX ?? 50}% ${event.imageFocalY ?? 50}%` }}
-              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              unoptimized={isBannerUnoptimized(event.imageUrl)}
-            />
-          </div>
+          <MediaFrame
+            src={event.imageUrl}
+            alt={event.title}
+            aspect="16/9"
+            focalX={event.imageFocalX ?? 50}
+            focalY={event.imageFocalY ?? 50}
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            className="rounded-t-none"
+          />
         ) : null}
         <CardContent className="flex gap-4 p-5">
           <div className="flex shrink-0 flex-col items-center justify-center self-start rounded-lg bg-primary px-3 py-2 text-center">

@@ -23,6 +23,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
+import { ImageFocalSliders } from "@/components/image-focal-sliders";
 import {
   UserSearchSelect,
   type UserOption,
@@ -52,6 +53,8 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
       ? {
           ...initialData,
           verificationStatus: initialData.verificationStatus ?? "UNVERIFIED",
+          imageFocalX: initialData.imageFocalX ?? 50,
+          imageFocalY: initialData.imageFocalY ?? 50,
         }
       : {
           businessName: "",
@@ -237,6 +240,9 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
             label="Profile image"
             aspectRatio="square"
           />
+          {imageUrl?.trim() ? (
+            <ImageFocalSliders register={register} idPrefix="admin-vendor" />
+          ) : null}
           {errors.imageUrl && (
             <p className="text-sm text-destructive">{errors.imageUrl.message}</p>
           )}

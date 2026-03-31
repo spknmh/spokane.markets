@@ -22,6 +22,7 @@ import { TrackMarketView } from "@/components/track-content-view";
 import type { Metadata } from "next";
 import type { VerificationStatus } from "@prisma/client";
 import { SITE_NAME } from "@/lib/constants";
+import { MediaFrame } from "@/components/media";
 
 export const dynamic = "force-dynamic";
 
@@ -121,6 +122,18 @@ export default async function MarketDetailPage({ params }: PageProps) {
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
         {/* Main content */}
         <div className="min-w-0 flex-1">
+          {market.imageUrl ? (
+            <div className="mb-6 overflow-hidden rounded-xl border border-border">
+              <MediaFrame
+                src={market.imageUrl}
+                alt={market.name}
+                aspect="16/9"
+                focalX={market.imageFocalX}
+                focalY={market.imageFocalY}
+                sizes="(max-width: 1024px) 100vw, min(896px, 75vw)"
+              />
+            </div>
+          ) : null}
           <div className="mb-6 flex flex-wrap items-center gap-2">
             <h1 className="text-3xl font-bold tracking-tight">{market.name}</h1>
             <VerificationBadge status={market.verificationStatus} />

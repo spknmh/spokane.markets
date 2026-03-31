@@ -1,11 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { VendorOfWeek } from "@/lib/vendor-of-week";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
+import { MediaFrame } from "@/components/media";
 
 interface VendorOfWeekCardProps {
   vendor: VendorOfWeek;
@@ -21,19 +21,22 @@ export function VendorOfWeekCard({ vendor }: VendorOfWeekCardProps) {
     <Card className="overflow-hidden border-2 border-primary/30 bg-primary/5">
       <CardContent className="p-0">
         <div className="grid md:grid-cols-[minmax(260px,36%)_1fr]">
-          <div className="relative aspect-[16/9] w-full bg-muted md:aspect-auto md:min-h-[320px]">
+          <div className="relative w-full bg-muted">
             {vendor.imageUrl ? (
-              <Image
+              <MediaFrame
                 src={vendor.imageUrl}
                 alt={vendor.businessName}
-                fill
-                className="object-cover"
+                aspect="16/9"
+                focalX={vendor.imageFocalX}
+                focalY={vendor.imageFocalY}
                 sizes="(max-width: 768px) 100vw, 36vw"
-                unoptimized={vendor.imageUrl.startsWith("/uploads/") || vendor.imageUrl.startsWith("http")}
+                className="md:aspect-auto md:min-h-[320px] md:h-full"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-6xl font-bold text-primary/60">
-                {vendor.businessName.charAt(0)}
+              <div className="flex aspect-[16/9] w-full items-center justify-center bg-muted md:aspect-auto md:min-h-[320px]">
+                <span className="text-6xl font-bold text-primary/60">
+                  {vendor.businessName.charAt(0)}
+                </span>
               </div>
             )}
           </div>

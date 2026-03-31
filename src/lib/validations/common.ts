@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+/** 0–100 for CSS object-position on image crops. */
+export const imageFocalSchema = z.number().int().min(0).max(100).optional();
+
 /** Accepts empty string, /uploads/ paths, or http(s) URLs. Use for imageUrl fields. */
 export const imageUrlSchema = z
   .string()

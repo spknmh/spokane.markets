@@ -17,6 +17,7 @@ import { CheckCircle2, Calendar } from "lucide-react";
 import { formatNeighborhoodLabel } from "@/lib/utils";
 import type { VerificationStatus } from "@prisma/client";
 import { MarketsSearch } from "@/components/markets-search";
+import { MediaFrame } from "@/components/media";
 
 export const dynamic = "force-dynamic";
 
@@ -147,7 +148,18 @@ export default async function MarketsPage({
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {markets.map((market) => (
           <Link key={market.id} href={`/markets/${market.slug}`} prefetch={false}>
-            <Card className="h-full border-2 transition-all hover:shadow-lg hover:border-primary/50">
+            <Card className="h-full overflow-hidden border-2 transition-all hover:shadow-lg hover:border-primary/50">
+              {market.imageUrl ? (
+                <MediaFrame
+                  src={market.imageUrl}
+                  alt={market.name}
+                  aspect="16/9"
+                  focalX={market.imageFocalX}
+                  focalY={market.imageFocalY}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="rounded-t-lg"
+                />
+              ) : null}
               <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
                 <div className="min-w-0 flex-1">
                   <CardTitle className="font-sans text-lg font-bold text-foreground">{market.name}</CardTitle>

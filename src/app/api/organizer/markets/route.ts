@@ -43,6 +43,8 @@ export async function POST(request: Request) {
           venueId: data.venueId,
           description: data.description || null,
           imageUrl: data.imageUrl || null,
+          imageFocalX: data.imageFocalX ?? 50,
+          imageFocalY: data.imageFocalY ?? 50,
           websiteUrl: data.websiteUrl || null,
           facebookUrl: data.facebookUrl || null,
           instagramUrl: data.instagramUrl || null,

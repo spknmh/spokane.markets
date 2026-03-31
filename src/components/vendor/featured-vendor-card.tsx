@@ -1,11 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { ComponentType } from "react";
 import type { PromotionType, VendorProfile } from "@prisma/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Megaphone, Handshake, Star } from "lucide-react";
 import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
+import { AvatarImage } from "@/components/media";
 
 const PROMOTION_CONFIG: Record<
   PromotionType,
@@ -45,13 +45,14 @@ export function FeaturedVendorCard({
         </Badge>
         <CardContent className="flex gap-4 p-5">
           {vendor.imageUrl ? (
-            <Image
+            <AvatarImage
               src={vendor.imageUrl}
               alt={vendor.businessName}
-              width={96}
-              height={96}
-              className="h-20 w-20 rounded-lg object-cover"
-              unoptimized={vendor.imageUrl.startsWith("/uploads/") || vendor.imageUrl.startsWith("http")}
+              className="h-20 w-20 rounded-lg"
+              focalX={vendor.imageFocalX}
+              focalY={vendor.imageFocalY}
+              sizes="80px"
+              pixelSize={96}
             />
           ) : (
             <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-primary/10 text-2xl font-bold text-primary">

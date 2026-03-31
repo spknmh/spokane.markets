@@ -28,6 +28,8 @@ export type EventForDisplay = Event & {
       businessName: string;
       slug: string;
       imageUrl: string | null;
+      imageFocalX: number;
+      imageFocalY: number;
       specialties: string | null;
       verificationStatus: VerificationStatus;
     };
@@ -38,6 +40,8 @@ export type EventForDisplay = Event & {
       businessName: string;
       slug: string;
       imageUrl: string | null;
+      imageFocalX: number;
+      imageFocalY: number;
       specialties: string | null;
       verificationStatus: VerificationStatus;
     };
@@ -66,6 +70,8 @@ export async function findEventBySlug(slug: string, userId?: string): Promise<Ev
               businessName: true,
               slug: true,
               imageUrl: true,
+              imageFocalX: true,
+              imageFocalY: true,
               specialties: true,
               verificationStatus: true,
             },
@@ -84,6 +90,8 @@ export async function findEventBySlug(slug: string, userId?: string): Promise<Ev
               businessName: true,
               slug: true,
               imageUrl: true,
+              imageFocalX: true,
+              imageFocalY: true,
               specialties: true,
               verificationStatus: true,
             },
@@ -128,6 +136,8 @@ export async function findEventByIdOrSlug(idOrSlug: string, userId?: string): Pr
               businessName: true,
               slug: true,
               imageUrl: true,
+              imageFocalX: true,
+              imageFocalY: true,
               specialties: true,
               verificationStatus: true,
             },
@@ -146,6 +156,8 @@ export async function findEventByIdOrSlug(idOrSlug: string, userId?: string): Pr
               businessName: true,
               slug: true,
               imageUrl: true,
+              imageFocalX: true,
+              imageFocalY: true,
               specialties: true,
               verificationStatus: true,
             },

@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { imageUrlSchema, flexibleUrlSchema, socialHandleSchema } from "./common";
+import {
+  imageUrlSchema,
+  flexibleUrlSchema,
+  socialHandleSchema,
+  imageFocalSchema,
+} from "./common";
 
 export const vendorProfileSchema = z.object({
   businessName: z.string().min(1, "Business name is required"),
@@ -13,6 +18,8 @@ export const vendorProfileSchema = z.object({
     ),
   description: z.string().optional(),
   imageUrl: imageUrlSchema,
+  imageFocalX: imageFocalSchema,
+  imageFocalY: imageFocalSchema,
   websiteUrl: flexibleUrlSchema,
   facebookUrl: socialHandleSchema,
   instagramUrl: socialHandleSchema,

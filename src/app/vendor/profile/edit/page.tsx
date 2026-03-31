@@ -19,6 +19,8 @@ export default async function VendorProfileEditPage() {
         slug: profile.slug,
         description: profile.description ?? "",
         imageUrl: profile.imageUrl ?? "",
+        imageFocalX: profile.imageFocalX ?? 50,
+        imageFocalY: profile.imageFocalY ?? 50,
         websiteUrl: profile.websiteUrl ?? "",
         facebookUrl: profile.facebookUrl
           ? extractSocialHandle(profile.facebookUrl, "facebook")

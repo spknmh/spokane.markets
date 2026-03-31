@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { Camera } from "lucide-react";
+import { MediaFrame } from "@/components/media";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,11 +66,6 @@ export function ImageUploadWithUrl({
     }
   }
 
-  const previewClass =
-    aspectRatio === "banner"
-      ? "aspect-video w-full max-w-xs"
-      : "h-24 w-24 shrink-0";
-
   return (
     <div className="space-y-3">
       <Label>{label}</Label>
@@ -78,21 +74,37 @@ export function ImageUploadWithUrl({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={disabled || uploading}
-          className={`group relative flex ${previewClass} items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/30 transition-colors hover:border-primary hover:bg-muted/50 disabled:opacity-50`}
+          className={`group relative flex items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/30 transition-colors hover:border-primary hover:bg-muted/50 disabled:opacity-50 ${
+            aspectRatio === "banner" ? "w-full max-w-xs" : "h-24 w-24 shrink-0"
+          }`}
         >
           {value ? (
-            <Image
-              src={value}
-              alt="Preview"
-              fill
-              className="object-cover"
-              unoptimized={isBannerUnoptimized(value)}
-              sizes={aspectRatio === "banner" ? "320px" : "96px"}
-            />
+            aspectRatio === "banner" ? (
+              <span className="pointer-events-none block w-full [&>div]:rounded-lg">
+                <MediaFrame
+                  src={value}
+                  alt="Preview"
+                  aspect="video"
+                  sizes="320px"
+                  className="w-full"
+                />
+              </span>
+            ) : (
+              <div className="pointer-events-none relative h-24 w-24">
+                <Image
+                  src={value}
+                  alt="Preview"
+                  fill
+                  className="object-cover"
+                  unoptimized={isBannerUnoptimized(value)}
+                  sizes="96px"
+                />
+              </div>
+            )
           ) : (
             <Camera className="h-8 w-8 text-muted-foreground" />
           )}
-          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
             <Camera className="h-6 w-6 text-white" />
           </div>
         </button>
@@ -105,7 +117,7 @@ export function ImageUploadWithUrl({
               : `${value ? "Change image" : "Upload image"} or paste URL below`}
           </p>
           <p className="text-xs text-muted-foreground">
-            JPEG, PNG, WebP or GIF. Max 5MB.
+            JPEG, PNG, WebP or GIF. Max 5MB. Large files are resized automatically on upload.
           </p>
           {uploading && (
             <p className="text-xs text-muted-foreground">Uploading…</p>

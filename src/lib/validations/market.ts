@@ -3,6 +3,7 @@ import {
   imageUrlSchema,
   neighborhoodSlugSchema,
   participationModeEnum,
+  imageFocalSchema,
 } from "./common";
 
 export const marketSchema = z.object({
@@ -11,6 +12,8 @@ export const marketSchema = z.object({
   venueId: z.string().min(1, "Venue is required"),
   description: z.string().optional(),
   imageUrl: imageUrlSchema,
+  imageFocalX: imageFocalSchema,
+  imageFocalY: imageFocalSchema,
   websiteUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   instagramUrl: z.string().url().optional().or(z.literal("")),
@@ -34,6 +37,8 @@ export const organizerMarketPatchSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   imageUrl: imageUrlSchema,
+  imageFocalX: imageFocalSchema,
+  imageFocalY: imageFocalSchema,
   websiteUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   instagramUrl: z.string().url().optional().or(z.literal("")),
@@ -50,6 +55,8 @@ export const organizerMarketCreateSchema = z.object({
   venueId: z.string().min(1, "Venue is required"),
   description: z.string().optional(),
   imageUrl: imageUrlSchema,
+  imageFocalX: imageFocalSchema,
+  imageFocalY: imageFocalSchema,
   websiteUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   instagramUrl: z.string().url().optional().or(z.literal("")),

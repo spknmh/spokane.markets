@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { AvatarImage, MediaFrame } from "@/components/media";
 import { Mail, Phone } from "lucide-react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -175,13 +175,14 @@ export default async function VendorProfilePage({ params }: PageProps) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
             {vendor.imageUrl ? (
-              <Image
+              <AvatarImage
                 src={vendor.imageUrl}
                 alt={vendor.businessName}
-                width={192}
-                height={192}
-                className="h-40 w-40 shrink-0 rounded-xl object-cover sm:h-48 sm:w-48"
-                unoptimized
+                className="h-40 w-40 shrink-0 rounded-xl sm:h-48 sm:w-48"
+                focalX={vendor.imageFocalX}
+                focalY={vendor.imageFocalY}
+                sizes="(max-width: 640px) 160px, 192px"
+                pixelSize={192}
               />
             ) : (
               <div className="flex h-40 w-40 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-4xl font-bold text-primary sm:h-48 sm:w-48">
@@ -218,22 +219,21 @@ export default async function VendorProfilePage({ params }: PageProps) {
           {(vendor.galleryUrls?.length ?? 0) > 0 && (
             <section className="mt-10">
               <h2 className="text-xl font-semibold">Gallery</h2>
-              <div className="mt-4 flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3">
+              <div className="mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch] sm:grid sm:grid-cols-2 sm:overflow-visible sm:snap-none lg:grid-cols-3">
                 {vendor.galleryUrls.map((url, i) => (
                   <a
                     key={i}
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="relative h-48 shrink-0 overflow-hidden rounded-lg border border-border sm:h-40"
+                    className="block w-[min(280px,85vw)] shrink-0 snap-start overflow-hidden rounded-lg border border-border sm:w-auto sm:min-w-0"
                   >
-                    <Image
+                    <MediaFrame
                       src={url}
                       alt={`${vendor.businessName} gallery ${i + 1}`}
-                      width={400}
-                      height={300}
-                      className="h-full w-full object-cover"
-                      unoptimized
+                      aspect="4/3"
+                      objectFit="contain"
+                      sizes="(max-width: 640px) 85vw, (max-width: 1024px) 40vw, 25vw"
                     />
                   </a>
                 ))}

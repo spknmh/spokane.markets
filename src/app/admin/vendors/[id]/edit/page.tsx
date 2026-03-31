@@ -26,6 +26,8 @@ export default async function EditVendorPage({
     slug: vendor.slug,
     description: vendor.description ?? "",
     imageUrl: vendor.imageUrl ?? "",
+    imageFocalX: vendor.imageFocalX ?? 50,
+    imageFocalY: vendor.imageFocalY ?? 50,
     websiteUrl: vendor.websiteUrl ?? "",
     facebookUrl: vendor.facebookUrl
       ? extractSocialHandle(vendor.facebookUrl, "facebook")

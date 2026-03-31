@@ -53,6 +53,8 @@ export default async function OrganizerMarketEditPage({
     name: market.name,
     description: market.description ?? "",
     imageUrl: market.imageUrl ?? "",
+    imageFocalX: market.imageFocalX ?? 50,
+    imageFocalY: market.imageFocalY ?? 50,
     websiteUrl: market.websiteUrl ?? "",
     facebookUrl: market.facebookUrl ?? "",
     instagramUrl: market.instagramUrl ?? "",

@@ -343,6 +343,8 @@ model Market {
   venueId                  String
   description              String?            @db.Text
   imageUrl                 String?
+  imageFocalX              Int                @default(50)
+  imageFocalY              Int                @default(50)
   websiteUrl               String?
   facebookUrl              String?
   instagramUrl             String?
@@ -675,6 +677,8 @@ model VendorProfile {
   slug               String   @unique
   description        String?  @db.Text
   imageUrl           String?
+  imageFocalX        Int      @default(50)
+  imageFocalY        Int      @default(50)
   websiteUrl         String?
   facebookUrl        String?
   instagramUrl       String?

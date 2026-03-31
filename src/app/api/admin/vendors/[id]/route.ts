@@ -102,6 +102,8 @@ export async function PUT(
         slug,
         description: toOptional(data.description),
         imageUrl: toOptional(data.imageUrl),
+        ...(data.imageFocalX != null && { imageFocalX: data.imageFocalX }),
+        ...(data.imageFocalY != null && { imageFocalY: data.imageFocalY }),
         websiteUrl: toOptionalUrl(data.websiteUrl),
         facebookUrl: toOptionalHandle(data.facebookUrl, "facebook"),
         instagramUrl: toOptionalHandle(data.instagramUrl, "instagram"),

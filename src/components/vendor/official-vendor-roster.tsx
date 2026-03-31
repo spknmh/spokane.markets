@@ -1,14 +1,16 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { VerificationStatus } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
+import { AvatarImage } from "@/components/media";
 
 interface Vendor {
   id: string;
   businessName: string;
   slug: string;
   imageUrl: string | null;
+  imageFocalX?: number;
+  imageFocalY?: number;
   specialties: string | null;
   /** Present when the query selects it (see event-occurrence-service). */
   verificationStatus?: VerificationStatus;
@@ -53,13 +55,14 @@ export function OfficialVendorRoster({
                 className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted"
               >
                 {v.imageUrl ? (
-                  <Image
+                  <AvatarImage
                     src={v.imageUrl}
                     alt={v.businessName}
-                    width={40}
-                    height={40}
-                    className="h-10 w-10 shrink-0 rounded-full object-cover"
-                    unoptimized
+                    className="h-10 w-10 shrink-0 rounded-full"
+                    focalX={v.imageFocalX}
+                    focalY={v.imageFocalY}
+                    sizes="40px"
+                    pixelSize={40}
                   />
                 ) : (
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-primary">

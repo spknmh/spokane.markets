@@ -38,6 +38,8 @@ export default async function EditMarketPage({
     venueId: market.venueId,
     description: market.description ?? "",
     imageUrl: market.imageUrl ?? "",
+    imageFocalX: market.imageFocalX ?? 50,
+    imageFocalY: market.imageFocalY ?? 50,
     websiteUrl: market.websiteUrl ?? "",
     facebookUrl: market.facebookUrl ?? "",
     instagramUrl: market.instagramUrl ?? "",

@@ -28,6 +28,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
+import { ImageFocalSliders } from "@/components/image-focal-sliders";
 import { GalleryImageDropzone } from "@/components/vendor/gallery-image-dropzone";
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
 
@@ -57,11 +58,19 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
     formState: { errors, isSubmitting },
   } = useForm<VendorProfileInput>({
     resolver: zodResolver(vendorProfileSchema),
-    defaultValues: initialData ?? {
+    defaultValues: initialData
+      ? {
+          ...initialData,
+          imageFocalX: initialData.imageFocalX ?? 50,
+          imageFocalY: initialData.imageFocalY ?? 50,
+        }
+      : {
       businessName: "",
       slug: "",
       description: "",
       imageUrl: "",
+      imageFocalX: 50,
+      imageFocalY: 50,
       websiteUrl: "",
       facebookUrl: "",
       instagramUrl: "",
@@ -161,6 +170,10 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
               )}
             </div>
           </div>
+
+          {imageUrl?.trim() ? (
+            <ImageFocalSliders register={register} idPrefix="vendor-profile" />
+          ) : null}
 
           <div className="space-y-2">
             <Label>Your profile URL</Label>

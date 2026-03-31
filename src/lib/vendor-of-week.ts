@@ -12,6 +12,8 @@ export type VendorOfWeek = Pick<
   | "businessName"
   | "description"
   | "imageUrl"
+  | "imageFocalX"
+  | "imageFocalY"
   | "specialties"
   | "websiteUrl"
   | "facebookUrl"
@@ -163,6 +165,8 @@ export async function getVendorOfWeek(): Promise<VendorOfWeek | null> {
         businessName: true,
         description: true,
         imageUrl: true,
+        imageFocalX: true,
+        imageFocalY: true,
         specialties: true,
         websiteUrl: true,
         facebookUrl: true,

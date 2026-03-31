@@ -5,6 +5,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import crypto from "node:crypto";
+import { processBufferForUpload, type UploadImageType } from "@/lib/image-process";
 
 const UPLOAD_BASE = join(process.cwd(), "uploads");
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -18,10 +19,10 @@ export async function POST(request: Request) {
 
   const { ok, retryAfter } = await checkRateLimit(session.user.id, "uploads");
   if (!ok) {
-    const headers = retryAfter ? { "Retry-After": String(retryAfter) } : undefined;
+    const retryHeaders = retryAfter ? { "Retry-After": String(retryAfter) } : undefined;
     return NextResponse.json(
       { error: "Too many requests. Please try again later." },
-      { status: 429, headers }
+      { status: 429, headers: retryHeaders }
     );
   }
 
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
   if (type === "banner" && role !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  if (type === "market" && role !== "ADMIN") {
+  if (type === "market" && role !== "ADMIN" && role !== "ORGANIZER") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   if (type === "event" && role !== "ADMIN" && role !== "ORGANIZER") {
@@ -63,23 +64,37 @@ export async function POST(request: Request) {
     );
   }
 
-  const MIME_TO_EXT: Record<string, string> = {
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/gif": "gif",
-    "image/webp": "webp",
-    "image/svg+xml": "svg",
-  };
-  const ext = MIME_TO_EXT[file.type] ?? "jpg";
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const inputBuffer = Buffer.from(bytes);
+
+  let outBuffer = inputBuffer;
+  let ext: string;
+  let contentType = file.type;
+
+  try {
+    const processed = await processBufferForUpload(inputBuffer, file.type, type as UploadImageType);
+    outBuffer = Buffer.from(processed.buffer);
+    ext = processed.extension;
+    contentType = processed.contentType;
+  } catch (err) {
+    console.error("[upload/image] process failed, storing original", err);
+    const MIME_TO_EXT: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/gif": "gif",
+      "image/webp": "webp",
+    };
+    ext = MIME_TO_EXT[file.type] ?? "jpg";
+  }
+
   const filename = `${crypto.randomUUID()}.${ext}`;
   const uploadDir = join(UPLOAD_BASE, type);
   const filePath = join(uploadDir, filename);
 
   await mkdir(uploadDir, { recursive: true });
 
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  await writeFile(filePath, bytes);
+  await writeFile(filePath, outBuffer);
 
   const url = `/uploads/${type}/${filename}`;
-  return NextResponse.json({ url });
+  return NextResponse.json({ url, contentType });
 }

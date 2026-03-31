@@ -54,6 +54,8 @@ export async function PUT(
         venueId: data.venueId,
         description: data.description || null,
         imageUrl: data.imageUrl || null,
+        ...(data.imageFocalX != null && { imageFocalX: data.imageFocalX }),
+        ...(data.imageFocalY != null && { imageFocalY: data.imageFocalY }),
         websiteUrl: data.websiteUrl || null,
         facebookUrl: data.facebookUrl || null,
         instagramUrl: data.instagramUrl || null,
