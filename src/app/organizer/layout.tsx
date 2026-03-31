@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireRole } from "@/lib/auth-utils";
+import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
 import { buildDashboardNavSections } from "@/lib/dashboard-nav";
@@ -14,7 +14,9 @@ export default async function OrganizerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await requireRole("ORGANIZER");
+  // requireAuth only: `/organizer/markets/new` must be reachable before the user is
+  // promoted to ORGANIZER. Other organizer routes call `requireRole("ORGANIZER")` in their page.
+  const session = await requireAuth("/organizer");
   const userId = session.user.id;
 
   const [user, organizerMarkets, organizerEvents] = await Promise.all([

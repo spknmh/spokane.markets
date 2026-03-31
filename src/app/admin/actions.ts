@@ -11,6 +11,7 @@ import {
   normalizePermissionMatrix,
   type AdminPermissionKey,
 } from "@/lib/admin/permissions";
+import { approveSubmissionWithEvent } from "@/lib/submission-approval";
 
 async function requireAdminAction(permission: AdminPermissionKey) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -260,6 +261,11 @@ export async function updateSubmissionStatus(
   status: "APPROVED" | "REJECTED"
 ) {
   const session = await requireAdminAction("admin.moderation.manage");
+  if (status === "APPROVED") {
+    await approveSubmissionWithEvent(id, session.user.id);
+    return;
+  }
+
   const submission = await db.submission.findUnique({
     where: { id },
     select: { submitterEmail: true, status: true },
@@ -274,16 +280,11 @@ export async function updateSubmissionStatus(
     select: { id: true },
   });
   if (user) {
-    const title =
-      status === "APPROVED"
-        ? "Your event submission was approved"
-        : "Your event submission was rejected";
-    const link = status === "APPROVED" ? "/events" : "/submit";
     await createNotification({
       userId: user.id,
-      type: status === "APPROVED" ? "SUBMISSION_APPROVED" : "SUBMISSION_REJECTED",
-      title,
-      link,
+      type: "SUBMISSION_REJECTED",
+      title: "Your event submission was rejected",
+      link: "/submit",
       objectType: "submission",
       objectId: id,
     });
@@ -470,6 +471,21 @@ export async function bulkUpdateSubmissionStatus(
   const session = await requireAdminAction("admin.moderation.manage");
   const ids = getSelectedIds(formData);
   if (ids.length === 0) return;
+
+  if (status === "APPROVED") {
+    for (const id of ids) {
+      await approveSubmissionWithEvent(id, session.user.id);
+    }
+    await logAudit(
+      session.user.id,
+      "BULK_UPDATE_SUBMISSION_STATUS",
+      "SUBMISSION",
+      undefined,
+      { ids, newValue: { status: "APPROVED" } }
+    );
+    return;
+  }
+
   await db.submission.updateMany({
     where: { id: { in: ids }, status: "PENDING" },
     data: { status, reviewerId: session.user.id },
@@ -480,8 +496,8 @@ export async function bulkUpdateSubmissionStatus(
     "SUBMISSION",
     undefined,
     {
-    ids,
-    newValue: { status },
+      ids,
+      newValue: { status },
     }
   );
   revalidatePath("/admin/submissions");

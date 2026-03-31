@@ -177,9 +177,9 @@ export function MarketForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="baseArea">Base Area</Label>
+        <Label htmlFor="baseArea">Neighborhood</Label>
         <Select id="baseArea" {...register("baseArea")}>
-          <option value="">Select area...</option>
+          <option value="">Select neighborhood…</option>
           {neighborhoods.map((n) => (
             <option key={n.value} value={n.value}>
               {n.label}

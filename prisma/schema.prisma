@@ -414,6 +414,7 @@ model Event {
   vendorRoster  EventVendorRoster[]
   promotions    Promotion[]
   scheduleDays  EventScheduleDay[]
+  submissionFrom Submission? @relation("SubmissionCreatedEvent")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -586,8 +587,10 @@ model Submission {
   status           ModerationStatus @default(PENDING)
   reviewerId       String?
   reviewNotes      String?          @db.Text
+  createdEventId   String?          @unique
 
   reviewer User? @relation("SubmissionReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  createdEvent Event? @relation("SubmissionCreatedEvent", fields: [createdEventId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

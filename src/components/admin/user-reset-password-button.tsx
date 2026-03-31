@@ -3,8 +3,6 @@
 import { useRouter } from "next/navigation";
 import { KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -28,8 +26,6 @@ export function UserResetPasswordButton({
 }: UserResetPasswordButtonProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,29 +34,19 @@ export function UserResetPasswordButton({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError("Passwords don't match");
-      return;
-    }
     setSaving(true);
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ sendPasswordReset: true }),
       });
       if (res.ok) {
         setOpen(false);
-        setPassword("");
-        setConfirmPassword("");
         router.refresh();
       } else {
         const body = await res.json();
-        setError(body.error?.message || "Failed to update password");
+        setError(body.error?.message || "Failed to send password reset email");
       }
     } finally {
       setSaving(false);
@@ -82,36 +68,15 @@ export function UserResetPasswordButton({
         <DialogContent>
           <form onSubmit={handleSubmit}>
             <DialogHeader>
-              <DialogTitle>Reset password</DialogTitle>
+              <DialogTitle>Send password reset email</DialogTitle>
               <DialogDescription>
-                Set a new password for {displayName}. They can sign in with this password after you save.
+                Send {displayName} an email with a secure link to choose a new password.
               </DialogDescription>
             </DialogHeader>
-            <div className="p-6 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="password">New password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  minLength={8}
-                  autoComplete="new-password"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  minLength={8}
-                  autoComplete="new-password"
-                />
-              </div>
+            <div className="p-6 space-y-4 text-sm text-muted-foreground">
+              <p>
+                An email will be sent to <span className="font-medium text-foreground">{userEmail}</span>.
+              </p>
               {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
             <DialogFooter>
@@ -119,7 +84,7 @@ export function UserResetPasswordButton({
                 Cancel
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? "Saving…" : "Save"}
+                {saving ? "Sending…" : "Send email"}
               </Button>
             </DialogFooter>
           </form>

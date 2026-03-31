@@ -41,6 +41,7 @@ export function DeleteButton({
   return (
     <>
       <Button
+        type="button"
         variant={iconOnly ? "ghost" : "destructive"}
         size={iconOnly ? "icon" : "sm"}
         disabled={isPending}
@@ -61,10 +62,10 @@ export function DeleteButton({
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleConfirm} disabled={isPending}>
+            <Button type="button" variant="destructive" onClick={handleConfirm} disabled={isPending}>
               {isPending ? "Deleting…" : "Delete"}
             </Button>
           </DialogFooter>
@@ -93,6 +94,7 @@ export function StatusButton({
 
   return (
     <Button
+      type="button"
       variant={variant}
       size="sm"
       disabled={isPending}

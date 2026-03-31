@@ -4,6 +4,7 @@ import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
+import { approveSubmissionWithEvent } from "@/lib/submission-approval";
 import { NextResponse } from "next/server";
 
 const patchSubmissionSchema = z.object({
@@ -25,10 +26,30 @@ export async function PATCH(
       return apiValidationError(parsed.error.flatten().fieldErrors);
     }
 
+    if (parsed.data.status === "APPROVED") {
+      try {
+        await approveSubmissionWithEvent(id, session.user.id);
+      } catch (e) {
+        const message =
+          e instanceof Error ? e.message : "Failed to approve submission";
+        return apiError(message, 400);
+      }
+      const submission = await db.submission.findUnique({ where: { id } });
+      return NextResponse.json(submission);
+    }
+
+    const before = await db.submission.findUnique({
+      where: { id },
+      select: { submitterEmail: true, status: true },
+    });
+    if (!before) {
+      return apiError("Submission not found", 404);
+    }
+
     const submission = await db.submission.update({
       where: { id },
       data: {
-        status: parsed.data.status,
+        status: "REJECTED",
         reviewerId: session.user.id,
       },
     });
@@ -38,21 +59,17 @@ export async function PATCH(
       select: { id: true },
     });
     if (user) {
-      const title =
-        parsed.data.status === "APPROVED"
-          ? "Your event submission was approved"
-          : "Your event submission was rejected";
-      const link = parsed.data.status === "APPROVED" ? "/events" : "/submit";
       await createNotification({
         userId: user.id,
-        type: parsed.data.status === "APPROVED" ? "SUBMISSION_APPROVED" : "SUBMISSION_REJECTED",
-        title,
-        link,
+        type: "SUBMISSION_REJECTED",
+        title: "Your event submission was rejected",
+        link: "/submit",
         objectType: "submission",
       });
     }
     await logAudit(session.user.id, "UPDATE_SUBMISSION_STATUS", "SUBMISSION", id, {
-      status: parsed.data.status,
+      previousValue: { status: before.status },
+      newValue: { status: "REJECTED" },
     });
 
     return NextResponse.json(submission);

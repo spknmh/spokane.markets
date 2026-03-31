@@ -49,6 +49,9 @@ export function SubmissionForm({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /** Required field label suffix */
+  const req = (label: string) => `${label} *`;
+
   const isAuthed = !!session?.user;
 
   const {
@@ -186,7 +189,7 @@ export function SubmissionForm({
           {!isAuthed && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="submitterName">Your name</Label>
+                <Label htmlFor="submitterName">{req("Your name")}</Label>
                 <Input
                   id="submitterName"
                   type="text"
@@ -201,7 +204,7 @@ export function SubmissionForm({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="submitterEmail">Your email</Label>
+                <Label htmlFor="submitterEmail">{req("Your email")}</Label>
                 <Input
                   id="submitterEmail"
                   type="email"
@@ -219,7 +222,7 @@ export function SubmissionForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="eventTitle">Event title</Label>
+            <Label htmlFor="eventTitle">{req("Event title")}</Label>
             <Input
               id="eventTitle"
               type="text"
@@ -252,7 +255,7 @@ export function SubmissionForm({
             <Label>Schedule</Label>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="eventDate">Start date</Label>
+                <Label htmlFor="eventDate">{req("Start date")}</Label>
                 <DatePickerInput
                   id="eventDate"
                   value={watchEventDate ?? ""}
@@ -290,7 +293,7 @@ export function SubmissionForm({
             {!watchAllDay && (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="eventTime">Start time</Label>
+                  <Label htmlFor="eventTime">{req("Start time")}</Label>
                   <Input id="eventTime" type="time" {...register("eventTime")} />
                   {errors.eventTime && (
                     <p className="text-sm text-destructive">
@@ -336,7 +339,7 @@ export function SubmissionForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="venueName">Venue name</Label>
+            <Label htmlFor="venueName">{req("Venue name")}</Label>
             <Input
               id="venueName"
               type="text"
@@ -351,24 +354,34 @@ export function SubmissionForm({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-muted-foreground">Address details (editable)</Label>
+            <Label className="text-muted-foreground">{req("Venue address")}</Label>
             <p className="text-xs text-muted-foreground">
-              Start typing in the street address field for suggestions.
+              Start typing in the street address field for suggestions. City, state, and ZIP are required.
             </p>
             <AddressAutofillFields
               streetProps={{
                 id: "venueAddress",
                 type: "text",
+                placeholder: "Street address",
                 ...register("venueAddress"),
               }}
-              cityProps={{ type: "text", ...register("venueCity") }}
-              stateProps={{ type: "text", ...register("venueState") }}
-              zipProps={{ type: "text", ...register("venueZip") }}
+              cityProps={{ type: "text", placeholder: "City", ...register("venueCity") }}
+              stateProps={{ type: "text", placeholder: "State", ...register("venueState") }}
+              zipProps={{ type: "text", placeholder: "ZIP", ...register("venueZip") }}
             />
             {errors.venueAddress && (
               <p className="text-sm text-destructive">
                 {errors.venueAddress.message}
               </p>
+            )}
+            {errors.venueCity && (
+              <p className="text-sm text-destructive">{errors.venueCity.message}</p>
+            )}
+            {errors.venueState && (
+              <p className="text-sm text-destructive">{errors.venueState.message}</p>
+            )}
+            {errors.venueZip && (
+              <p className="text-sm text-destructive">{errors.venueZip.message}</p>
             )}
           </div>
 

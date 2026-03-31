@@ -53,7 +53,7 @@ export async function PATCH(
 
     if (!role && !accountStatus) {
       return apiError(
-        "Role or accountStatus is required when not sending password reset",
+        "Role or accountStatus is required unless sendPasswordReset is true",
         400
       );
     }

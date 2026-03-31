@@ -15,9 +15,12 @@ const submissionSchemaBase = z.object({
   imageUrl: imageUrlSchema.optional().or(z.literal("")),
   venueName: z.string().min(1, "Venue name is required"),
   venueAddress: z.string().min(1, "Venue address is required"),
-  venueCity: z.string().optional().or(z.literal("")),
-  venueState: z.string().optional().or(z.literal("")),
-  venueZip: z.string().optional().or(z.literal("")),
+  venueCity: z.string().min(1, "City is required"),
+  venueState: z.string().min(1, "State is required"),
+  venueZip: z
+    .string()
+    .min(5, "ZIP must be at least 5 characters")
+    .max(20, "ZIP is too long"),
   marketId: z.string().optional().or(z.literal("")),
   tagIds: z.array(z.string()).optional().default([]),
   featureIds: z.array(z.string()).optional().default([]),

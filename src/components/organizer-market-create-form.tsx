@@ -139,26 +139,54 @@ export function OrganizerMarketCreateForm({
         aspectRatio="banner"
       />
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="websiteUrl">Website URL</Label>
-          <Input id="websiteUrl" type="url" {...register("websiteUrl")} />
+      <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+        <div>
+          <p className="text-sm font-medium">Website &amp; social</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Optional — use full URLs (e.g. https://example.com or https://instagram.com/yourhandle).
+          </p>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="facebookUrl">Facebook URL</Label>
-          <Input id="facebookUrl" type="url" {...register("facebookUrl")} />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="websiteUrl">Website</Label>
+            <Input
+              id="websiteUrl"
+              type="url"
+              inputMode="url"
+              autoComplete="url"
+              placeholder="https://yourmarket.com"
+              {...register("websiteUrl")}
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="facebookUrl">Facebook</Label>
+              <Input
+                id="facebookUrl"
+                type="url"
+                inputMode="url"
+                placeholder="https://facebook.com/yourpage"
+                {...register("facebookUrl")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="instagramUrl">Instagram</Label>
+              <Input
+                id="instagramUrl"
+                type="url"
+                inputMode="url"
+                placeholder="https://instagram.com/yourhandle"
+                {...register("instagramUrl")}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="instagramUrl">Instagram URL</Label>
-        <Input id="instagramUrl" type="url" {...register("instagramUrl")} />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="baseArea">Base area</Label>
+        <Label htmlFor="baseArea">Neighborhood</Label>
         <Select id="baseArea" {...register("baseArea")}>
-          <option value="">Select area...</option>
+          <option value="">Select neighborhood…</option>
           {neighborhoods.map((n) => (
             <option key={n.value} value={n.value}>
               {n.label}
