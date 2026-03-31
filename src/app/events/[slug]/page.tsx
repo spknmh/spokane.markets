@@ -3,7 +3,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { findEventBySlug } from "@/lib/services/event-occurrence-service";
+import {
+  findEventBySlug,
+  type EventForDisplay,
+} from "@/lib/services/event-occurrence-service";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
@@ -33,7 +36,7 @@ interface EventDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
-async function getEvent(slug: string) {
+async function getEvent(slug: string): Promise<EventForDisplay | null> {
   return findEventBySlug(slug);
 }
 

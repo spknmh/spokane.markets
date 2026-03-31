@@ -10,7 +10,8 @@ interface Vendor {
   slug: string;
   imageUrl: string | null;
   specialties: string | null;
-  verificationStatus: VerificationStatus;
+  /** Present when the query selects it (see event-occurrence-service). */
+  verificationStatus?: VerificationStatus;
 }
 
 interface OfficialVendorRosterProps {
@@ -68,7 +69,7 @@ export function OfficialVendorRoster({
                 <div className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-1.5 font-medium text-foreground">
                     {v.businessName}
-                    <VendorVerifiedBadge status={v.verificationStatus} />
+                    <VendorVerifiedBadge status={v.verificationStatus ?? "UNVERIFIED"} />
                   </span>
                   {v.specialties && (
                     <p className="truncate text-xs text-muted-foreground">
