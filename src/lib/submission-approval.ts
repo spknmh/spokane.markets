@@ -8,6 +8,17 @@ import type { Submission } from "@prisma/client";
 
 const TZ = "America/Los_Angeles";
 
+/** Required for `resolveVenueId` / event creation — same rules as organizer API. */
+export function submissionHasCompleteVenueForEvent(s: Submission): boolean {
+  return !!(
+    s.venueName?.trim() &&
+    s.venueAddress?.trim() &&
+    s.venueCity?.trim() &&
+    s.venueState?.trim() &&
+    s.venueZip?.trim()
+  );
+}
+
 export async function ensureUniqueEventSlug(title: string): Promise<string> {
   const base = slugify(title) || "event";
   let candidate = base;
@@ -147,6 +158,12 @@ export async function approveSubmissionWithEvent(
   });
   if (!submission || submission.status !== "PENDING") return;
   if (submission.createdEventId) return;
+
+  if (!submissionHasCompleteVenueForEvent(submission)) {
+    throw new Error(
+      "Cannot approve: this submission is missing venue name, street address, city, state, or ZIP. Reject it and ask the submitter to resubmit with a full address, or fix the submission in the database first."
+    );
+  }
 
   const slug = await ensureUniqueEventSlug(submission.eventTitle);
   const eventData = buildEventDataFromSubmission(submission, slug);

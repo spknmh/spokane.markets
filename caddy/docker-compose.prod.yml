@@ -1,0 +1,11 @@
+# Production host ports (override local 8080/8443). Use with docker-compose.yml:
+#   docker compose -f caddy/docker-compose.yml -f caddy/docker-compose.prod.yml up -d
+
+services:
+  caddy:
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+      - "443:443/udp"
+    mem_limit: 256m
+    cpus: 0.5

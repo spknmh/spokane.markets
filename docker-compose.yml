@@ -66,30 +66,9 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
-  caddy:
-    image: caddy:2-alpine
-    dns:
-      - 1.1.1.1
-      - 8.8.8.8
-    depends_on:
-      - web
     networks:
       - default
       - webapp
-    ports:
-      - "8080:80"
-      - "8443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-      - uploads_data:/srv/uploads:ro
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
 
 secrets:
   NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:
@@ -101,6 +80,4 @@ networks:
 
 volumes:
   pgdata:
-  caddy_data:
-  caddy_config:
   uploads_data:

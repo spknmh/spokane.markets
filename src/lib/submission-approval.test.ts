@@ -14,6 +14,7 @@ vi.mock("@/lib/db", () => ({
 import {
   buildEventDataFromSubmission,
   ensureUniqueEventSlug,
+  submissionHasCompleteVenueForEvent,
 } from "./submission-approval";
 
 describe("buildEventDataFromSubmission", () => {
@@ -44,6 +45,29 @@ describe("buildEventDataFromSubmission", () => {
     expect(data.slug).toBe("test-event");
     expect(data.venueCity).toBe("Spokane");
     expect(data.scheduleDays).toBeUndefined();
+  });
+});
+
+describe("submissionHasCompleteVenueForEvent", () => {
+  const base = {
+    venueName: "Hall",
+    venueAddress: "1 St",
+    venueCity: "Spokane",
+    venueState: "WA",
+    venueZip: "99201",
+  } as unknown as Submission;
+
+  it("returns true when all venue fields are non-empty", () => {
+    expect(submissionHasCompleteVenueForEvent(base)).toBe(true);
+  });
+
+  it("returns false when zip is missing", () => {
+    expect(
+      submissionHasCompleteVenueForEvent({
+        ...base,
+        venueZip: "",
+      } as Submission),
+    ).toBe(false);
   });
 });
 

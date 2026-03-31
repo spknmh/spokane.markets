@@ -42,12 +42,3 @@ services:
     # DB port not exposed to host in production; access via internal network only.
     mem_limit: 512m
     cpus: 1.0
-
-  caddy:
-    restart: unless-stopped
-    ports:
-      - "80:80/tcp"
-      - "443:443/tcp"
-      - "443:443/udp"
-    mem_limit: 256m
-    cpus: 0.5

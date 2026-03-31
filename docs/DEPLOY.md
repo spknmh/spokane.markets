@@ -27,6 +27,8 @@ If you run a command in the wrong place, deployment will fail.
 - Init image: `ghcr.io/redkeysh/spokane.markets:init`
 - CI flow: push to `main` -> lint/test -> build/push images -> SSH into server -> compose pull/up
 - Runtime: `init` runs migrations and upload-dir prep, then exits; `web` starts after init succeeds
+- **Caddy** runs in a **separate** Compose project under `caddy/` (same repo `Caddyfile`) so the edge proxy stays up when the app stack restarts. It joins the external `webapp` network with the app `web` service.
+- **Migrating** from an older setup where Caddy lived in the app compose file: [MIGRATION-CADDY.md](MIGRATION-CADDY.md).
 
 ## 1) Choose and lock hostnames
 
@@ -63,6 +65,8 @@ sudo mkdir -p /opt/spokane.markets
 sudo chown -R deploy:deploy /opt/spokane.markets
 docker network create webapp || true
 ```
+
+The external network **`webapp`** is shared by the app `web` container, the **`caddy/`** Compose stack, and other backends you attach (e.g. Umami) so Caddy can resolve `web`, `umami`, etc.
 
 `--disabled-password` is expected and recommended. This user authenticates by SSH key only.
 
@@ -173,10 +177,29 @@ Important:
 
 **Run on [SERVER-DEPLOY]:**
 
-- Set your email in `Caddyfile`.
+- Set your email in `Caddyfile` (repo root; shared by the Caddy container).
 - Ensure site domain blocks match your production domain.
 
-### 6.2 Firewall
+### 6.2 Caddy Compose (isolated edge)
+
+Caddy runs in its **own** Compose project under `caddy/` so you can restart or redeploy the app without stopping TLS or port 80/443.
+
+**Run on [SERVER-DEPLOY]** (production ports):
+
+```bash
+cd /opt/spokane.markets
+docker compose -f caddy/docker-compose.yml -f caddy/docker-compose.prod.yml up -d --remove-orphans
+```
+
+- Mounts the repo-root `Caddyfile` read-only (`../Caddyfile` from `caddy/`).
+- Joins **`webapp`** (same external network as `web`).
+- Expects the app uploads volume (default name `spokanemarkets_uploads_data`); override with `UPLOADS_VOLUME_NAME` in `caddy/.env` if yours differs (`docker volume ls`).
+- Reuses TLS/config volume names `spokanemarkets_caddy_data` and `spokanemarkets_caddy_config` so existing certificates survive moving Caddy out of the app compose.
+- **Upgrading** from integrated Caddy: see [MIGRATION-CADDY.md](MIGRATION-CADDY.md).
+
+**Local dev** (host ports 8080/8443): `docker compose -f caddy/docker-compose.yml up -d`
+
+### 6.3 Firewall
 
 **Run on [SERVER-ROOT]:**
 
@@ -244,6 +267,7 @@ Workflow does:
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+docker compose -f caddy/docker-compose.yml -f caddy/docker-compose.prod.yml up -d --remove-orphans
 docker image prune -f
 ```
 
@@ -255,6 +279,7 @@ docker image prune -f
 cd /opt/spokane.markets
 docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+docker compose -f caddy/docker-compose.yml -f caddy/docker-compose.prod.yml up -d --remove-orphans
 ```
 
 ## 9) Post-deploy checks
@@ -266,6 +291,7 @@ cd /opt/spokane.markets
 docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
 docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=100 init
 docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=100 web
+docker compose -f caddy/docker-compose.yml -f caddy/docker-compose.prod.yml logs --tail=80 caddy
 ```
 
 Verify in browser:
@@ -308,7 +334,7 @@ cd /opt/spokane.markets
 docker compose -f docker-compose.yml -f docker-compose.prod.yml ps -a
 docker compose -f docker-compose.yml -f docker-compose.prod.yml logs init --tail=120
 docker compose -f docker-compose.yml -f docker-compose.prod.yml logs web --tail=200
-docker compose -f docker-compose.yml -f docker-compose.prod.yml logs caddy --tail=80
+docker compose -f caddy/docker-compose.yml -f caddy/docker-compose.prod.yml logs caddy --tail=80
 ```
 
 Interpret quickly:
@@ -322,6 +348,7 @@ Interpret quickly:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+docker compose -f caddy/docker-compose.yml -f caddy/docker-compose.prod.yml up -d --remove-orphans
 ```
 
 | Issue | Check |
@@ -336,8 +363,9 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-o
 
 ### Failed to find Server Action
 
-Usually client/server build mismatch.
+Usually client/server build mismatch (encrypted action IDs in the JS bundle do not match the running server).
 
-1. Keep `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` identical in server `.env.local` and GitHub secret.
-2. Rebuild/redeploy after key changes.
-3. Hard refresh browser cache.
+1. Keep `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` **identical** in server `.env.local`, the GitHub Actions secret used at **Docker build** time, and the value passed as a **build secret** in CI (see `Dockerfile` / deploy workflow).
+2. Rebuild and redeploy the **web** image after any key change; restart alone is not enough.
+3. Hard refresh or clear site data for the browser (stale tab can keep old client chunks).
+4. Avoid serving mixed builds (only one `web` container revision should handle requests behind Caddy).

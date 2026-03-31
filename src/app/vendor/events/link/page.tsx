@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { getParticipationConfig } from "@/lib/participation-config";
+import { VENDOR_PROFILE_INTENT_STATUSES } from "@/lib/vendor-public-events";
 import { Button } from "@/components/ui/button";
 import { VendorEventLinker } from "@/components/vendor-event-linker";
 import { ArrowLeft } from "lucide-react";
@@ -18,7 +19,7 @@ export default async function VendorEventsLinkPage() {
       vendorEvents: { select: { eventId: true } },
       vendorIntents: {
         where: {
-          status: { in: ["ATTENDING", "REQUESTED", "APPLIED", "WAITLISTED"] },
+          status: { in: VENDOR_PROFILE_INTENT_STATUSES },
         },
         select: { eventId: true },
       },

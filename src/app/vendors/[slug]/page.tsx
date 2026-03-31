@@ -20,12 +20,24 @@ import { EventCard } from "@/components/event/event-card";
 import { ReportButton } from "@/components/report-button";
 import { ShareButton } from "@/components/share-button";
 import { TrackVendorView } from "@/components/track-content-view";
+import {
+  mergeUpcomingPublicVendorEvents,
+  VENDOR_PROFILE_INTENT_STATUSES,
+} from "@/lib/vendor-public-events";
 
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
+
+const eventCardInclude = {
+  venue: true,
+  tags: true,
+  features: true,
+  _count: { select: { vendorEvents: true } },
+  scheduleDays: { orderBy: { date: "asc" as const } },
+} as const;
 
 async function getVendor(slug: string) {
   return db.vendorProfile.findFirst({
@@ -39,16 +51,21 @@ async function getVendor(slug: string) {
         },
         include: {
           event: {
-            include: {
-              venue: true,
-              tags: true,
-              features: true,
-              _count: { select: { vendorEvents: true } },
-              scheduleDays: { orderBy: { date: "asc" } },
-            },
+            include: eventCardInclude,
           },
         },
         orderBy: { event: { startDate: "asc" } },
+      },
+      vendorIntents: {
+        where: {
+          status: { in: VENDOR_PROFILE_INTENT_STATUSES },
+          event: { deletedAt: null },
+        },
+        include: {
+          event: {
+            include: eventCardInclude,
+          },
+        },
       },
     },
   });
@@ -112,12 +129,10 @@ export default async function VendorProfilePage({ params }: PageProps) {
       })
     : null;
 
-  const upcomingEvents = vendor.vendorEvents
-    .filter(
-      (ve) =>
-        ve.event.startDate >= new Date() && ve.event.status === "PUBLISHED",
-    )
-    .map((ve) => ve.event);
+  const upcomingEvents = mergeUpcomingPublicVendorEvents(
+    vendor.vendorEvents.map((ve) => ve.event),
+    vendor.vendorIntents.map((vi) => vi.event),
+  );
 
   const firstSpecialty = vendor.specialties?.split(",")[0]?.trim();
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";

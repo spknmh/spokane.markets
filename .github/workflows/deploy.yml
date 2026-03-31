@@ -171,5 +171,6 @@ jobs:
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
           docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
           docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+          docker compose -f caddy/docker-compose.yml -f caddy/docker-compose.prod.yml up -d --remove-orphans
           docker image prune -f
           EOF
