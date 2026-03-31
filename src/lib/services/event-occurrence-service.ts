@@ -3,7 +3,15 @@
  */
 
 import { db } from "@/lib/db";
-import type { Event, Venue, Market, EventScheduleDay, EventVendorRoster, EventVendorIntent } from "@prisma/client";
+import type {
+  Event,
+  Venue,
+  Market,
+  EventScheduleDay,
+  EventVendorRoster,
+  EventVendorIntent,
+  VerificationStatus,
+} from "@prisma/client";
 
 /** Event-like shape consumed by pages and components (venue, market, roster, intents, attendance count). */
 export type EventForDisplay = Event & {
@@ -15,10 +23,24 @@ export type EventForDisplay = Event & {
   _count: { attendances: number };
   userAttendance?: { id: string; userId: string; eventId: string; status: string } | null;
   vendorRoster: (EventVendorRoster & {
-    vendorProfile: { id: string; businessName: string; slug: string; imageUrl: string | null; specialties: string | null };
+    vendorProfile: {
+      id: string;
+      businessName: string;
+      slug: string;
+      imageUrl: string | null;
+      specialties: string | null;
+      verificationStatus: VerificationStatus;
+    };
   })[];
   vendorIntents: (EventVendorIntent & {
-    vendorProfile: { id: string; businessName: string; slug: string; imageUrl: string | null; specialties: string | null };
+    vendorProfile: {
+      id: string;
+      businessName: string;
+      slug: string;
+      imageUrl: string | null;
+      specialties: string | null;
+      verificationStatus: VerificationStatus;
+    };
   })[];
 };
 
@@ -39,7 +61,14 @@ export async function findEventBySlug(slug: string, userId?: string): Promise<Ev
         where: { status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] } },
         include: {
           vendorProfile: {
-            select: { id: true, businessName: true, slug: true, imageUrl: true, specialties: true },
+            select: {
+              id: true,
+              businessName: true,
+              slug: true,
+              imageUrl: true,
+              specialties: true,
+              verificationStatus: true,
+            },
           },
         },
       },
@@ -50,7 +79,14 @@ export async function findEventBySlug(slug: string, userId?: string): Promise<Ev
         },
         include: {
           vendorProfile: {
-            select: { id: true, businessName: true, slug: true, imageUrl: true, specialties: true },
+            select: {
+              id: true,
+              businessName: true,
+              slug: true,
+              imageUrl: true,
+              specialties: true,
+              verificationStatus: true,
+            },
           },
         },
       },
@@ -87,7 +123,14 @@ export async function findEventByIdOrSlug(idOrSlug: string, userId?: string): Pr
         where: { status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] } },
         include: {
           vendorProfile: {
-            select: { id: true, businessName: true, slug: true, imageUrl: true, specialties: true },
+            select: {
+              id: true,
+              businessName: true,
+              slug: true,
+              imageUrl: true,
+              specialties: true,
+              verificationStatus: true,
+            },
           },
         },
       },
@@ -98,7 +141,14 @@ export async function findEventByIdOrSlug(idOrSlug: string, userId?: string): Pr
         },
         include: {
           vendorProfile: {
-            select: { id: true, businessName: true, slug: true, imageUrl: true, specialties: true },
+            select: {
+              id: true,
+              businessName: true,
+              slug: true,
+              imageUrl: true,
+              specialties: true,
+              verificationStatus: true,
+            },
           },
         },
       },
