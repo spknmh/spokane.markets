@@ -115,6 +115,9 @@ export async function PUT(
             : null,
         contactVisible: data.contactVisible ?? true,
         socialLinksVisible: data.socialLinksVisible ?? true,
+        ...(data.verificationStatus !== undefined && {
+          verificationStatus: data.verificationStatus,
+        }),
       },
     });
 

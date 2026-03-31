@@ -5,6 +5,7 @@ import type { PromotionType, VendorProfile } from "@prisma/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Megaphone, Handshake, Star } from "lucide-react";
+import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
 
 const PROMOTION_CONFIG: Record<
   PromotionType,
@@ -59,9 +60,12 @@ export function FeaturedVendorCard({
           )}
 
           <div className="min-w-0 flex-1 space-y-1.5 pt-6">
-            <h3 className="line-clamp-2 font-sans text-lg font-bold leading-tight text-foreground group-hover:text-primary">
-              {vendor.businessName}
-            </h3>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <h3 className="line-clamp-2 min-w-0 flex-1 font-sans text-lg font-bold leading-tight text-foreground group-hover:text-primary">
+                {vendor.businessName}
+              </h3>
+              <VendorVerifiedBadge status={vendor.verificationStatus} className="self-start" />
+            </div>
             {vendor.specialties && (
               <p className="line-clamp-2 text-sm text-muted-foreground">
                 {vendor.specialties}

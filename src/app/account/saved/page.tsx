@@ -11,6 +11,7 @@ import { EventTimeLabel } from "@/components/event/event-time-label";
 import { SavedPageTabs } from "./saved-page-tabs";
 import { CheckCircle2, Star } from "lucide-react";
 import { SITE_NAME } from "@/lib/constants";
+import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
 
 export const dynamic = "force-dynamic";
 
@@ -260,9 +261,10 @@ export default async function AccountSavedPage({
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
                           href={`/vendors/${fav.vendorProfile.slug}`}
-                          className="font-medium transition-colors hover:text-primary"
+                          className="flex flex-wrap items-center gap-1.5 font-medium transition-colors hover:text-primary"
                         >
                           {fav.vendorProfile.businessName}
+                          <VendorVerifiedBadge status={fav.vendorProfile.verificationStatus} />
                         </Link>
                         {fav.emailAlerts && (
                           <Badge variant="outline">Email Alerts</Badge>

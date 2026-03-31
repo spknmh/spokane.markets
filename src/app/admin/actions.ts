@@ -256,6 +256,59 @@ export async function setMarketVerificationStatus(
   revalidatePath("/admin/markets");
 }
 
+export async function verifyVendor(id: string) {
+  await setVendorVerificationStatus(id, "VERIFIED");
+}
+
+export async function setVendorVerificationStatus(
+  id: string,
+  status: "UNVERIFIED" | "PENDING" | "VERIFIED"
+) {
+  const session = await requireAdminAction("admin.listings.manage");
+  const current = await db.vendorProfile.findFirst({
+    where: { id, deletedAt: null },
+    select: {
+      verificationStatus: true,
+      businessName: true,
+      slug: true,
+      userId: true,
+    },
+  });
+  if (!current) return;
+
+  await db.vendorProfile.update({
+    where: { id },
+    data: { verificationStatus: status },
+  });
+
+  await logAudit(session.user.id, "UPDATE_VENDOR_VERIFICATION", "VENDOR_PROFILE", id, {
+    previousValue: { verificationStatus: current.verificationStatus },
+    newValue: { verificationStatus: status },
+  });
+
+  if (
+    status === "VERIFIED" &&
+    current.userId &&
+    current.verificationStatus !== "VERIFIED"
+  ) {
+    await createNotification({
+      userId: current.userId,
+      type: "VENDOR_VERIFIED",
+      title: `Your vendor profile ${current.businessName} is now verified`,
+      link: `/vendors/${current.slug}`,
+      objectType: "vendor_profile",
+      objectId: id,
+    });
+  }
+
+  revalidatePath("/admin/vendors");
+  revalidatePath("/vendors");
+  revalidatePath(`/vendors/${current.slug}`);
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  revalidatePath("/account/saved");
+}
+
 export async function updateSubmissionStatus(
   id: string,
   status: "APPROVED" | "REJECTED"

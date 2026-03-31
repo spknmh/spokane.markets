@@ -37,6 +37,7 @@ export type VendorProfileInput = z.infer<typeof vendorProfileSchema>;
 
 /** Admin-only: extends vendorProfileSchema with slug, userId, visibility flags. */
 export const adminVendorProfileSchema = vendorProfileSchema.extend({
+  verificationStatus: z.enum(["UNVERIFIED", "PENDING", "VERIFIED"]).optional(),
   slug: z
     .string()
     .optional()

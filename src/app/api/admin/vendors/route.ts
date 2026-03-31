@@ -103,6 +103,9 @@ export async function POST(request: Request) {
       userId,
       contactVisible: data.contactVisible ?? true,
       socialLinksVisible: data.socialLinksVisible ?? true,
+      ...(data.verificationStatus !== undefined && {
+        verificationStatus: data.verificationStatus,
+      }),
     },
   });
 

@@ -43,6 +43,7 @@ export default async function EditVendorPage({
       : null,
     contactVisible: vendor.contactVisible,
     socialLinksVisible: vendor.socialLinksVisible,
+    verificationStatus: vendor.verificationStatus,
   };
 
   return (

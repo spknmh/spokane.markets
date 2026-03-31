@@ -24,6 +24,7 @@ import {
   mergeUpcomingPublicVendorEvents,
   VENDOR_PROFILE_INTENT_STATUSES,
 } from "@/lib/vendor-public-events";
+import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
 
 export const dynamic = "force-dynamic";
 
@@ -189,9 +190,12 @@ export default async function VendorProfilePage({ params }: PageProps) {
             )}
 
             <div className="flex-1">
-              <h1 className="text-3xl font-bold tracking-tight">
-                {vendor.businessName}
-              </h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {vendor.businessName}
+                </h1>
+                <VendorVerifiedBadge status={vendor.verificationStatus} size="md" />
+              </div>
 
               {vendor.specialties && (
                 <div className="mt-2 flex flex-wrap gap-1.5">

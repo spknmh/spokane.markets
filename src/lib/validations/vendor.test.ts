@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { vendorProfileSchema } from "./vendor";
+import { adminVendorProfileSchema, vendorProfileSchema } from "./vendor";
 
 const validInput = {
   businessName: "Sunshine Farm",
@@ -41,6 +41,39 @@ describe("vendorProfileSchema", () => {
         "/uploads/vendor/6.jpg",
         "/uploads/vendor/7.jpg",
       ],
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("adminVendorProfileSchema", () => {
+  const baseAdmin = {
+    businessName: "Sunshine Farm",
+    slug: "sunshine-farm",
+    imageUrl: "/uploads/vendor/example.jpg",
+    websiteUrl: "",
+    facebookUrl: "",
+    instagramUrl: "",
+    contactEmail: "",
+    contactPhone: "",
+    specialties: "",
+  };
+
+  it("accepts verificationStatus when present", () => {
+    const result = adminVendorProfileSchema.safeParse({
+      ...baseAdmin,
+      verificationStatus: "VERIFIED",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.verificationStatus).toBe("VERIFIED");
+    }
+  });
+
+  it("rejects invalid verificationStatus", () => {
+    const result = adminVendorProfileSchema.safeParse({
+      ...baseAdmin,
+      verificationStatus: "FAKE",
     });
     expect(result.success).toBe(false);
   });

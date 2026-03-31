@@ -48,22 +48,28 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
     formState: { errors, isSubmitting },
   } = useForm<AdminVendorProfileInput>({
     resolver: zodResolver(adminVendorProfileSchema),
-    defaultValues: initialData ?? {
-      businessName: "",
-      slug: "",
-      description: "",
-      imageUrl: "",
-      websiteUrl: "",
-      facebookUrl: "",
-      instagramUrl: "",
-      contactEmail: "",
-      contactPhone: "",
-      galleryUrlsText: "",
-      specialties: "",
-      userId: null,
-      contactVisible: true,
-      socialLinksVisible: true,
-    },
+    defaultValues: initialData
+      ? {
+          ...initialData,
+          verificationStatus: initialData.verificationStatus ?? "UNVERIFIED",
+        }
+      : {
+          businessName: "",
+          slug: "",
+          description: "",
+          imageUrl: "",
+          websiteUrl: "",
+          facebookUrl: "",
+          instagramUrl: "",
+          contactEmail: "",
+          contactPhone: "",
+          galleryUrlsText: "",
+          specialties: "",
+          userId: null,
+          contactVisible: true,
+          socialLinksVisible: true,
+          verificationStatus: "UNVERIFIED",
+        },
   });
 
   const businessName = useWatch({ control, name: "businessName" });
@@ -185,6 +191,22 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
               initialUser={initialData?.user ?? null}
               placeholder="Search by name or email..."
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="verificationStatus">Verification status</Label>
+            <select
+              id="verificationStatus"
+              className="flex h-10 w-full max-w-md rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              {...register("verificationStatus")}
+            >
+              <option value="UNVERIFIED">Unverified</option>
+              <option value="PENDING">Pending</option>
+              <option value="VERIFIED">Verified</option>
+            </select>
+            <p className="text-xs text-muted-foreground">
+              Verified vendors display a public badge on listings and their profile.
+            </p>
           </div>
 
           <div className="space-y-2">

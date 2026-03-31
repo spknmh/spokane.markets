@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
+import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
 
 interface VendorOfWeekCardProps {
   vendor: VendorOfWeek;
@@ -42,9 +43,12 @@ export function VendorOfWeekCard({ vendor }: VendorOfWeekCardProps) {
               <Badge variant="secondary" className="text-[11px] uppercase tracking-wide">
                 Vendor of the Week
               </Badge>
-              <h3 className="font-sans text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-                {vendor.businessName}
-              </h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-sans text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+                  {vendor.businessName}
+                </h3>
+                <VendorVerifiedBadge status={vendor.verificationStatus} size="md" />
+              </div>
               {vendor.specialties && (
                 <p className="text-sm font-medium text-foreground">{vendor.specialties}</p>
               )}

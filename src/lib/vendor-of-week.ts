@@ -16,6 +16,7 @@ export type VendorOfWeek = Pick<
   | "websiteUrl"
   | "facebookUrl"
   | "instagramUrl"
+  | "verificationStatus"
 > & {
   _count: {
     vendorEvents: number;
@@ -166,6 +167,7 @@ export async function getVendorOfWeek(): Promise<VendorOfWeek | null> {
         websiteUrl: true,
         facebookUrl: true,
         instagramUrl: true,
+        verificationStatus: true,
         _count: { select: { vendorEvents: true, favoriteVendors: true } },
       },
     }),

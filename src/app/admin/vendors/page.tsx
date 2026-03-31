@@ -6,8 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DeleteButton, StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
-import { deleteVendor, restoreVendor } from "../actions";
+import { deleteVendor, restoreVendor, verifyVendor } from "../actions";
 import { parseAdminPagination, parseFlag, parseQuery } from "@/lib/admin/table-query";
+import type { VerificationStatus } from "@prisma/client";
+
+const verificationVariant: Record<VerificationStatus, "secondary" | "default" | "outline"> = {
+  UNVERIFIED: "secondary",
+  PENDING: "outline",
+  VERIFIED: "default",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -112,7 +119,7 @@ export default async function AdminVendorsPage({
           <tbody>
             {vendors.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                   No vendor profiles yet.
                 </td>
               </tr>
@@ -132,6 +139,11 @@ export default async function AdminVendorsPage({
                       {v.deletedAt && <Badge variant="secondary">Archived</Badge>}
                     </div>
                   </td>
+                  <td className="px-4 py-3">
+                    <Badge variant={verificationVariant[v.verificationStatus]}>
+                      {v.verificationStatus}
+                    </Badge>
+                  </td>
                   <td className="px-4 py-3">{v._count.vendorEvents}</td>
                   <td className="px-4 py-3">
                     <Link
@@ -142,6 +154,12 @@ export default async function AdminVendorsPage({
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-right space-x-2">
+                    {v.verificationStatus !== "VERIFIED" && !v.deletedAt && (
+                      <StatusButton
+                        action={verifyVendor.bind(null, v.id)}
+                        label="Verify"
+                      />
+                    )}
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/admin/vendors/${v.id}/edit`}>Edit</Link>
                     </Button>

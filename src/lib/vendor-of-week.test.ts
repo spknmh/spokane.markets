@@ -15,6 +15,7 @@ function vendor(
     websiteUrl: null,
     facebookUrl: null,
     instagramUrl: null,
+    verificationStatus: "UNVERIFIED",
     _count: {
       vendorEvents: 0,
       favoriteVendors: 0,

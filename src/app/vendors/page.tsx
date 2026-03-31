@@ -20,6 +20,7 @@ import {
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { VendorsSearch } from "@/components/vendor/vendors-search";
 import { VendorOfWeekCard } from "@/components/vendor/vendor-of-week-card";
+import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
 import { getVendorOfWeek } from "@/lib/vendor-of-week";
 
 export const dynamic = "force-dynamic";
@@ -192,9 +193,12 @@ export default async function VendorsPage({
                 )}
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2 pr-12">
-                    <CardTitle className="font-sans line-clamp-2 text-lg font-bold text-foreground">
-                      {vendor.businessName}
-                    </CardTitle>
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                      <CardTitle className="font-sans line-clamp-2 min-w-0 flex-1 text-lg font-bold text-foreground">
+                        {vendor.businessName}
+                      </CardTitle>
+                      <VendorVerifiedBadge status={vendor.verificationStatus} />
+                    </div>
                     {vendor._count.vendorEvents > 0 && (
                       <Badge variant="secondary" className="shrink-0">
                         {vendor._count.vendorEvents} event

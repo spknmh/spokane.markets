@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { VerificationStatus } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
+import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
 
 interface Vendor {
   id: string;
@@ -8,6 +10,7 @@ interface Vendor {
   slug: string;
   imageUrl: string | null;
   specialties: string | null;
+  verificationStatus: VerificationStatus;
 }
 
 interface OfficialVendorRosterProps {
@@ -63,7 +66,10 @@ export function OfficialVendorRoster({
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <span className="font-medium text-foreground">{v.businessName}</span>
+                  <span className="flex flex-wrap items-center gap-1.5 font-medium text-foreground">
+                    {v.businessName}
+                    <VendorVerifiedBadge status={v.verificationStatus} />
+                  </span>
                   {v.specialties && (
                     <p className="truncate text-xs text-muted-foreground">
                       {v.specialties.split(",")[0]?.trim()}
