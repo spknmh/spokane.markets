@@ -9,8 +9,7 @@ import { Footer } from "@/components/layout/footer";
 import { SiteAnnouncementBar } from "@/components/layout/site-announcement";
 import { Providers } from "@/components/providers";
 import { AnalyticsLoader } from "@/components/analytics/analytics-loader";
-import { COMMUNITY_IMAGES } from "@/lib/community-images";
-import { SITE_NAME } from "@/lib/constants";
+import { SITE_NAME, SITE_OG_IMAGE_PATH } from "@/lib/constants";
 import { getSiteAnnouncement } from "@/lib/site-announcement";
 import { getSiteTheme } from "@/lib/site-theme";
 
@@ -63,12 +62,13 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     description: "Discover local markets, fairs & events in Spokane",
     type: "website",
-    images: [{ url: COMMUNITY_IMAGES.hero, width: 1200, height: 630, alt: SITE_NAME }],
+    images: [{ url: SITE_OG_IMAGE_PATH, width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description: "Discover local markets, fairs & events in Spokane",
+    images: [{ url: SITE_OG_IMAGE_PATH, alt: SITE_NAME }],
   },
 };
 

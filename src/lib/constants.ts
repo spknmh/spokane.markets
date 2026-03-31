@@ -1,6 +1,13 @@
 /** DBA (display name) used across the site. */
 export const SITE_NAME = "Spokane Markets";
 
+/**
+ * Default image for link previews (Open Graph / Twitter / iMessage, etc.).
+ * Place your logo or branded artwork at this path under `public/` (e.g. `public/og.png`).
+ * Aim for ~1200×630 (or 1.91:1); square logos work but may be letterboxed on some platforms.
+ */
+export const SITE_OG_IMAGE_PATH = "/og.png";
+
 /** Legal entity for Terms, Privacy, copyright. */
 export const LEGAL_ENTITY = "Spokane Market Hive, LLC";
 
