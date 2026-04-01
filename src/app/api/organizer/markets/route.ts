@@ -5,6 +5,10 @@ import { logAudit } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
 import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
 import { organizerMarketCreateSchema } from "@/lib/validations";
+import {
+  pickOnboardingFields,
+  toMarketOnboardingPrismaData,
+} from "@/lib/validations/organizer-onboarding";
 
 export async function POST(request: Request) {
   try {
@@ -35,6 +39,10 @@ export async function POST(request: Request) {
       );
     }
 
+    const onboarding = toMarketOnboardingPrismaData(
+      pickOnboardingFields(data as unknown as Record<string, unknown>)
+    );
+
     const market = await db.$transaction(async (tx) => {
       const created = await tx.market.create({
         data: {
@@ -59,6 +67,7 @@ export async function POST(request: Request) {
           publicIntentListEnabled: data.publicIntentListEnabled ?? true,
           publicIntentNamesEnabled: data.publicIntentNamesEnabled ?? true,
           publicRosterEnabled: data.publicRosterEnabled ?? true,
+          ...onboarding,
         },
       });
 

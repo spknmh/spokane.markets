@@ -40,3 +40,38 @@ export const venueSchema = z.object({
 });
 
 export type VenueInput = z.infer<typeof venueSchema>;
+
+export const listingEvidenceCreateSchema = z
+  .object({
+    marketId: z.string().optional(),
+    eventId: z.string().optional(),
+    type: z.enum([
+      "SPECIAL_EVENT_PERMIT",
+      "INSURANCE_COI",
+      "HEALTH_PERMIT",
+      "NONPROFIT_DETERMINATION",
+      "OTHER",
+    ]),
+    title: z.string().max(500).optional().or(z.literal("")),
+    fileUrl: z.string().url(),
+    visibility: z.enum(["ADMIN_ONLY", "ORGANIZER_AND_ADMIN"]).optional(),
+    notes: z.string().max(10000).optional().or(z.literal("")),
+  })
+  .refine(
+    (d) => Boolean(d.marketId) !== Boolean(d.eventId),
+    "Provide exactly one of marketId or eventId"
+  );
+export type ListingEvidenceCreateInput = z.infer<typeof listingEvidenceCreateSchema>;
+
+export const listingModerationNoteCreateSchema = z
+  .object({
+    marketId: z.string().optional(),
+    eventId: z.string().optional(),
+    note: z.string().min(1).max(20000),
+    visibility: z.enum(["ADMIN_ONLY", "ORGANIZER_VISIBLE"]).optional(),
+  })
+  .refine(
+    (d) => Boolean(d.marketId) !== Boolean(d.eventId),
+    "Provide exactly one of marketId or eventId"
+  );
+export type ListingModerationNoteCreateInput = z.infer<typeof listingModerationNoteCreateSchema>;

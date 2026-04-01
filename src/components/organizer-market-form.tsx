@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors, type FieldValues, type Resolver, type UseFormRegister } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   organizerMarketPatchSchema,
@@ -16,6 +16,8 @@ import { ImageFocalSliders } from "@/components/image-focal-sliders";
 import type { NeighborhoodOption } from "@/lib/neighborhoods-config";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { OrganizerOnboardingFieldsGroup } from "@/components/organizer-onboarding-fields";
+import { organizerOnboardingReadinessHints } from "@/lib/validations/organizer-onboarding";
 
 interface OrganizerMarketFormProps {
   marketId: string;
@@ -39,11 +41,13 @@ export function OrganizerMarketForm({
     watch,
     formState: { errors },
   } = useForm<OrganizerMarketPatchInput>({
-    resolver: zodResolver(organizerMarketPatchSchema),
+    resolver: zodResolver(organizerMarketPatchSchema) as Resolver<OrganizerMarketPatchInput>,
     defaultValues: initialData,
   });
 
   const watchImageUrl = watch("imageUrl");
+  const formValues = watch();
+  const readinessHints = organizerOnboardingReadinessHints(formValues);
 
   const onSubmit = async (data: OrganizerMarketPatchInput) => {
     setSubmitting(true);
@@ -157,6 +161,23 @@ export function OrganizerMarketForm({
           <PhoneInput id="contactPhone" {...register("contactPhone")} />
         </div>
       </div>
+
+      {readinessHints.length > 0 && (
+        <div className="rounded-md border border-dashed border-border bg-muted/20 p-3 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">Before you publish or request verification</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {readinessHints.map((h) => (
+              <li key={h}>{h}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <OrganizerOnboardingFieldsGroup
+        register={register as unknown as UseFormRegister<FieldValues>}
+        errors={errors as unknown as FieldErrors<FieldValues>}
+        idPrefix="mkt-edit"
+      />
 
       <div className="flex gap-3">
         <Button type="submit" disabled={submitting}>

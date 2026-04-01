@@ -1,6 +1,10 @@
 import { db } from "@/lib/db";
 import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
 import { marketSchema } from "@/lib/validations";
+import {
+  pickOnboardingFields,
+  toMarketOnboardingPrismaData,
+} from "@/lib/validations/organizer-onboarding";
 import { NextResponse } from "next/server";
 import { requireApiAdminPermission } from "@/lib/api-auth";
 
@@ -18,6 +22,9 @@ export async function POST(request: Request) {
   }
 
   const data = parsed.data;
+  const onboarding = toMarketOnboardingPrismaData(
+    pickOnboardingFields(data as unknown as Record<string, unknown>)
+  );
   const venueExists = await db.venue.findFirst({
     where: { id: data.venueId, deletedAt: null },
     select: { id: true },
@@ -67,6 +74,11 @@ export async function POST(request: Request) {
       }),
       ...(data.publicRosterEnabled !== undefined && {
         publicRosterEnabled: data.publicRosterEnabled,
+      }),
+      ...onboarding,
+      ...(data.complianceFlagged !== undefined && { complianceFlagged: data.complianceFlagged }),
+      ...(data.complianceNotes !== undefined && {
+        complianceNotes: data.complianceNotes === "" ? null : data.complianceNotes,
       }),
     },
   });

@@ -22,6 +22,7 @@ import { TrackMarketView } from "@/components/track-content-view";
 import type { Metadata } from "next";
 import type { VerificationStatus } from "@prisma/client";
 import { SITE_NAME } from "@/lib/constants";
+import { organizerOnboardingDisplayEnabled } from "@/lib/feature-flags";
 import { MediaFrame } from "@/components/media";
 
 export const dynamic = "force-dynamic";
@@ -105,8 +106,10 @@ export default async function MarketDetailPage({ params }: PageProps) {
       postalCode: market.venue.zip,
     },
     ...(market.websiteUrl && { sameAs: [market.websiteUrl] }),
-    ...(market.contactEmail && { email: market.contactEmail }),
-    ...(market.contactPhone && { telephone: market.contactPhone }),
+    ...(market.organizerPublicContact === true &&
+      market.contactEmail && { email: market.contactEmail }),
+    ...(market.organizerPublicContact === true &&
+      market.contactPhone && { telephone: market.contactPhone }),
   };
 
   return (
@@ -151,6 +154,13 @@ export default async function MarketDetailPage({ params }: PageProps) {
               <p className="whitespace-pre-wrap text-muted-foreground">
                 {market.description}
               </p>
+            </div>
+          )}
+
+          {organizerOnboardingDisplayEnabled() && market.shortDescription?.trim() && (
+            <div className="mb-8">
+              <h2 className="mb-2 text-lg font-semibold">At a glance</h2>
+              <p className="whitespace-pre-wrap text-muted-foreground">{market.shortDescription}</p>
             </div>
           )}
 
@@ -293,7 +303,8 @@ export default async function MarketDetailPage({ params }: PageProps) {
               )}
             </div>
 
-            {(market.contactEmail || market.contactPhone) && (
+            {market.organizerPublicContact === true &&
+              (market.contactEmail || market.contactPhone) && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Contact</p>
                 <div className="mt-1 space-y-0.5 text-sm">

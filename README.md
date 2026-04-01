@@ -126,6 +126,16 @@ App runs at `http://localhost:3000`.
 - `npm run db:up` - start PostgreSQL compose stack
 - `npm run db:seed` - seed database
 
+## Feature flags (organizer onboarding rollout)
+
+Optional environment variables (see also `src/lib/feature-flags.ts`):
+
+| Variable | Effect |
+| -------- | ------ |
+| `NEXT_PUBLIC_VENDOR_DUAL_WORKFLOW=true` | Enables **BOTH** vendor workflow mode on events/markets (intent + official application UI when participation allows). Default off → behaves as intent-first only. |
+| `NEXT_PUBLIC_ORGANIZER_ONBOARDING_DISPLAY=true` | Shows shopper/vendor onboarding fields on public event and market pages (e.g. short description, vendor-only logistics block). |
+| `ADMIN_LISTING_EVIDENCE=true` | Enables admin APIs `GET/POST /api/admin/listings/evidence` and `GET/POST /api/admin/listings/moderation-notes`. |
+
 ## Deployment
 
 Production deployment guide:

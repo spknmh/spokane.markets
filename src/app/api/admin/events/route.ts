@@ -1,5 +1,9 @@
 import { db } from "@/lib/db";
 import { eventSchema } from "@/lib/validations";
+import {
+  pickOnboardingFields,
+  toEventOnboardingPrismaData,
+} from "@/lib/validations/organizer-onboarding";
 import { parseDateOnlyToUTCNoon, parseDateTimeInTimezone } from "@/lib/utils";
 import { logAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
@@ -19,7 +23,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const { tagIds, featureIds, scheduleDays, ...data } = parsed.data;
+  const full = parsed.data;
+  const onboarding = toEventOnboardingPrismaData(
+    pickOnboardingFields(full as unknown as Record<string, unknown>)
+  );
+  const { tagIds, featureIds, scheduleDays, ...data } = full;
 
   const tz = "America/Los_Angeles";
 
@@ -122,6 +130,11 @@ export async function POST(request: Request) {
       features: featureIds?.length
         ? { connect: featureIds.map((id) => ({ id })) }
         : undefined,
+      ...onboarding,
+      ...(data.complianceFlagged !== undefined && { complianceFlagged: data.complianceFlagged }),
+      ...(data.complianceNotes !== undefined && {
+        complianceNotes: data.complianceNotes === "" ? null : data.complianceNotes,
+      }),
     },
   });
 

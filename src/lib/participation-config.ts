@@ -1,4 +1,5 @@
-import type { Event, Market } from "@prisma/client";
+import type { Event, Market, VendorApplicationState, VendorWorkflowMode } from "@prisma/client";
+import { vendorDualWorkflowEnabled } from "@/lib/feature-flags";
 
 export type ParticipationMode = "OPEN" | "REQUEST_TO_JOIN" | "INVITE_ONLY" | "CAPACITY_LIMITED";
 
@@ -13,6 +14,9 @@ export interface ParticipationConfig {
   publicIntentNamesEnabled: boolean;
   publicRosterEnabled: boolean;
   rosterClaimRequired: boolean;
+  vendorWorkflowMode: VendorWorkflowMode;
+  vendorApplicationState: VendorApplicationState;
+  vendorApplicationDeadline: Date | null;
 }
 
 const SITE_DEFAULTS: ParticipationConfig = {
@@ -22,6 +26,9 @@ const SITE_DEFAULTS: ParticipationConfig = {
   publicIntentNamesEnabled: true,
   publicRosterEnabled: true,
   rosterClaimRequired: false,
+  vendorWorkflowMode: "INTENT_ONLY",
+  vendorApplicationState: "NOT_ACCEPTING",
+  vendorApplicationDeadline: null,
 };
 
 /**
@@ -38,8 +45,13 @@ export function getParticipationConfig(event: EventWithMarket): ParticipationCon
         publicIntentNamesEnabled: market.publicIntentNamesEnabled,
         publicRosterEnabled: market.publicRosterEnabled,
         rosterClaimRequired: market.rosterClaimRequired,
+        vendorWorkflowMode: market.vendorWorkflowMode,
+        vendorApplicationState: market.vendorApplicationState,
+        vendorApplicationDeadline: market.vendorApplicationDeadline,
       }
     : SITE_DEFAULTS;
+
+  const dual = vendorDualWorkflowEnabled();
 
   return {
     mode: event.participationMode ?? marketConfig.mode,
@@ -50,5 +62,32 @@ export function getParticipationConfig(event: EventWithMarket): ParticipationCon
       event.publicIntentNamesEnabled ?? marketConfig.publicIntentNamesEnabled,
     publicRosterEnabled: event.publicRosterEnabled ?? marketConfig.publicRosterEnabled,
     rosterClaimRequired: marketConfig.rosterClaimRequired,
+    vendorWorkflowMode: dual
+      ? (event.vendorWorkflowMode ?? marketConfig.vendorWorkflowMode)
+      : "INTENT_ONLY",
+    vendorApplicationState:
+      event.vendorApplicationState ?? marketConfig.vendorApplicationState,
+    vendorApplicationDeadline:
+      event.vendorApplicationDeadline ?? marketConfig.vendorApplicationDeadline ?? null,
   };
+}
+
+export function applicationPipelineSupported(mode: ParticipationMode): boolean {
+  return mode === "REQUEST_TO_JOIN" || mode === "CAPACITY_LIMITED";
+}
+
+export function intentPipelineSupported(mode: ParticipationMode): boolean {
+  return mode === "OPEN" || mode === "INVITE_ONLY";
+}
+
+/** Whether official roster requests are accepted (participation + application state + deadline). */
+export function rosterRequestsAllowed(config: ParticipationConfig): boolean {
+  if (!applicationPipelineSupported(config.mode)) return false;
+  if (config.vendorApplicationState !== "OPEN" && config.vendorApplicationState !== "WAITLIST") {
+    return false;
+  }
+  if (config.vendorApplicationDeadline && config.vendorApplicationDeadline.getTime() < Date.now()) {
+    return false;
+  }
+  return true;
 }

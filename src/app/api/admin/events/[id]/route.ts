@@ -2,6 +2,10 @@ import { requireApiAdminPermission } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { eventSchema } from "@/lib/validations";
+import {
+  pickOnboardingFields,
+  toEventOnboardingPrismaData,
+} from "@/lib/validations/organizer-onboarding";
 import { parseDateOnlyToUTCNoon, parseDateTimeInTimezone } from "@/lib/utils";
 import { createNotification } from "@/lib/notifications";
 import { revalidatePath } from "next/cache";
@@ -23,7 +27,11 @@ export async function PUT(
       return apiValidationError(parsed.error.flatten().fieldErrors);
     }
 
-    const { tagIds, featureIds, scheduleDays, ...data } = parsed.data;
+    const full = parsed.data;
+    const onboarding = toEventOnboardingPrismaData(
+      pickOnboardingFields(full as unknown as Record<string, unknown>)
+    );
+    const { tagIds, featureIds, scheduleDays, ...data } = full;
 
     const tz = "America/Los_Angeles";
 
@@ -126,6 +134,11 @@ export async function PUT(
         }),
         ...(data.publicRosterEnabled !== undefined && {
           publicRosterEnabled: data.publicRosterEnabled,
+        }),
+        ...onboarding,
+        ...(data.complianceFlagged !== undefined && { complianceFlagged: data.complianceFlagged }),
+        ...(data.complianceNotes !== undefined && {
+          complianceNotes: data.complianceNotes === "" ? null : data.complianceNotes,
         }),
       },
     });

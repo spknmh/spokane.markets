@@ -3,6 +3,10 @@ import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
 import { marketSchema } from "@/lib/validations";
+import {
+  pickOnboardingFields,
+  toMarketOnboardingPrismaData,
+} from "@/lib/validations/organizer-onboarding";
 import { NextResponse } from "next/server";
 
 export async function PUT(
@@ -22,6 +26,9 @@ export async function PUT(
     }
 
     const data = parsed.data;
+    const onboarding = toMarketOnboardingPrismaData(
+      pickOnboardingFields(data as unknown as Record<string, unknown>)
+    );
     let baseArea: string | null;
     try {
       baseArea = await assertNeighborhoodSlug(data.baseArea, "baseArea");
@@ -79,6 +86,11 @@ export async function PUT(
         }),
         ...(data.publicRosterEnabled !== undefined && {
           publicRosterEnabled: data.publicRosterEnabled,
+        }),
+        ...onboarding,
+        ...(data.complianceFlagged !== undefined && { complianceFlagged: data.complianceFlagged }),
+        ...(data.complianceNotes !== undefined && {
+          complianceNotes: data.complianceNotes === "" ? null : data.complianceNotes,
         }),
       },
     });

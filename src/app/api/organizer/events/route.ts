@@ -2,6 +2,10 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { organizerEventSchema } from "@/lib/validations";
+import {
+  pickOnboardingFields,
+  toEventOnboardingPrismaData,
+} from "@/lib/validations/organizer-onboarding";
 import { parseDateOnlyToUTCNoon, parseDateTimeInTimezone } from "@/lib/utils";
 import { logAudit } from "@/lib/audit";
 import { organizerManageMarketWhere } from "@/lib/market-membership";
@@ -25,7 +29,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const { tagIds, featureIds, scheduleDays, ...data } = parsed.data;
+  const full = parsed.data;
+  const onboarding = toEventOnboardingPrismaData(
+    pickOnboardingFields(full as unknown as Record<string, unknown>)
+  );
+  const { tagIds, featureIds, scheduleDays, ...data } = full;
 
   const tz = "America/Los_Angeles";
 
@@ -117,6 +125,7 @@ export async function POST(request: Request) {
       features: featureIds?.length
         ? { connect: featureIds.map((id) => ({ id })) }
         : undefined,
+      ...onboarding,
     },
   });
 

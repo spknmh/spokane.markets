@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { findEventByIdOrSlug } from "@/lib/services/event-occurrence-service";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { getParticipationConfig } from "@/lib/participation-config";
+import { getParticipationConfig, rosterRequestsAllowed } from "@/lib/participation-config";
 import { createNotification } from "@/lib/notifications";
 
 async function findEvent(eventIdOrSlug: string) {
@@ -50,11 +50,16 @@ export async function POST(
     }
 
     const config = getParticipationConfig(event);
-    if (config.mode !== "REQUEST_TO_JOIN" && config.mode !== "CAPACITY_LIMITED") {
-      return NextResponse.json(
-        { error: "This event does not accept roster requests" },
-        { status: 400 }
-      );
+    if (!rosterRequestsAllowed(config)) {
+      const error =
+        config.vendorApplicationDeadline &&
+        config.vendorApplicationDeadline.getTime() < Date.now()
+          ? "The application deadline has passed"
+          : config.vendorApplicationState === "CLOSED" ||
+              config.vendorApplicationState === "NOT_ACCEPTING"
+            ? "The organizer is not accepting vendor applications for this event"
+            : "This event does not accept roster requests";
+      return NextResponse.json({ error }, { status: 400 });
     }
 
     const intent = await db.eventVendorIntent.upsert({

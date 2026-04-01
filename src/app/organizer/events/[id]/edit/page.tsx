@@ -7,6 +7,8 @@ import { OrganizerEventForm } from "@/components/organizer-event-form";
 import { notFound, redirect } from "next/navigation";
 import { formatDateOnlyUTC, formatForDateTimeLocal } from "@/lib/utils";
 import { organizerAnyMarketWhere } from "@/lib/market-membership";
+import { prismaListingToOnboardingFormDefaults } from "@/lib/validations/organizer-onboarding";
+import type { OrganizerEventInput } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +84,7 @@ export default async function OrganizerEditEventPage({
     description: event.description ?? "",
     startDate: formatForDateTimeLocal(event.startDate, tz),
     endDate: formatForDateTimeLocal(event.endDate, tz),
+    timezone: event.timezone ?? "",
     venueId: event.venueId,
     venueName: "",
     venueAddress: "",
@@ -101,6 +104,7 @@ export default async function OrganizerEditEventPage({
     tagIds: event.tags.map((t) => t.id),
     featureIds: event.features.map((f) => f.id),
     scheduleDays,
+    ...prismaListingToOnboardingFormDefaults(event as unknown as Record<string, unknown>),
   };
 
   return (
@@ -116,7 +120,12 @@ export default async function OrganizerEditEventPage({
           markets={markets}
           tags={tags}
           features={features}
-          initialData={initialData}
+          initialData={
+            initialData as OrganizerEventInput & {
+              id: string;
+              scheduleDays?: { date: string; allDay: boolean; startTime?: string; endTime?: string }[];
+            }
+          }
         />
       </div>
     </div>

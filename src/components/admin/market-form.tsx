@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { marketSchema, type MarketInput } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
@@ -43,7 +43,7 @@ export function MarketForm({
     watch,
     formState: { errors },
   } = useForm<MarketInput>({
-    resolver: zodResolver(marketSchema),
+    resolver: zodResolver(marketSchema) as Resolver<MarketInput>,
     defaultValues: initialData
       ? {
           ...initialData,
@@ -286,6 +286,31 @@ export function MarketForm({
                 <input type="checkbox" {...register("publicRosterEnabled")} />
                 <span className="text-sm">Show official roster</span>
               </label>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vendorWorkflowMode">Vendor workflow mode</Label>
+              <Select id="vendorWorkflowMode" {...register("vendorWorkflowMode")}>
+                <option value="">Default</option>
+                <option value="INTENT_ONLY">Intent only</option>
+                <option value="BOTH">Both (intent + application when applicable)</option>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vendorApplicationState">Vendor application state</Label>
+              <Select id="vendorApplicationState" {...register("vendorApplicationState")}>
+                <option value="NOT_ACCEPTING">Not accepting</option>
+                <option value="OPEN">Open</option>
+                <option value="WAITLIST">Waitlist</option>
+                <option value="CLOSED">Closed</option>
+              </Select>
+            </div>
+            <div className="space-y-2 rounded-lg border border-dashed border-border p-3">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" {...register("complianceFlagged")} />
+                <span className="text-sm font-medium">Flag for compliance review</span>
+              </label>
+              <Label htmlFor="complianceNotes">Compliance / moderation notes (internal)</Label>
+              <Textarea id="complianceNotes" rows={3} {...register("complianceNotes")} />
             </div>
           </div>
         </>

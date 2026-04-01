@@ -6,6 +6,8 @@ import { SITE_NAME } from "@/lib/constants";
 import { OrganizerMarketForm } from "@/components/organizer-market-form";
 import { getNeighborhoodOptions } from "@/lib/neighborhoods";
 import { notFound } from "next/navigation";
+import { prismaListingToOnboardingFormDefaults } from "@/lib/validations/organizer-onboarding";
+import type { OrganizerMarketPatchInput } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +64,7 @@ export default async function OrganizerMarketEditPage({
     typicalSchedule: market.typicalSchedule ?? "",
     contactEmail: market.contactEmail ?? "",
     contactPhone: market.contactPhone ?? "",
+    ...prismaListingToOnboardingFormDefaults(market as unknown as Record<string, unknown>),
   };
 
   return (
@@ -83,7 +86,7 @@ export default async function OrganizerMarketEditPage({
 
       <OrganizerMarketForm
         marketId={id}
-        initialData={initialData}
+        initialData={initialData as OrganizerMarketPatchInput}
         neighborhoods={neighborhoods}
       />
     </div>

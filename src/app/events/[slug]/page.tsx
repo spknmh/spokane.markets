@@ -28,6 +28,7 @@ import { EventVendorActions } from "@/components/event-vendor-actions";
 import { TrackEventView } from "@/components/track-content-view";
 import { getParticipationConfig } from "@/lib/participation-config";
 import { SITE_NAME } from "@/lib/constants";
+import { organizerOnboardingDisplayEnabled } from "@/lib/feature-flags";
 import { Globe, Facebook, Instagram } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -215,6 +216,56 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               </p>
             </div>
           )}
+
+          {organizerOnboardingDisplayEnabled() && event.shortDescription?.trim() && (
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold text-foreground">At a glance</h2>
+              <p className="mt-2 text-base leading-relaxed text-muted-foreground whitespace-pre-line">
+                {event.shortDescription}
+              </p>
+            </div>
+          )}
+
+          {vendorProfile &&
+            organizerOnboardingDisplayEnabled() &&
+            (event.feeModelVendor?.trim() ||
+              event.boothLogistics?.trim() ||
+              event.cancellationPolicy?.trim() ||
+              event.paymentMethodsPublic) && (
+              <details className="mt-6 rounded-lg border border-border bg-muted/20 p-4">
+                <summary className="cursor-pointer text-sm font-semibold">
+                  Vendor logistics &amp; economics
+                </summary>
+                <div className="mt-3 space-y-3 text-sm text-muted-foreground">
+                  {event.feeModelVendor?.trim() && (
+                    <div>
+                      <p className="font-medium text-foreground">Fees</p>
+                      <p className="mt-1 whitespace-pre-line">{event.feeModelVendor}</p>
+                    </div>
+                  )}
+                  {event.boothLogistics?.trim() && (
+                    <div>
+                      <p className="font-medium text-foreground">Booth / load-in</p>
+                      <p className="mt-1 whitespace-pre-line">{event.boothLogistics}</p>
+                    </div>
+                  )}
+                  {event.cancellationPolicy?.trim() && (
+                    <div>
+                      <p className="font-medium text-foreground">Cancellation</p>
+                      <p className="mt-1 whitespace-pre-line">{event.cancellationPolicy}</p>
+                    </div>
+                  )}
+                  {event.paymentMethodsPublic != null && (
+                    <div>
+                      <p className="font-medium text-foreground">Payments (summary)</p>
+                      <pre className="mt-1 max-h-40 overflow-auto rounded bg-background p-2 text-xs">
+                        {JSON.stringify(event.paymentMethodsPublic, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </details>
+            )}
 
           {(event.websiteUrl || event.facebookUrl || event.instagramUrl) && (
             <div className="mt-6 flex flex-wrap gap-3">
@@ -412,7 +463,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
             <EventVendorActions
               eventId={event.id}
-              mode={participationConfig.mode}
+              config={participationConfig}
               isLoggedIn={!!session?.user}
               hasVendorProfile={!!vendorProfile}
               userIntent={userIntent?.status ?? null}

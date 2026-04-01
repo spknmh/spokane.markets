@@ -97,6 +97,85 @@ enum ParticipationMode {
   CAPACITY_LIMITED
 }
 
+enum ListingKind {
+  MARKET_BRAND
+  EVENT_OCCURRENCE
+  BOTH
+}
+
+enum OrganizerEventType {
+  FARMERS_MARKET
+  CRAFT_FAIR
+  NIGHT_MARKET
+  POP_UP
+  HOLIDAY_MARKET
+  OTHER
+}
+
+enum OccurrenceModel {
+  ONE_TIME
+  RECURRING
+  SEASONAL_SERIES
+}
+
+enum IndoorOutdoorMode {
+  INDOOR
+  OUTDOOR
+  HYBRID
+}
+
+enum VendorApplicationState {
+  NOT_ACCEPTING
+  OPEN
+  WAITLIST
+  CLOSED
+}
+
+enum VendorWorkflowMode {
+  INTENT_ONLY
+  BOTH
+}
+
+enum SpecialEventPermitStatus {
+  NOT_APPLICABLE
+  NOT_REQUIRED
+  PENDING
+  APPROVED
+  UNKNOWN
+}
+
+enum RestroomAccess {
+  YES
+  NO
+  NEARBY
+  UNKNOWN
+}
+
+enum PetPolicy {
+  ALLOWED
+  RESTRICTED
+  PROHIBITED
+  UNKNOWN
+}
+
+enum ListingEvidenceType {
+  SPECIAL_EVENT_PERMIT
+  INSURANCE_COI
+  HEALTH_PERMIT
+  NONPROFIT_DETERMINATION
+  OTHER
+}
+
+enum ListingEvidenceVisibility {
+  ADMIN_ONLY
+  ORGANIZER_AND_ADMIN
+}
+
+enum ListingModerationNoteVisibility {
+  ADMIN_ONLY
+  ORGANIZER_VISIBLE
+}
+
 enum ReportStatus {
   PENDING
   RESOLVED
@@ -163,6 +242,8 @@ model User {
   userBadges             UserBadge[]
   notificationPreference NotificationPreference?
   applications           Application[]
+  listingModerationNotes ListingModerationNote[] @relation("ListingModerationAuthor")
+  uploadedListingEvidences ListingEvidence[]     @relation("ListingEvidenceUploader")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -360,6 +441,44 @@ model Market {
   publicIntentNamesEnabled Boolean            @default(true)
   publicRosterEnabled      Boolean            @default(true)
   rosterClaimRequired      Boolean            @default(false)
+  listingKind              ListingKind        @default(MARKET_BRAND)
+  organizerDisplayName     String?
+  organizerPublicContact   Boolean            @default(false)
+  eventType                OrganizerEventType?
+  occurrenceModel          OccurrenceModel?
+  timezone                 String?
+  indoorOutdoor            IndoorOutdoorMode?
+  shortDescription         String?
+  vendorCategoryPolicy     Json?
+  vendorApplicationState   VendorApplicationState @default(NOT_ACCEPTING)
+  vendorApplicationDeadline DateTime?
+  vendorWorkflowMode       VendorWorkflowMode @default(INTENT_ONLY)
+  termsAttested            Boolean            @default(false)
+  termsAttestedAt          DateTime?
+  specialEventPermitStatus SpecialEventPermitStatus @default(UNKNOWN)
+  expectedAttendance       Int?
+  streetClosureImpact      Boolean            @default(false)
+  streetClosureNarrative   String?            @db.Text
+  insuranceSummary         String?            @db.Text
+  safetyPlanSummary        String?            @db.Text
+  sanitationPlan           String?            @db.Text
+  cancellationPolicy       String?            @db.Text
+  accessibilitySummary     String?            @db.Text
+  parkingSummary           String?            @db.Text
+  restroomAccess           RestroomAccess?
+  petPolicy                PetPolicy?
+  paymentMethodsPublic     Json?
+  productHighlights        Json?
+  typicalVendorCount       String?
+  feeModelVendor           String?            @db.Text
+  boothLogistics           String?            @db.Text
+  communicationChannels    String?            @db.Text
+  equityInclusionNotes     String?            @db.Text
+  verificationChecklist    Json?
+  verificationReviewedAt   DateTime?
+  verificationReviewedBy   String?
+  complianceFlagged        Boolean            @default(false)
+  complianceNotes          String?            @db.Text
 
   owner         User?          @relation("MarketOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   baseAreaRef   Neighborhood?  @relation("MarketBaseArea", fields: [baseArea], references: [slug], onDelete: SetNull, onUpdate: Cascade)
@@ -368,6 +487,8 @@ model Market {
   reviews       Review[]
   photos        Photo[]
   memberships   MarketMembership[]
+  evidences     ListingEvidence[]       @relation("MarketEvidence")
+  moderationNotes ListingModerationNote[] @relation("MarketModerationNotes")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -401,6 +522,44 @@ model Event {
   publicIntentListEnabled  Boolean?
   publicIntentNamesEnabled Boolean?
   publicRosterEnabled      Boolean?
+  listingKind              ListingKind?
+  organizerDisplayName     String?
+  organizerPublicContact   Boolean            @default(false)
+  eventType                OrganizerEventType?
+  occurrenceModel          OccurrenceModel?
+  timezone                 String?
+  indoorOutdoor            IndoorOutdoorMode?
+  shortDescription         String?
+  vendorCategoryPolicy     Json?
+  vendorApplicationState   VendorApplicationState?
+  vendorApplicationDeadline DateTime?
+  vendorWorkflowMode       VendorWorkflowMode?
+  termsAttested            Boolean            @default(false)
+  termsAttestedAt          DateTime?
+  specialEventPermitStatus SpecialEventPermitStatus?
+  expectedAttendance       Int?
+  streetClosureImpact      Boolean?
+  streetClosureNarrative   String?            @db.Text
+  insuranceSummary         String?            @db.Text
+  safetyPlanSummary        String?            @db.Text
+  sanitationPlan           String?            @db.Text
+  cancellationPolicy       String?            @db.Text
+  accessibilitySummary     String?            @db.Text
+  parkingSummary           String?            @db.Text
+  restroomAccess           RestroomAccess?
+  petPolicy                PetPolicy?
+  paymentMethodsPublic     Json?
+  productHighlights        Json?
+  typicalVendorCount       String?
+  feeModelVendor           String?            @db.Text
+  boothLogistics           String?            @db.Text
+  communicationChannels    String?            @db.Text
+  equityInclusionNotes     String?            @db.Text
+  verificationChecklist    Json?
+  verificationReviewedAt   DateTime?
+  verificationReviewedBy   String?
+  complianceFlagged        Boolean            @default(false)
+  complianceNotes          String?            @db.Text
 
   submittedById String?
   market        Market?             @relation(fields: [marketId], references: [id], onDelete: SetNull)
@@ -417,6 +576,8 @@ model Event {
   promotions    Promotion[]
   scheduleDays  EventScheduleDay[]
   submissionFrom Submission? @relation("SubmissionCreatedEvent")
+  evidences     ListingEvidence[]       @relation("EventEvidence")
+  moderationNotes ListingModerationNote[] @relation("EventModerationNotes")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -444,6 +605,55 @@ model EventScheduleDay {
   @@unique([eventId, date])
   @@index([eventId])
   @@map("event_schedule_days")
+}
+
+model ListingEvidence {
+  id           String                    @id @default(cuid())
+  marketId     String?
+  eventId      String?
+  type         ListingEvidenceType
+  title        String?
+  fileUrl      String
+  visibility   ListingEvidenceVisibility @default(ADMIN_ONLY)
+  uploadedById String?
+  notes        String?                   @db.Text
+  reviewedAt   DateTime?
+  reviewedBy   String?
+
+  market    Market? @relation("MarketEvidence", fields: [marketId], references: [id], onDelete: Cascade)
+  event     Event?  @relation("EventEvidence", fields: [eventId], references: [id], onDelete: Cascade)
+  uploadedBy User? @relation("ListingEvidenceUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([marketId])
+  @@index([eventId])
+  @@index([type])
+  @@index([visibility])
+  @@map("listing_evidences")
+}
+
+model ListingModerationNote {
+  id         String                          @id @default(cuid())
+  marketId   String?
+  eventId    String?
+  authorId   String
+  note       String                          @db.Text
+  visibility ListingModerationNoteVisibility @default(ADMIN_ONLY)
+
+  market Market? @relation("MarketModerationNotes", fields: [marketId], references: [id], onDelete: Cascade)
+  event  Event?  @relation("EventModerationNotes", fields: [eventId], references: [id], onDelete: Cascade)
+  author User    @relation("ListingModerationAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([marketId])
+  @@index([eventId])
+  @@index([authorId])
+  @@index([visibility])
+  @@map("listing_moderation_notes")
 }
 
 model Promotion {

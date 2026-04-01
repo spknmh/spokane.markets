@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { imageUrlSchema, participationModeEnum } from "./common";
+import { organizerOnboardingFieldsSchema } from "./organizer-onboarding";
 
 const eventScheduleDaySchema = z
   .object({
@@ -50,7 +51,10 @@ export const eventSchema = z
     publicIntentListEnabled: z.boolean().optional().nullable(),
     publicIntentNamesEnabled: z.boolean().optional().nullable(),
     publicRosterEnabled: z.boolean().optional().nullable(),
+    complianceFlagged: z.boolean().optional(),
+    complianceNotes: z.string().max(10000).optional().or(z.literal("")),
   })
+  .merge(organizerOnboardingFieldsSchema)
   .refine(
     (data) => {
       const hasVenue = !!data.venueId?.trim();
@@ -102,6 +106,7 @@ export const organizerEventSchema = z
     featureIds: z.array(z.string()).optional(),
     scheduleDays: z.array(eventScheduleDaySchema).optional(),
   })
+  .merge(organizerOnboardingFieldsSchema)
   .refine(
     (data) => {
       const hasVenue = !!data.venueId?.trim();

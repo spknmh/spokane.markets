@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { MarketForm } from "@/components/admin/market-form";
 import { getNeighborhoodOptions } from "@/lib/neighborhoods";
 import { notFound } from "next/navigation";
+import { prismaListingToOnboardingFormDefaults } from "@/lib/validations/organizer-onboarding";
+import type { MarketInput } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
 
@@ -54,13 +56,16 @@ export default async function EditMarketPage({
     publicIntentListEnabled: market.publicIntentListEnabled ?? true,
     publicIntentNamesEnabled: market.publicIntentNamesEnabled ?? true,
     publicRosterEnabled: market.publicRosterEnabled ?? true,
+    complianceFlagged: market.complianceFlagged ?? false,
+    complianceNotes: market.complianceNotes ?? "",
+    ...prismaListingToOnboardingFormDefaults(market as unknown as Record<string, unknown>),
   };
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Edit Market</h1>
       <MarketForm
-        initialData={initialData}
+        initialData={initialData as MarketInput & { id: string }}
         venues={venues}
         neighborhoods={neighborhoods}
         ownerDisplay={ownerDisplay}

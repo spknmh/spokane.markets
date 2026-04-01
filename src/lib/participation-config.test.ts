@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { getParticipationConfig } from "./participation-config";
+import {
+  getParticipationConfig,
+  rosterRequestsAllowed,
+} from "./participation-config";
 import type { Event, Market } from "@prisma/client";
 
 function createEvent(overrides: Partial<Event> = {}): Event {
@@ -23,6 +26,9 @@ function createEvent(overrides: Partial<Event> = {}): Event {
     publicIntentListEnabled: null,
     publicIntentNamesEnabled: null,
     publicRosterEnabled: null,
+    vendorWorkflowMode: null,
+    vendorApplicationState: null,
+    vendorApplicationDeadline: null,
     submittedById: null,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -53,6 +59,9 @@ function createMarket(overrides: Partial<Market> = {}): Market {
     publicIntentNamesEnabled: true,
     publicRosterEnabled: true,
     rosterClaimRequired: false,
+    vendorWorkflowMode: "INTENT_ONLY",
+    vendorApplicationState: "NOT_ACCEPTING",
+    vendorApplicationDeadline: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -69,6 +78,9 @@ describe("getParticipationConfig", () => {
     expect(config.publicIntentNamesEnabled).toBe(true);
     expect(config.publicRosterEnabled).toBe(true);
     expect(config.rosterClaimRequired).toBe(false);
+    expect(config.vendorWorkflowMode).toBe("INTENT_ONLY");
+    expect(config.vendorApplicationState).toBe("NOT_ACCEPTING");
+    expect(config.vendorApplicationDeadline).toBeNull();
   });
 
   it("uses market config when event has no overrides", () => {
@@ -79,6 +91,7 @@ describe("getParticipationConfig", () => {
       publicIntentNamesEnabled: false,
       publicRosterEnabled: true,
       rosterClaimRequired: true,
+      vendorApplicationState: "OPEN",
     });
     const event = createEvent({ marketId: market.id });
     const config = getParticipationConfig({ ...event, market });
@@ -88,6 +101,7 @@ describe("getParticipationConfig", () => {
     expect(config.publicIntentNamesEnabled).toBe(false);
     expect(config.publicRosterEnabled).toBe(true);
     expect(config.rosterClaimRequired).toBe(true);
+    expect(config.vendorApplicationState).toBe("OPEN");
   });
 
   it("event overrides take precedence over market", () => {
@@ -121,5 +135,61 @@ describe("getParticipationConfig", () => {
     const config = getParticipationConfig({ ...event, market });
     expect(config.mode).toBe("CAPACITY_LIMITED");
     expect(config.vendorCapacity).toBe(30);
+  });
+
+  it("rosterRequestsAllowed respects application state and deadline", () => {
+    const past = new Date(Date.now() - 86_400_000);
+    expect(
+      rosterRequestsAllowed({
+        mode: "REQUEST_TO_JOIN",
+        vendorCapacity: null,
+        publicIntentListEnabled: true,
+        publicIntentNamesEnabled: true,
+        publicRosterEnabled: true,
+        rosterClaimRequired: false,
+        vendorWorkflowMode: "INTENT_ONLY",
+        vendorApplicationState: "OPEN",
+        vendorApplicationDeadline: null,
+      })
+    ).toBe(true);
+    expect(
+      rosterRequestsAllowed({
+        mode: "OPEN",
+        vendorCapacity: null,
+        publicIntentListEnabled: true,
+        publicIntentNamesEnabled: true,
+        publicRosterEnabled: true,
+        rosterClaimRequired: false,
+        vendorWorkflowMode: "INTENT_ONLY",
+        vendorApplicationState: "OPEN",
+        vendorApplicationDeadline: null,
+      })
+    ).toBe(false);
+    expect(
+      rosterRequestsAllowed({
+        mode: "REQUEST_TO_JOIN",
+        vendorCapacity: null,
+        publicIntentListEnabled: true,
+        publicIntentNamesEnabled: true,
+        publicRosterEnabled: true,
+        rosterClaimRequired: false,
+        vendorWorkflowMode: "INTENT_ONLY",
+        vendorApplicationState: "CLOSED",
+        vendorApplicationDeadline: null,
+      })
+    ).toBe(false);
+    expect(
+      rosterRequestsAllowed({
+        mode: "REQUEST_TO_JOIN",
+        vendorCapacity: null,
+        publicIntentListEnabled: true,
+        publicIntentNamesEnabled: true,
+        publicRosterEnabled: true,
+        rosterClaimRequired: false,
+        vendorWorkflowMode: "INTENT_ONLY",
+        vendorApplicationState: "OPEN",
+        vendorApplicationDeadline: past,
+      })
+    ).toBe(false);
   });
 });

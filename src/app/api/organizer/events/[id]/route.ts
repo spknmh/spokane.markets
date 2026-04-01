@@ -2,6 +2,10 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { organizerEventSchema } from "@/lib/validations";
+import {
+  pickOnboardingFields,
+  toEventOnboardingPrismaData,
+} from "@/lib/validations/organizer-onboarding";
 import { parseDateOnlyToUTCNoon, parseDateTimeInTimezone } from "@/lib/utils";
 import { logAudit } from "@/lib/audit";
 import { organizerManageMarketWhere } from "@/lib/market-membership";
@@ -71,7 +75,11 @@ export async function PUT(
     );
   }
 
-  const { tagIds, featureIds, scheduleDays, ...data } = parsed.data;
+  const full = parsed.data;
+  const onboarding = toEventOnboardingPrismaData(
+    pickOnboardingFields(full as unknown as Record<string, unknown>)
+  );
+  const { tagIds, featureIds, scheduleDays, ...data } = full;
 
   if (data.marketId && session.user.role !== "ADMIN") {
     const marketAccess = await db.market.findFirst({
@@ -150,6 +158,7 @@ export async function PUT(
       instagramUrl: data.instagramUrl || null,
       tags: { set: tagIds?.map((id) => ({ id })) ?? [] },
       features: { set: featureIds?.map((id) => ({ id })) ?? [] },
+      ...onboarding,
     },
   });
 

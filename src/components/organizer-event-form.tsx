@@ -2,7 +2,14 @@
 
 import Image from "next/image";
 import { trackApiError, trackEvent } from "@/lib/analytics";
-import { useForm, useFieldArray } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+  type FieldErrors,
+  type FieldValues,
+  type Resolver,
+  type UseFormRegister,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   organizerEventSchema,
@@ -22,6 +29,8 @@ import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { ScheduleRecurringGenerator } from "@/components/schedule-recurring-generator";
 import { AddressAutofillFields } from "@/components/address-autocomplete";
+import { OrganizerOnboardingFieldsGroup } from "@/components/organizer-onboarding-fields";
+import { organizerOnboardingReadinessHints } from "@/lib/validations/organizer-onboarding";
 
 type ScheduleDay = {
   date: string;
@@ -109,7 +118,7 @@ export function OrganizerEventForm({
     control,
     formState: { errors },
   } = useForm<OrganizerEventInput>({
-    resolver: zodResolver(organizerEventSchema),
+    resolver: zodResolver(organizerEventSchema) as Resolver<OrganizerEventInput>,
     defaultValues: initialData
       ? { ...initialData, scheduleDays: defaultSchedule }
       : {
@@ -138,6 +147,8 @@ export function OrganizerEventForm({
           tagIds: [],
           featureIds: [],
           scheduleDays: defaultSchedule,
+          organizerPublicContact: false,
+          termsAttested: false,
         },
   });
 
@@ -156,6 +167,8 @@ export function OrganizerEventForm({
   const watchImageFocalY = watch("imageFocalY") ?? 50;
   const watchTagIds = watch("tagIds") ?? [];
   const watchFeatureIds = watch("featureIds") ?? [];
+  const formValues = watch();
+  const readinessHints = organizerOnboardingReadinessHints(formValues);
 
   useEffect(() => {
     if (watchMarketId && !watchVenueId) {
@@ -613,6 +626,23 @@ export function OrganizerEventForm({
           ))}
         </div>
       </div>
+
+      {readinessHints.length > 0 && (
+        <div className="rounded-md border border-dashed border-border bg-muted/20 p-3 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">Listing readiness (optional)</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {readinessHints.map((h) => (
+              <li key={h}>{h}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <OrganizerOnboardingFieldsGroup
+        register={register as unknown as UseFormRegister<FieldValues>}
+        errors={errors as unknown as FieldErrors<FieldValues>}
+        idPrefix="evt"
+      />
 
       <div className="flex gap-3">
         <Button type="submit" disabled={submitting}>

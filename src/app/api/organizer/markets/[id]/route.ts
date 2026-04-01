@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
 import { organizerManageMarketWhere } from "@/lib/market-membership";
 import { organizerMarketPatchSchema } from "@/lib/validations";
+import {
+  pickOnboardingFields,
+  toMarketOnboardingPrismaData,
+} from "@/lib/validations/organizer-onboarding";
 import { NextResponse } from "next/server";
 
 /**
@@ -67,6 +71,10 @@ export async function PUT(
     );
   }
 
+  const onboarding = toMarketOnboardingPrismaData(
+    pickOnboardingFields(data as unknown as Record<string, unknown>)
+  );
+
   const updated = await db.market.update({
     where: { id },
     data: {
@@ -82,6 +90,7 @@ export async function PUT(
       typicalSchedule: data.typicalSchedule ?? null,
       contactEmail: data.contactEmail || null,
       contactPhone: data.contactPhone ?? null,
+      ...onboarding,
     },
   });
 

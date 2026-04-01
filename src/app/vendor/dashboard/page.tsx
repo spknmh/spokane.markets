@@ -265,7 +265,9 @@ export default async function VendorDashboardPage({
       <section className="space-y-2">
         <h2 className="text-xl font-semibold">My Season Pipeline</h2>
         <p className="text-sm text-muted-foreground">
-          Events you&apos;ve requested, marked attending, or expressed interest in.
+          Official placement requests (request-to-join / capacity-limited) and casual vendor intents
+          (attending / interested) for the same events may both appear here when organizers use dual
+          workflow mode.
         </p>
         <VendorPipelineBoard
           intents={profile.vendorIntents.map((i) => ({
