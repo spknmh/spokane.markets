@@ -56,7 +56,7 @@ export default async function EditEventPage({
     venueLng: undefined,
     marketId: event.marketId ?? "",
     imageUrl: event.imageUrl ?? "",
-    showImageInList: event.showImageInList ?? false,
+    showImageInList: event.showImageInList ?? true,
     imageFocalX: event.imageFocalX ?? 50,
     imageFocalY: event.imageFocalY ?? 50,
     status: event.status as "DRAFT" | "PENDING" | "PUBLISHED" | "REJECTED" | "CANCELLED",

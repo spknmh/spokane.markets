@@ -33,7 +33,7 @@ function mockEvent(
     startDate,
     endDate: startDate,
     imageUrl: null,
-    showImageInList: false,
+    showImageInList: true,
     imageFocalX: 50,
     imageFocalY: 50,
     status: "PUBLISHED",

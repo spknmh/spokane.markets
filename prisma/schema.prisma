@@ -510,7 +510,7 @@ model Event {
   startDate                DateTime
   endDate                  DateTime
   imageUrl                 String?
-  showImageInList          Boolean            @default(false)
+  showImageInList          Boolean            @default(true)
   imageFocalX              Int                @default(50)
   imageFocalY              Int                @default(50)
   status                   EventStatus        @default(DRAFT)
@@ -794,6 +794,7 @@ model Submission {
   tagIds           String[]         @default([])
   featureIds       String[]        @default([])
   facebookUrl      String?
+  instagramUrl     String?
   websiteUrl       String?
   notes            String?          @db.Text
   status           ModerationStatus @default(PENDING)

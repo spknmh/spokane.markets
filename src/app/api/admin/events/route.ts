@@ -108,7 +108,7 @@ export async function POST(request: Request) {
       venueId,
       marketId: data.marketId || null,
       imageUrl: data.imageUrl || null,
-      showImageInList: data.showImageInList ?? false,
+      showImageInList: data.showImageInList ?? true,
       imageFocalX: data.imageFocalX ?? 50,
       imageFocalY: data.imageFocalY ?? 50,
       status: data.status,

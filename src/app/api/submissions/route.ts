@@ -81,6 +81,7 @@ export async function POST(request: Request) {
         tagIds: data.tagIds ?? [],
         featureIds: data.featureIds ?? [],
         facebookUrl: toOptional(data.facebookUrl),
+        instagramUrl: toOptional(data.instagramUrl),
         websiteUrl: toOptional(data.websiteUrl),
         notes: toOptional(data.notes),
         status: "PENDING",

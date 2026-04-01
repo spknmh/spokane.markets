@@ -30,6 +30,7 @@ describe("buildEventDataFromSubmission", () => {
       imageUrl: null,
       websiteUrl: null,
       facebookUrl: null,
+      instagramUrl: "https://instagram.com/myevent",
       marketId: null,
       tagIds: [],
       featureIds: [],
@@ -44,6 +45,7 @@ describe("buildEventDataFromSubmission", () => {
     expect(data.title).toBe("Test Event");
     expect(data.slug).toBe("test-event");
     expect(data.venueCity).toBe("Spokane");
+    expect(data.instagramUrl).toBe("https://instagram.com/myevent");
     expect(data.scheduleDays).toBeUndefined();
   });
 });

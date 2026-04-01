@@ -84,6 +84,7 @@ export function SubmissionForm({
       tagIds: [],
       featureIds: [],
       facebookUrl: "",
+      instagramUrl: "",
       websiteUrl: "",
       notes: "",
       company: "",
@@ -310,7 +311,7 @@ export function SubmissionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL (optional)</Label>
+            <Label htmlFor="imageUrl">Image Link</Label>
             <Input
               id="imageUrl"
               type="url"
@@ -433,9 +434,9 @@ export function SubmissionForm({
             </div>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="facebookUrl">Facebook URL (optional)</Label>
+              <Label htmlFor="facebookUrl">Facebook Link</Label>
               <Input
                 id="facebookUrl"
                 type="url"
@@ -449,7 +450,21 @@ export function SubmissionForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="websiteUrl">Website URL (optional)</Label>
+              <Label htmlFor="instagramUrl">Instagram Link</Label>
+              <Input
+                id="instagramUrl"
+                type="url"
+                placeholder="https://instagram.com/..."
+                {...register("instagramUrl")}
+              />
+              {errors.instagramUrl && (
+                <p className="text-sm text-destructive">
+                  {errors.instagramUrl.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+              <Label htmlFor="websiteUrl">Website Link</Label>
               <Input
                 id="websiteUrl"
                 type="url"

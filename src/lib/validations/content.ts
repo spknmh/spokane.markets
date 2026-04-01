@@ -25,6 +25,7 @@ const submissionSchemaBase = z.object({
   tagIds: z.array(z.string()).optional().default([]),
   featureIds: z.array(z.string()).optional().default([]),
   facebookUrl: z.string().url().optional().or(z.literal("")),
+  instagramUrl: z.string().url().optional().or(z.literal("")),
   websiteUrl: z.string().url().optional().or(z.literal("")),
   notes: z.string().optional(),
   /** Honeypot */

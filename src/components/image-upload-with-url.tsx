@@ -170,19 +170,11 @@ export function ImageUploadWithUrl({
           </div>
         </button>
         <div className="min-w-0 flex-1 space-y-2">
-          {hideUrlInput ? (
             <p className="text-sm text-muted-foreground">
               {value
                 ? "Click the preview to replace this image."
                 : "Use the box to add a logo or listing image."}
             </p>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {value
-                ? "You can also paste a different image URL below."
-                : "Paste an image URL below, or use the box to upload."}
-            </p>
-          )}
           <p className="text-xs text-muted-foreground">
             JPEG, PNG, WebP or GIF. Max 5MB. Large files are resized automatically on upload.
           </p>

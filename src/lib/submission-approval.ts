@@ -120,7 +120,7 @@ export function buildEventDataFromSubmission(
     imageUrl: submission.imageUrl ?? null,
     websiteUrl: submission.websiteUrl ?? null,
     facebookUrl: submission.facebookUrl ?? null,
-    instagramUrl: null,
+    instagramUrl: submission.instagramUrl ?? null,
     marketId: submission.marketId ?? null,
     tagIds: submission.tagIds ?? [],
     featureIds: submission.featureIds ?? [],

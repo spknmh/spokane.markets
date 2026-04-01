@@ -95,7 +95,7 @@ export default async function OrganizerEditEventPage({
     venueLng: undefined,
     marketId: event.marketId ?? "",
     imageUrl: event.imageUrl ?? "",
-    showImageInList: event.showImageInList ?? false,
+    showImageInList: event.showImageInList ?? true,
     imageFocalX: event.imageFocalX ?? 50,
     imageFocalY: event.imageFocalY ?? 50,
     websiteUrl: event.websiteUrl ?? "",

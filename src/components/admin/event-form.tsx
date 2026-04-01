@@ -161,7 +161,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
           venueLng: undefined,
           marketId: "",
           imageUrl: "",
-          showImageInList: false,
+          showImageInList: true,
           imageFocalX: 50,
           imageFocalY: 50,
           status: "DRAFT",
@@ -184,7 +184,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
   const watchVenueId = watch("venueId");
   const useInlineAddress = !watchVenueId;
   const watchImageUrl = watch("imageUrl");
-  const watchShowImageInList = watch("showImageInList") ?? false;
+  const watchShowImageInList = watch("showImageInList") ?? true;
   const watchTagIds = watch("tagIds") ?? [];
   const watchFeatureIds = watch("featureIds") ?? [];
 
@@ -582,9 +582,9 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
       <div className="rounded-lg border border-border p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-1">
-            <Label htmlFor="showImageInList">Show event image on /events cards</Label>
+            <Label htmlFor="showImageInList">Display Event Banner</Label>
             <p className="text-xs text-muted-foreground">
-              Optional. Displays a small profile-style image on event listing cards.
+              When on, the event image appears on event listing cards.
             </p>
           </div>
           <Switch
