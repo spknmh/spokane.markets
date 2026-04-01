@@ -4,14 +4,13 @@ import * as React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   getBannerFocalXKey,
   getBannerFocalYKey,
   type BannerKey,
 } from "@/lib/banner-config";
-import { Upload, Link2, RotateCcw } from "lucide-react";
+import { Upload, RotateCcw } from "lucide-react";
 import { isBannerUnoptimized } from "@/lib/utils";
 
 interface BannerEditorProps {
@@ -32,7 +31,6 @@ export function BannerEditor({
   isCustom,
 }: BannerEditorProps) {
   const router = useRouter();
-  const [urlInput, setUrlInput] = React.useState("");
   const [uploading, setUploading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -66,22 +64,6 @@ export function BannerEditor({
     } finally {
       setUploading(false);
       e.target.value = "";
-    }
-  }
-
-  async function handleSaveUrl() {
-    const url = urlInput.trim();
-    if (!url) return;
-
-    setError(null);
-    setSaving(true);
-    try {
-      await saveBanner(url);
-      setUrlInput("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save");
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -135,7 +117,7 @@ export function BannerEditor({
       <div className="space-y-1">
         <Label className="text-sm font-medium">{label}</Label>
         <p className="text-xs text-muted-foreground">
-          Preview uses your saved image. Upload a new file or paste a URL to replace it.
+          Preview shows your saved image. Upload a new file to replace it.
         </p>
       </div>
       <div className="relative aspect-video w-full min-h-[12rem] overflow-hidden rounded-lg bg-muted">
@@ -181,24 +163,6 @@ export function BannerEditor({
           className="hidden"
           onChange={handleUpload}
         />
-      </div>
-      <div className="flex gap-2">
-        <Input
-          placeholder="Or paste image URL"
-          value={urlInput}
-          onChange={(e) => setUrlInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSaveUrl()}
-          className="h-9"
-        />
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          disabled={!urlInput.trim() || saving}
-          onClick={handleSaveUrl}
-        >
-          <Link2 className="h-4 w-4" />
-        </Button>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>

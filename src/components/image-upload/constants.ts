@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * Consumers (keep in sync when changing sizes):
  * - `ProfileImageUpload`, `DashboardHeaderCard` (128px avatar), `VendorImageUpload`
  * - `ImageUploadWithUrl` — admin: vendor/market/event/promotion; organizer: market/event; vendor profile
- * - `GalleryImageDropzone`, `ReviewForm`, `BannerEditor` (admin site settings)
+ * - `GalleryImageDropzone`, `ReviewForm`, `BannerEditor` (admin site settings, upload-only)
  */
 
 /** Square logo / market / event / vendor thumbnail (1:1, dashed dropzone). */

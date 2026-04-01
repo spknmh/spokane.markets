@@ -174,7 +174,6 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
                 disabled={isSubmitting}
                 label="Profile image"
                 aspectRatio="square"
-                hideUrlInput
               />
               {errors.imageUrl && (
                 <p className="text-sm text-destructive">
@@ -196,7 +195,6 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
               disabled={isSubmitting}
               label="Cover image"
               aspectRatio="banner"
-              hideUrlInput
             />
           </div>
           <div className="space-y-2">

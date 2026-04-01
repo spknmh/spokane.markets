@@ -95,7 +95,7 @@ export function VendorImageUpload({
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+      <div className="flex w-full flex-col gap-3">
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -139,7 +139,7 @@ export function VendorImageUpload({
             <Camera className="h-7 w-7 text-white" />
           </div>
         </button>
-        <div className="min-w-0 flex-1">
+        <div className="w-full max-w-2xl space-y-1">
           <p className="text-sm font-medium text-foreground">
             {value ? "Change image" : "Upload image"}
           </p>
@@ -147,7 +147,7 @@ export function VendorImageUpload({
             JPEG, PNG, WebP or GIF. Max 5MB.
           </p>
           {uploading && (
-            <p className="mt-1 text-xs text-muted-foreground">Uploading…</p>
+            <p className="text-xs text-muted-foreground">Uploading…</p>
           )}
         </div>
       </div>

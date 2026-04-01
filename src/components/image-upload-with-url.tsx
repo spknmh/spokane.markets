@@ -12,7 +12,6 @@ import { ImageCropDialog } from "@/components/image-upload/image-crop-dialog";
 import { useImageCropFlow } from "@/components/image-upload/use-image-crop-flow";
 import { getCropPresetForUploaderAspect } from "@/lib/image-crop-utils";
 import { cn, isBannerUnoptimized } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 type UploadType = "avatar" | "vendor" | "banner" | "event" | "market";
@@ -25,8 +24,6 @@ interface ImageUploadWithUrlProps {
   label?: string;
   /** Preview aspect ratio: "square" (1:1) or "banner" (16:9) */
   aspectRatio?: "square" | "banner";
-  /** Hide manual URL input and keep upload-only flow. */
-  hideUrlInput?: boolean;
 }
 
 export function ImageUploadWithUrl({
@@ -36,7 +33,6 @@ export function ImageUploadWithUrl({
   disabled,
   label = "Image",
   aspectRatio = "square",
-  hideUrlInput = false,
 }: ImageUploadWithUrlProps) {
   const [uploading, setUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -116,7 +112,7 @@ export function ImageUploadWithUrl({
   return (
     <div className="space-y-3">
       <Label>{label}</Label>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+      <div className="flex w-full flex-col gap-3">
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -169,30 +165,17 @@ export function ImageUploadWithUrl({
             <Camera className="h-7 w-7 text-white" />
           </div>
         </button>
-        <div className="min-w-0 flex-1 space-y-2">
-            <p className="text-sm text-muted-foreground">
-              {value
-                ? "Click the preview to replace this image."
-                : "Use the box to add a logo or listing image."}
-            </p>
+        <div className="w-full max-w-2xl space-y-2">
+          <p className="text-sm text-muted-foreground">
+            {value
+              ? "Click the preview to replace this image."
+              : "Use the box to add a logo or listing image."}
+          </p>
           <p className="text-xs text-muted-foreground">
             JPEG, PNG, WebP or GIF. Max 5MB. Large files are resized automatically on upload.
           </p>
           {uploading && (
             <p className="text-xs text-muted-foreground">Uploading…</p>
-          )}
-          {!hideUrlInput && (
-            <Input
-              type="text"
-              placeholder="https://... or leave empty if uploading"
-              value={value ?? ""}
-              onChange={(e) => {
-                setError(null);
-                onChange(e.target.value);
-              }}
-              disabled={disabled}
-              className="mt-1"
-            />
           )}
         </div>
       </div>

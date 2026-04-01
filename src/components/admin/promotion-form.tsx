@@ -204,7 +204,7 @@ export function PromotionForm({ events, vendors, initialData }: PromotionFormPro
       />
 
       <div className="space-y-2">
-        <Label htmlFor="linkUrl">Link URL (optional)</Label>
+        <Label htmlFor="linkUrl">Link</Label>
         <Input
           id="linkUrl"
           type="url"

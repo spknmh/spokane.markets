@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { DayPicker } from "react-day-picker";
+import { DayPicker, getDefaultClassNames } from "react-day-picker";
+import "react-day-picker/style.css";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +32,18 @@ function formatDisplayDate(value: string | undefined): string {
   }).format(parsed);
 }
 
+/**
+ * react-day-picker v9 requires `react-day-picker/style.css`. Without it, the
+ * month/year dropdowns and day hit-targets render incorrectly (duplicate labels,
+ * offset hovers). Theme via CSS variables on the root.
+ */
+const pickerThemeStyle = {
+  "--rdp-accent-color": "var(--color-primary)",
+  "--rdp-accent-background-color": "color-mix(in srgb, var(--color-primary) 14%, transparent)",
+} as React.CSSProperties;
+
+const defaultClassNames = getDefaultClassNames();
+
 interface DatePickerInputProps {
   id?: string;
   value?: string;
@@ -54,6 +68,8 @@ export function DatePickerInput({
 
   const selected = React.useMemo(() => parseDateOnly(value), [value]);
   const label = value ? formatDisplayDate(value) : placeholder;
+
+  const displayMonth = selected ?? new Date();
 
   React.useEffect(() => {
     if (!open) return;
@@ -86,39 +102,43 @@ export function DatePickerInput({
           !value && "text-muted-foreground"
         )}
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="dialog"
       >
         <span className="truncate">{label}</span>
         <CalendarIcon className="ml-2 h-4 w-4 shrink-0 opacity-70" />
       </Button>
       {open && (
-        <div className="absolute z-50 mt-2 rounded-md border border-border bg-background p-3 shadow-lg">
+        <div
+          className="absolute z-50 mt-2 min-w-[min(100vw-2rem,20rem)] rounded-md border border-border bg-background p-2 shadow-lg"
+          role="dialog"
+          aria-label="Choose date"
+        >
           <DayPicker
             mode="single"
             selected={selected}
+            defaultMonth={displayMonth}
             onSelect={(date) => {
               if (!date) return;
               onChange(toDateOnlyValue(date));
               setOpen(false);
             }}
             captionLayout="dropdown"
-            fromYear={2020}
-            toYear={2035}
+            navLayout="around"
+            startMonth={new Date(2020, 0)}
+            endMonth={new Date(2035, 11)}
+            style={pickerThemeStyle}
             classNames={{
-              months: "flex flex-col",
-              month: "space-y-3",
-              caption: "flex items-center justify-between gap-2",
-              caption_label: "text-sm font-medium",
-              nav: "flex items-center gap-1",
-              nav_button: "h-8 w-8 rounded-md border border-border hover:bg-muted",
-              table: "w-full border-collapse",
-              head_row: "flex",
-              head_cell: "w-9 text-xs text-muted-foreground font-medium",
-              row: "mt-1 flex w-full",
-              cell: "h-9 w-9 p-0 text-center",
-              day: "h-9 w-9 rounded-md text-sm hover:bg-muted",
-              day_today: "border border-border font-semibold",
-              day_selected: "bg-primary text-primary-foreground hover:bg-primary",
-              day_outside: "text-muted-foreground opacity-50",
+              ...defaultClassNames,
+              root: cn(defaultClassNames.root, "font-sans text-sm text-foreground"),
+              button_previous: cn(
+                defaultClassNames.button_previous,
+                "rounded-md border border-border bg-background hover:bg-muted"
+              ),
+              button_next: cn(
+                defaultClassNames.button_next,
+                "rounded-md border border-border bg-background hover:bg-muted"
+              ),
             }}
           />
         </div>
