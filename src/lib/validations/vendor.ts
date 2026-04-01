@@ -20,11 +20,20 @@ export const vendorProfileSchema = z.object({
   imageUrl: imageUrlSchema,
   imageFocalX: imageFocalSchema,
   imageFocalY: imageFocalSchema,
+  heroImageUrl: imageUrlSchema,
+  heroImageFocalX: imageFocalSchema,
+  heroImageFocalY: imageFocalSchema,
+  primaryCategory: z.string().max(120).optional().or(z.literal("")),
+  serviceAreaLabel: z.string().max(200).optional().or(z.literal("")),
   websiteUrl: flexibleUrlSchema,
   facebookUrl: socialHandleSchema,
   instagramUrl: socialHandleSchema,
   contactEmail: z.string().email().optional().or(z.literal("")),
   contactPhone: z.string().optional(),
+  /** When false, email/phone are not shown on the public profile. */
+  contactVisible: z.boolean().optional(),
+  /** When false, website and social links are hidden on the public profile. */
+  socialLinksVisible: z.boolean().optional(),
   galleryUrls: z
     .array(
       z

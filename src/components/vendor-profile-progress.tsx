@@ -32,7 +32,8 @@ export function VendorProfileProgress({
             <span className="text-sm font-medium">Profile completion</span>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Add more details so customers can find and connect with you.
+            Add more details so customers can find and connect with you. This score is your profile
+            showcase strength — separate from verification, which has its own requirements.
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-3">

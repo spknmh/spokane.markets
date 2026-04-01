@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { findMarketBySlug } from "@/lib/services/market-series-service";
 import { getSession } from "@/lib/auth-utils";
+import { db } from "@/lib/db";
 import { TrackedExternalLink } from "@/components/analytics/tracked-external-link";
 import { TrackedLink } from "@/components/analytics/tracked-link";
 import { Badge } from "@/components/ui/badge";
@@ -79,6 +81,14 @@ export default async function MarketDetailPage({ params }: PageProps) {
   if (!market) notFound();
 
   const session = await getSession();
+  const vendorProfile =
+    session?.user?.role === "VENDOR"
+      ? await db.vendorProfile.findFirst({
+          where: { userId: session.user.id, deletedAt: null },
+          select: { id: true },
+        })
+      : null;
+
   const fullAddress = `${market.venue.address}, ${market.venue.city}, ${market.venue.state} ${market.venue.zip}`;
   const directionsUrl = getDirectionsUrl(fullAddress);
 
@@ -163,6 +173,79 @@ export default async function MarketDetailPage({ params }: PageProps) {
               <p className="whitespace-pre-wrap text-muted-foreground">{market.shortDescription}</p>
             </div>
           )}
+
+          {/* Vendor CTA strategy: deep-link to a specific upcoming occurrence where participation rules apply. */}
+          {vendorProfile &&
+            organizerOnboardingDisplayEnabled() &&
+            market.events[0] && (
+              <div className="mb-8 rounded-lg border border-border bg-muted/20 p-4">
+                <h2 className="text-lg font-semibold">For vendors</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Applications and vendor placement are handled per event date. Open the next
+                  occurrence to see eligibility, fees, and how to apply or mark interest.
+                </p>
+                <Button asChild className="mt-3" size="sm">
+                  <Link href={`/events/${market.events[0].slug}`}>
+                    Next date: {market.events[0].title}
+                  </Link>
+                </Button>
+              </div>
+            )}
+
+          {vendorProfile &&
+            organizerOnboardingDisplayEnabled() &&
+            (market.feeModelVendor?.trim() ||
+              market.boothLogistics?.trim() ||
+              market.cancellationPolicy?.trim() ||
+              market.vendorCategoryPolicy != null ||
+              market.paymentMethodsPublic != null) && (
+              <details className="mb-8 rounded-lg border border-border bg-muted/20 p-4">
+                <summary className="cursor-pointer text-sm font-semibold">
+                  Vendor logistics &amp; economics (overview)
+                </summary>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Details may vary by date; confirm on the event page for a specific market day.
+                </p>
+                <div className="mt-3 space-y-3 text-sm text-muted-foreground">
+                  {market.vendorCategoryPolicy != null && (
+                    <div>
+                      <p className="font-medium text-foreground">Eligibility &amp; categories</p>
+                      <pre className="mt-1 max-h-40 overflow-auto rounded bg-background p-2 text-xs">
+                        {typeof market.vendorCategoryPolicy === "object"
+                          ? JSON.stringify(market.vendorCategoryPolicy, null, 2)
+                          : String(market.vendorCategoryPolicy)}
+                      </pre>
+                    </div>
+                  )}
+                  {market.feeModelVendor?.trim() && (
+                    <div>
+                      <p className="font-medium text-foreground">Fees</p>
+                      <p className="mt-1 whitespace-pre-line">{market.feeModelVendor}</p>
+                    </div>
+                  )}
+                  {market.boothLogistics?.trim() && (
+                    <div>
+                      <p className="font-medium text-foreground">Booth / load-in</p>
+                      <p className="mt-1 whitespace-pre-line">{market.boothLogistics}</p>
+                    </div>
+                  )}
+                  {market.cancellationPolicy?.trim() && (
+                    <div>
+                      <p className="font-medium text-foreground">Cancellation</p>
+                      <p className="mt-1 whitespace-pre-line">{market.cancellationPolicy}</p>
+                    </div>
+                  )}
+                  {market.paymentMethodsPublic != null && (
+                    <div>
+                      <p className="font-medium text-foreground">Payments (summary)</p>
+                      <pre className="mt-1 max-h-40 overflow-auto rounded bg-background p-2 text-xs">
+                        {JSON.stringify(market.paymentMethodsPublic, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </details>
+            )}
 
           {market.events.length > 0 && (
             <section>

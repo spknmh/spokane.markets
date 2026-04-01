@@ -63,28 +63,40 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
           ...initialData,
           imageFocalX: initialData.imageFocalX ?? 50,
           imageFocalY: initialData.imageFocalY ?? 50,
+          heroImageFocalX: initialData.heroImageFocalX ?? 50,
+          heroImageFocalY: initialData.heroImageFocalY ?? 50,
+          contactVisible: initialData.contactVisible ?? false,
+          socialLinksVisible: initialData.socialLinksVisible ?? false,
         }
       : {
-      businessName: "",
-      slug: "",
-      description: "",
-      imageUrl: "",
-      imageFocalX: 50,
-      imageFocalY: 50,
-      websiteUrl: "",
-      facebookUrl: "",
-      instagramUrl: "",
-      contactEmail: "",
-      contactPhone: "",
-      galleryUrls: [],
-      galleryUrlsText: "",
-      specialties: "",
-    },
+          businessName: "",
+          slug: "",
+          description: "",
+          imageUrl: "",
+          imageFocalX: 50,
+          imageFocalY: 50,
+          heroImageUrl: "",
+          heroImageFocalX: 50,
+          heroImageFocalY: 50,
+          primaryCategory: "",
+          serviceAreaLabel: "",
+          websiteUrl: "",
+          facebookUrl: "",
+          instagramUrl: "",
+          contactEmail: "",
+          contactPhone: "",
+          contactVisible: false,
+          socialLinksVisible: false,
+          galleryUrls: [],
+          galleryUrlsText: "",
+          specialties: "",
+        },
   });
 
   const businessName = useWatch({ control, name: "businessName" });
   const slugValue = useWatch({ control, name: "slug" });
   const imageUrl = useWatch({ control, name: "imageUrl" });
+  const heroImageUrl = useWatch({ control, name: "heroImageUrl" });
   const galleryUrls = useWatch({ control, name: "galleryUrls" }) ?? [];
   const suggestedSlug = slugify(businessName ?? "") || "your-business-name";
   const previewSlug = (slugValue?.trim() || (isEditing ? initialData?.slug : "") || suggestedSlug)
@@ -97,6 +109,8 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
     const payload: Record<string, unknown> = { ...data };
     payload.slug = (data.slug ?? "").trim();
     payload.galleryUrls = (data.galleryUrls ?? []).slice(0, 6);
+    payload.contactVisible = Boolean(data.contactVisible);
+    payload.socialLinksVisible = Boolean(data.socialLinksVisible);
     delete payload.galleryUrlsText;
 
     const method = isEditing ? "PUT" : "POST";
@@ -176,6 +190,30 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
           ) : null}
 
           <div className="space-y-2">
+            <Label>Cover image (optional)</Label>
+            <p className="text-xs text-muted-foreground">
+              Wide banner above your profile. Your profile image above stays as your logo or avatar.
+            </p>
+            <ImageUploadWithUrl
+              value={heroImageUrl ?? ""}
+              onChange={(url) => setValue("heroImageUrl", url)}
+              uploadType="vendor"
+              disabled={isSubmitting}
+              label="Cover image"
+              aspectRatio="banner"
+              hideUrlInput
+            />
+          </div>
+          {heroImageUrl?.trim() ? (
+            <ImageFocalSliders
+              register={register}
+              idPrefix="vendor-hero"
+              xField="heroImageFocalX"
+              yField="heroImageFocalY"
+            />
+          ) : null}
+
+          <div className="space-y-2">
             <Label>Your profile URL</Label>
             <div className="flex items-center overflow-hidden rounded-md border border-border">
               <Input
@@ -205,6 +243,28 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
             />
           </div>
 
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="primaryCategory">Primary category</Label>
+              <Input
+                id="primaryCategory"
+                placeholder="e.g. Produce, Baked goods, Crafts"
+                {...register("primaryCategory")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="serviceAreaLabel">Service area</Label>
+              <Input
+                id="serviceAreaLabel"
+                placeholder="e.g. Spokane Valley, North Spokane"
+                {...register("serviceAreaLabel")}
+              />
+              <p className="text-xs text-muted-foreground">
+                General area only — not your home address.
+              </p>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="specialties">Specialties</Label>
             <Textarea
@@ -213,6 +273,31 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
               rows={2}
               {...register("specialties")}
             />
+          </div>
+
+          <div className="rounded-lg border border-border bg-muted/20 p-4">
+            <p className="text-sm font-medium text-foreground">Public visibility</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Contact and links are hidden on your public page unless you turn these on.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-6">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="rounded border-border"
+                  {...register("contactVisible")}
+                />
+                <span className="text-sm">Show email and phone on public profile</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="rounded border-border"
+                  {...register("socialLinksVisible")}
+                />
+                <span className="text-sm">Show website and social links</span>
+              </label>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -225,7 +310,7 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
                 {...register("contactEmail")}
               />
               <p className="text-xs text-muted-foreground">
-                Optional. Shown on your public profile if you add it.
+                Optional. Only shown publicly if &quot;Show email and phone&quot; is on.
               </p>
               {errors.contactEmail && (
                 <p className="text-sm text-destructive">

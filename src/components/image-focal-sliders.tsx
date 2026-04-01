@@ -7,9 +7,14 @@ import type { UseFormRegister, FieldValues } from "react-hook-form";
 export function ImageFocalSliders<T extends FieldValues>({
   register,
   idPrefix = "image",
+  xField = "imageFocalX" as keyof T & string,
+  yField = "imageFocalY" as keyof T & string,
 }: {
   register: UseFormRegister<T>;
   idPrefix?: string;
+  /** Defaults to profile image focal fields. */
+  xField?: keyof T & string;
+  yField?: keyof T & string;
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -23,7 +28,7 @@ export function ImageFocalSliders<T extends FieldValues>({
           min={0}
           max={100}
           className="w-full accent-primary"
-          {...register("imageFocalX" as never, { valueAsNumber: true })}
+          {...register(xField as never, { valueAsNumber: true })}
         />
       </div>
       <div className="space-y-2">
@@ -36,7 +41,7 @@ export function ImageFocalSliders<T extends FieldValues>({
           min={0}
           max={100}
           className="w-full accent-primary"
-          {...register("imageFocalY" as never, { valueAsNumber: true })}
+          {...register(yField as never, { valueAsNumber: true })}
         />
       </div>
     </div>

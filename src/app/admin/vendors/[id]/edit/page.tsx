@@ -28,6 +28,11 @@ export default async function EditVendorPage({
     imageUrl: vendor.imageUrl ?? "",
     imageFocalX: vendor.imageFocalX ?? 50,
     imageFocalY: vendor.imageFocalY ?? 50,
+    heroImageUrl: vendor.heroImageUrl ?? "",
+    heroImageFocalX: vendor.heroImageFocalX ?? 50,
+    heroImageFocalY: vendor.heroImageFocalY ?? 50,
+    primaryCategory: vendor.primaryCategory ?? "",
+    serviceAreaLabel: vendor.serviceAreaLabel ?? "",
     websiteUrl: vendor.websiteUrl ?? "",
     facebookUrl: vendor.facebookUrl
       ? extractSocialHandle(vendor.facebookUrl, "facebook")

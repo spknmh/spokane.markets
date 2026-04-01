@@ -1,14 +1,10 @@
 import { AvatarImage, MediaFrame } from "@/components/media";
 import { Mail, Phone } from "lucide-react";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SITE_NAME } from "@/lib/constants";
-import {
-  formatPhoneNumber,
-  getFacebookDisplayUrl,
-  getInstagramDisplayUrl,
-  normalizeUrlToHttps,
-} from "@/lib/utils";
+import { formatPhoneNumber } from "@/lib/utils";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -20,11 +16,15 @@ import { EventCard } from "@/components/event/event-card";
 import { ReportButton } from "@/components/report-button";
 import { ShareButton } from "@/components/share-button";
 import { TrackVendorView } from "@/components/track-content-view";
-import {
-  mergeUpcomingPublicVendorEvents,
-  VENDOR_PROFILE_INTENT_STATUSES,
-} from "@/lib/vendor-public-events";
 import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
+import {
+  buildVendorProfileJsonLd,
+  toPublicVendorProfile,
+} from "@/lib/vendor-public-profile";
+import {
+  getVendorAppearances,
+  splitAppearancesByTime,
+} from "@/lib/services/vendor-appearances";
 
 export const dynamic = "force-dynamic";
 
@@ -32,64 +32,47 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-const eventCardInclude = {
-  venue: true,
-  tags: true,
-  features: true,
-  _count: { select: { vendorEvents: true } },
-  scheduleDays: { orderBy: { date: "asc" as const } },
-} as const;
-
-async function getVendor(slug: string) {
+async function getVendorBySlug(slug: string) {
   return db.vendorProfile.findFirst({
     where: { slug, deletedAt: null },
-    include: {
-      vendorEvents: {
-        where: {
-          event: {
-            deletedAt: null,
-          },
-        },
-        include: {
-          event: {
-            include: eventCardInclude,
-          },
-        },
-        orderBy: { event: { startDate: "asc" } },
-      },
-      vendorIntents: {
-        where: {
-          status: { in: VENDOR_PROFILE_INTENT_STATUSES },
-          event: { deletedAt: null },
-        },
-        include: {
-          event: {
-            include: eventCardInclude,
-          },
-        },
-      },
-    },
   });
+}
+
+function absUrl(baseUrl: string, url: string | null | undefined) {
+  if (!url?.trim()) return undefined;
+  if (url.startsWith("http")) return url;
+  return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
+function appearanceKindLabel(kind: "official_roster" | "vendor_linked" | "intent"): string | null {
+  switch (kind) {
+    case "official_roster":
+      return "Official vendor list";
+    case "vendor_linked":
+      return "Listed by vendor";
+    case "intent":
+      return "Interest / application";
+    default:
+      return null;
+  }
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const vendor = await getVendor(slug);
+  const vendor = await getVendorBySlug(slug);
 
   if (!vendor) {
     return { title: "Vendor Not Found" };
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const description = vendor.description ?? `${vendor.businessName} — a local vendor on ${SITE_NAME}.`;
-  const vendorImage =
-    vendor.imageUrl?.startsWith("http")
-      ? vendor.imageUrl
-      : vendor.imageUrl
-        ? `${baseUrl}${vendor.imageUrl.startsWith("/") ? "" : "/"}${vendor.imageUrl}`
-        : undefined;
+  const description =
+    vendor.description ?? `${vendor.businessName} — a local vendor on ${SITE_NAME}.`;
+  const ogImage =
+    absUrl(baseUrl, vendor.heroImageUrl) ??
+    absUrl(baseUrl, vendor.imageUrl);
   return {
     title: `${vendor.businessName} | ${SITE_NAME}`,
     description,
@@ -97,13 +80,13 @@ export async function generateMetadata({
     openGraph: {
       title: vendor.businessName,
       description,
-      images: vendorImage ? [{ url: vendorImage }] : undefined,
+      images: ogImage ? [{ url: ogImage }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title: vendor.businessName,
       description,
-      images: vendorImage ? [{ url: vendorImage }] : undefined,
+      images: ogImage ? [{ url: ogImage }] : undefined,
     },
   };
 }
@@ -111,13 +94,21 @@ export async function generateMetadata({
 export default async function VendorProfilePage({ params }: PageProps) {
   const { slug } = await params;
   const [vendor, session] = await Promise.all([
-    getVendor(slug),
+    getVendorBySlug(slug),
     auth.api.getSession({ headers: await headers() }),
   ]);
 
   if (!vendor) {
     notFound();
   }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const publicVendor = toPublicVendorProfile(vendor, baseUrl);
+  const vendorJsonLd = buildVendorProfileJsonLd(publicVendor, baseUrl);
+  const vendorUrl = `${baseUrl}/vendors/${vendor.slug}`;
+
+  const { rows: appearanceRows } = await getVendorAppearances(vendor.id);
+  const { upcoming, past } = splitAppearancesByTime(appearanceRows);
 
   const favorite = session?.user
     ? await db.favoriteVendor.findUnique({
@@ -130,36 +121,20 @@ export default async function VendorProfilePage({ params }: PageProps) {
       })
     : null;
 
-  const upcomingEvents = mergeUpcomingPublicVendorEvents(
-    vendor.vendorEvents.map((ve) => ve.event),
-    vendor.vendorIntents.map((vi) => vi.event),
-  );
+  const categoryTag =
+    vendor.primaryCategory?.trim() ||
+    vendor.specialties?.split(",")[0]?.trim();
+  const specialtyTags =
+    vendor.specialties
+      ?.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean) ?? [];
 
-  const firstSpecialty = vendor.specialties?.split(",")[0]?.trim();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const vendorUrl = `${baseUrl}/vendors/${vendor.slug}`;
-  const vendorImage =
-    vendor.imageUrl?.startsWith("http")
-      ? vendor.imageUrl
-      : vendor.imageUrl
-        ? `${baseUrl}${vendor.imageUrl.startsWith("/") ? "" : "/"}${vendor.imageUrl}`
-        : undefined;
-  const sameAs = [
-    vendor.websiteUrl ? normalizeUrlToHttps(vendor.websiteUrl) : null,
-    getFacebookDisplayUrl(vendor.facebookUrl),
-    getInstagramDisplayUrl(vendor.instagramUrl),
-  ].filter((u): u is string => !!u);
-  const vendorJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    name: vendor.businessName,
-    description: vendor.description ?? undefined,
-    url: vendorUrl,
-    image: vendorImage,
-    ...(sameAs.length > 0 && { sameAs }),
-    ...(vendor.contactEmail && { email: vendor.contactEmail }),
-    ...(vendor.contactPhone && { telephone: vendor.contactPhone }),
-  };
+  const heroSrc =
+    vendor.heroImageUrl?.trim() ||
+    (vendor.imageUrl?.trim() ? vendor.imageUrl : null);
+  const showHeroFocal = Boolean(vendor.heroImageUrl?.trim());
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
       <script
@@ -168,57 +143,104 @@ export default async function VendorProfilePage({ params }: PageProps) {
       />
       <TrackVendorView
         vendorId={vendor.id}
-        category={firstSpecialty ? firstSpecialty.toLowerCase().replace(/\s+/g, "-") : undefined}
+        category={categoryTag ? categoryTag.toLowerCase().replace(/\s+/g, "-") : undefined}
       />
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
-        {/* Main content */}
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+
+      {/* Hero + overlapping avatar */}
+      <div className="relative mb-6 overflow-hidden rounded-xl ring-1 ring-border sm:mb-8">
+        {heroSrc ? (
+          vendor.heroImageUrl?.trim() ? (
+            <div className="relative h-48 w-full sm:h-64">
+              <Image
+                src={heroSrc}
+                alt={`${vendor.businessName} — cover`}
+                fill
+                className="object-cover"
+                style={{
+                  objectPosition: `${showHeroFocal ? vendor.heroImageFocalX : 50}% ${showHeroFocal ? vendor.heroImageFocalY : 50}%`,
+                }}
+                priority
+                unoptimized={heroSrc.startsWith("/uploads/") || heroSrc.startsWith("http")}
+              />
+            </div>
+          ) : (
+            <div className="relative h-48 w-full sm:h-64">
+              <AvatarImage
+                src={heroSrc}
+                alt=""
+                className="h-full w-full rounded-none"
+                focalX={vendor.imageFocalX}
+                focalY={vendor.imageFocalY}
+                sizes="100vw"
+                pixelSize={1200}
+              />
+            </div>
+          )
+        ) : (
+          <div className="h-32 bg-gradient-to-br from-primary/15 to-muted sm:h-40" />
+        )}
+        <div className="relative flex flex-col gap-4 px-4 pb-4 pt-2 sm:flex-row sm:items-end sm:px-6 sm:pb-6">
+          <div className="-mt-14 shrink-0 sm:-mt-16">
             {vendor.imageUrl ? (
               <AvatarImage
                 src={vendor.imageUrl}
                 alt={vendor.businessName}
-                className="h-40 w-40 shrink-0 rounded-xl sm:h-48 sm:w-48"
+                className="h-28 w-28 rounded-xl border-4 border-background shadow-md ring-1 ring-border sm:h-32 sm:w-32"
                 focalX={vendor.imageFocalX}
                 focalY={vendor.imageFocalY}
-                sizes="(max-width: 640px) 160px, 192px"
-                pixelSize={192}
+                sizes="(max-width: 640px) 112px, 128px"
+                pixelSize={128}
               />
             ) : (
-              <div className="flex h-40 w-40 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-4xl font-bold text-primary sm:h-48 sm:w-48">
+              <div className="flex h-28 w-28 items-center justify-center rounded-xl border-4 border-background bg-primary/20 text-3xl font-bold text-primary shadow-md ring-1 ring-border sm:h-32 sm:w-32">
                 {vendor.businessName.charAt(0)}
               </div>
             )}
-
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-3xl font-bold tracking-tight">
-                  {vendor.businessName}
-                </h1>
-                <VendorVerifiedBadge status={vendor.verificationStatus} size="md" />
-              </div>
-
-              {vendor.specialties && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {vendor.specialties.split(",").map((s) => (
-                    <Badge key={s.trim()} variant="secondary">
-                      {s.trim()}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {vendor.description && (
-                <p className="mt-4 whitespace-pre-line text-muted-foreground">
-                  {vendor.description}
-                </p>
-              )}
-            </div>
           </div>
+          <div className="min-w-0 flex-1 pb-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                {vendor.businessName}
+              </h1>
+              <VendorVerifiedBadge status={vendor.verificationStatus} size="md" />
+            </div>
+            {vendor.primaryCategory?.trim() && (
+              <Badge className="mt-2" variant="secondary">
+                {vendor.primaryCategory.trim()}
+              </Badge>
+            )}
+            {specialtyTags.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {specialtyTags.map((s) => (
+                  <Badge key={s} variant="outline">
+                    {s}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            {vendor.serviceAreaLabel?.trim() && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Serves {vendor.serviceAreaLabel.trim()}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
+        <div className="min-w-0 flex-1">
+          {vendor.description && (
+            <section>
+              <h2 className="text-lg font-semibold">About</h2>
+              <p className="mt-2 whitespace-pre-line text-muted-foreground">
+                {vendor.description}
+              </p>
+            </section>
+          )}
 
           {(vendor.galleryUrls?.length ?? 0) > 0 && (
             <section className="mt-10">
-              <h2 className="text-xl font-semibold">Gallery</h2>
+              <h2 className="text-xl font-semibold">What we offer</h2>
               <div className="mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch] sm:grid sm:grid-cols-2 sm:overflow-visible sm:snap-none lg:grid-cols-3">
                 {vendor.galleryUrls.map((url, i) => (
                   <a
@@ -242,27 +264,54 @@ export default async function VendorProfilePage({ params }: PageProps) {
           )}
 
           <section className="mt-10">
-            <h2 className="text-xl font-semibold">
-              Where We&apos;ll Be Next
-            </h2>
-
-            {upcomingEvents.length === 0 ? (
+            <h2 className="text-xl font-semibold">Where we&apos;ll be next</h2>
+            {upcoming.length === 0 ? (
               <Card className="mt-4">
                 <CardContent className="py-8 text-center text-muted-foreground">
-                  No upcoming events scheduled. Check back soon!
+                  No upcoming dates listed yet. Save this vendor to hear about future events when
+                  they&apos;re added.
                 </CardContent>
               </Card>
             ) : (
-              <div className="mt-4 space-y-3">
-                {upcomingEvents.map((event) => (
-                  <EventCard key={event.id} event={event} />
-                ))}
+              <div className="mt-4 space-y-4">
+                {upcoming.map((row) => {
+                  const label = appearanceKindLabel(row.kind);
+                  return (
+                    <div key={row.event.id}>
+                      {label && (
+                        <p className="mb-1 text-xs font-medium text-muted-foreground">{label}</p>
+                      )}
+                      <EventCard event={row.event} />
+                    </div>
+                  );
+                })}
               </div>
             )}
           </section>
+
+          {past.length > 0 && (
+            <section className="mt-10">
+              <h2 className="text-xl font-semibold">Seen at</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Past appearances on Spokane Markets (from listings and your activity).
+              </p>
+              <div className="mt-4 space-y-4">
+                {past.map((row) => {
+                  const label = appearanceKindLabel(row.kind);
+                  return (
+                    <div key={row.event.id}>
+                      {label && (
+                        <p className="mb-1 text-xs font-medium text-muted-foreground">{label}</p>
+                      )}
+                      <EventCard event={row.event} />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </div>
 
-        {/* Sidebar */}
         <aside className="w-full shrink-0 lg:w-80 lg:sticky lg:top-24">
           <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-6">
             <FavoriteVendorButton
@@ -272,45 +321,45 @@ export default async function VendorProfilePage({ params }: PageProps) {
               isLoggedIn={!!session?.user}
               callbackUrl={`/vendors/${vendor.slug}`}
             />
-            {vendor.socialLinksVisible !== false && (
+            {vendor.socialLinksVisible === true && (
               <VendorSocialLinks
                 vendorId={vendor.id}
-                websiteUrl={vendor.websiteUrl}
-                facebookUrl={vendor.facebookUrl}
-                instagramUrl={vendor.instagramUrl}
+                websiteUrl={publicVendor.websiteUrl}
+                facebookUrl={publicVendor.facebookUrl}
+                instagramUrl={publicVendor.instagramUrl}
               />
             )}
 
-            {vendor.contactVisible !== false &&
-              (vendor.contactEmail || vendor.contactPhone) && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Contact</p>
-                <div className="mt-1 space-y-0.5 text-sm">
-                  {vendor.contactEmail && (
-                    <p>
-                      <a
-                        href={`mailto:${vendor.contactEmail}`}
-                        className="min-h-[44px] inline-flex items-center gap-2 text-primary hover:underline"
-                      >
-                        <Mail className="h-4 w-4 shrink-0" />
-                        {vendor.contactEmail}
-                      </a>
-                    </p>
-                  )}
-                  {vendor.contactPhone && (
-                    <p>
-                      <a
-                        href={`tel:${vendor.contactPhone.replace(/\D/g, "")}`}
-                        className="min-h-[44px] inline-flex items-center gap-2 text-foreground hover:underline"
-                      >
-                        <Phone className="h-4 w-4 shrink-0" />
-                        {formatPhoneNumber(vendor.contactPhone)}
-                      </a>
-                    </p>
-                  )}
+            {vendor.contactVisible === true &&
+              (publicVendor.contactEmail || publicVendor.contactPhone) && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Contact</p>
+                  <div className="mt-1 space-y-0.5 text-sm">
+                    {publicVendor.contactEmail && (
+                      <p>
+                        <a
+                          href={`mailto:${publicVendor.contactEmail}`}
+                          className="inline-flex min-h-[44px] items-center gap-2 text-primary hover:underline"
+                        >
+                          <Mail className="h-4 w-4 shrink-0" />
+                          {publicVendor.contactEmail}
+                        </a>
+                      </p>
+                    )}
+                    {publicVendor.contactPhone && (
+                      <p>
+                        <a
+                          href={`tel:${publicVendor.contactPhone.replace(/\D/g, "")}`}
+                          className="inline-flex min-h-[44px] items-center gap-2 text-foreground hover:underline"
+                        >
+                          <Phone className="h-4 w-4 shrink-0" />
+                          {formatPhoneNumber(publicVendor.contactPhone)}
+                        </a>
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             <div className="border-t border-border pt-4">
               <div className="flex items-center justify-between gap-3">

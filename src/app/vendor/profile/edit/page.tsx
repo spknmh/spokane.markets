@@ -21,6 +21,11 @@ export default async function VendorProfileEditPage() {
         imageUrl: profile.imageUrl ?? "",
         imageFocalX: profile.imageFocalX ?? 50,
         imageFocalY: profile.imageFocalY ?? 50,
+        heroImageUrl: profile.heroImageUrl ?? "",
+        heroImageFocalX: profile.heroImageFocalX ?? 50,
+        heroImageFocalY: profile.heroImageFocalY ?? 50,
+        primaryCategory: profile.primaryCategory ?? "",
+        serviceAreaLabel: profile.serviceAreaLabel ?? "",
         websiteUrl: profile.websiteUrl ?? "",
         facebookUrl: profile.facebookUrl
           ? extractSocialHandle(profile.facebookUrl, "facebook")
@@ -30,6 +35,8 @@ export default async function VendorProfileEditPage() {
           : "",
         contactEmail: profile.contactEmail ?? "",
         contactPhone: profile.contactPhone ?? "",
+        contactVisible: profile.contactVisible,
+        socialLinksVisible: profile.socialLinksVisible,
         galleryUrls: profile.galleryUrls ?? [],
         galleryUrlsText: (profile.galleryUrls ?? []).join("\n"),
         specialties: profile.specialties ?? "",

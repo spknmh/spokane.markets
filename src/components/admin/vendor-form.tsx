@@ -55,12 +55,19 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
           verificationStatus: initialData.verificationStatus ?? "UNVERIFIED",
           imageFocalX: initialData.imageFocalX ?? 50,
           imageFocalY: initialData.imageFocalY ?? 50,
+          heroImageFocalX: initialData.heroImageFocalX ?? 50,
+          heroImageFocalY: initialData.heroImageFocalY ?? 50,
         }
       : {
           businessName: "",
           slug: "",
           description: "",
           imageUrl: "",
+          heroImageUrl: "",
+          heroImageFocalX: 50,
+          heroImageFocalY: 50,
+          primaryCategory: "",
+          serviceAreaLabel: "",
           websiteUrl: "",
           facebookUrl: "",
           instagramUrl: "",
@@ -69,8 +76,8 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
           galleryUrlsText: "",
           specialties: "",
           userId: null,
-          contactVisible: true,
-          socialLinksVisible: true,
+          contactVisible: false,
+          socialLinksVisible: false,
           verificationStatus: "UNVERIFIED",
         },
   });
@@ -79,6 +86,7 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
   const slugValue = useWatch({ control, name: "slug" });
   const userId = useWatch({ control, name: "userId" });
   const imageUrl = useWatch({ control, name: "imageUrl" });
+  const heroImageUrl = useWatch({ control, name: "heroImageUrl" });
   const contactVisible = useWatch({ control, name: "contactVisible" });
   const socialLinksVisible = useWatch({ control, name: "socialLinksVisible" });
   const suggestedSlug = slugify(businessName ?? "") || "vendor";
@@ -247,11 +255,42 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
             <p className="text-sm text-destructive">{errors.imageUrl.message}</p>
           )}
 
+          <div className="space-y-2">
+            <Label>Cover image (optional)</Label>
+            <ImageUploadWithUrl
+              value={heroImageUrl ?? ""}
+              onChange={(url) => setValue("heroImageUrl", url)}
+              uploadType="vendor"
+              disabled={isSubmitting}
+              label="Cover image"
+              aspectRatio="banner"
+            />
+          </div>
+          {heroImageUrl?.trim() ? (
+            <ImageFocalSliders
+              register={register}
+              idPrefix="admin-vendor-hero"
+              xField="heroImageFocalX"
+              yField="heroImageFocalY"
+            />
+          ) : null}
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="primaryCategory">Primary category</Label>
+              <Input id="primaryCategory" {...register("primaryCategory")} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="serviceAreaLabel">Service area</Label>
+              <Input id="serviceAreaLabel" {...register("serviceAreaLabel")} />
+            </div>
+          </div>
+
           <div className="flex flex-wrap gap-6">
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
-                checked={contactVisible ?? true}
+                checked={contactVisible ?? false}
                 onChange={(e) => setValue("contactVisible", e.target.checked)}
                 className="rounded border-border"
               />
@@ -260,7 +299,7 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
-                checked={socialLinksVisible ?? true}
+                checked={socialLinksVisible ?? false}
                 onChange={(e) => setValue("socialLinksVisible", e.target.checked)}
                 className="rounded border-border"
               />

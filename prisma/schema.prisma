@@ -889,6 +889,10 @@ model VendorProfile {
   imageUrl           String?
   imageFocalX        Int      @default(50)
   imageFocalY        Int      @default(50)
+  /** Wide cover image; avatar stays `imageUrl` when set. */
+  heroImageUrl       String?
+  heroImageFocalX    Int      @default(50)
+  heroImageFocalY    Int      @default(50)
   websiteUrl         String?
   facebookUrl        String?
   instagramUrl       String?
@@ -896,9 +900,13 @@ model VendorProfile {
   contactPhone       String?
   galleryUrls        String[] @default([])
   specialties        String?
+  /** Primary product/category label for discovery (e.g. Produce, Crafts). */
+  primaryCategory    String?
+  /** Non-precise public area, e.g. city or neighborhood. */
+  serviceAreaLabel   String?
   verificationStatus VerificationStatus @default(UNVERIFIED)
-  contactVisible     Boolean  @default(true)
-  socialLinksVisible Boolean  @default(true)
+  contactVisible     Boolean  @default(false)
+  socialLinksVisible Boolean  @default(false)
 
   user            User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
   vendorEvents    VendorEvent[]

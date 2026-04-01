@@ -104,6 +104,11 @@ export async function PUT(
         imageUrl: toOptional(data.imageUrl),
         ...(data.imageFocalX != null && { imageFocalX: data.imageFocalX }),
         ...(data.imageFocalY != null && { imageFocalY: data.imageFocalY }),
+        heroImageUrl: toOptional(data.heroImageUrl),
+        ...(data.heroImageFocalX != null && { heroImageFocalX: data.heroImageFocalX }),
+        ...(data.heroImageFocalY != null && { heroImageFocalY: data.heroImageFocalY }),
+        primaryCategory: toOptional(data.primaryCategory),
+        serviceAreaLabel: toOptional(data.serviceAreaLabel),
         websiteUrl: toOptionalUrl(data.websiteUrl),
         facebookUrl: toOptionalHandle(data.facebookUrl, "facebook"),
         instagramUrl: toOptionalHandle(data.instagramUrl, "instagram"),
@@ -115,8 +120,8 @@ export async function PUT(
           data.userId && typeof data.userId === "string" && data.userId.trim()
             ? data.userId.trim()
             : null,
-        contactVisible: data.contactVisible ?? true,
-        socialLinksVisible: data.socialLinksVisible ?? true,
+        contactVisible: data.contactVisible ?? false,
+        socialLinksVisible: data.socialLinksVisible ?? false,
         ...(data.verificationStatus !== undefined && {
           verificationStatus: data.verificationStatus,
         }),

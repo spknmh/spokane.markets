@@ -20,6 +20,10 @@ import { ExternalLink, Heart } from "lucide-react";
 import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { computeVendorProfileCompletion } from "@/lib/vendor-profile";
 import { evaluateVendorVerificationReadiness } from "@/lib/vendor-verification";
+import {
+  getVendorAppearances,
+  splitAppearancesByTime,
+} from "@/lib/services/vendor-appearances";
 import { RequestVerificationButton } from "@/components/vendor/request-verification-button";
 import { VendorOnboardingChecklist } from "@/components/vendor/vendor-onboarding-checklist";
 import { Badge } from "@/components/ui/badge";
@@ -90,26 +94,9 @@ export default async function VendorDashboardPage({
     );
   }
 
-  const vendorEventIds = new Set(
-    profile.vendorEvents.map((ve) => ve.event.id),
-  );
-  const fromVendorEvents = profile.vendorEvents
-    .filter(
-      (ve) =>
-        ve.event.startDate >= new Date() && ve.event.status === "PUBLISHED",
-    )
-    .map((ve) => ve.event);
-  const fromIntents = profile.vendorIntents
-    .filter(
-      (i) =>
-        !vendorEventIds.has(i.event.id) &&
-        i.event.startDate >= new Date() &&
-        i.event.status === "PUBLISHED",
-    )
-    .map((i) => i.event);
-  const upcomingEvents = [...fromVendorEvents, ...fromIntents].sort(
-    (a, b) => a.startDate.getTime() - b.startDate.getTime(),
-  );
+  const { rows: appearanceRows } = await getVendorAppearances(profile.id);
+  const { upcoming: upcomingAppearanceRows, past: pastAppearanceRows } =
+    splitAppearancesByTime(appearanceRows, new Date(), { pastLimit: 12 });
 
   const favoritedCount = profile._count.favoriteVendors;
   const profileCompletionPercent = computeVendorProfileCompletion(profile);
@@ -289,13 +276,19 @@ export default async function VendorDashboardPage({
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold">Upcoming Events</h2>
+          <div>
+            <h2 className="text-xl font-semibold">Schedule &amp; appearances</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              From your linked events, roster placement, and open intents — same sources as your
+              public profile.
+            </p>
+          </div>
           <Button asChild size="sm">
             <Link href="/vendor/events/link">Link to Event</Link>
           </Button>
         </div>
 
-        {upcomingEvents.length === 0 ? (
+        {upcomingAppearanceRows.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
               <p>No upcoming events linked yet.</p>
@@ -306,12 +299,23 @@ export default async function VendorDashboardPage({
           </Card>
         ) : (
           <div className="space-y-3">
-            {upcomingEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
+            {upcomingAppearanceRows.map((row) => (
+              <EventCard key={row.event.id} event={row.event} />
             ))}
           </div>
         )}
       </section>
+
+      {pastAppearanceRows.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-xl font-semibold">Recent appearances</h2>
+          <div className="space-y-3">
+            {pastAppearanceRows.map((row) => (
+              <EventCard key={row.event.id} event={row.event} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

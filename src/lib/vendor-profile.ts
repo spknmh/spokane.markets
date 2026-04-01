@@ -8,9 +8,10 @@ export function computeVendorProfileCompletion(p: VendorProfile): number {
     !!p.contactEmail?.trim(),
     !!p.contactPhone?.trim(),
     !!p.websiteUrl?.trim(),
-    !!p.specialties?.trim(),
+    !!(p.primaryCategory?.trim() || p.specialties?.trim()),
     !!(p.facebookUrl?.trim() || p.instagramUrl?.trim()),
     p.galleryUrls.length > 0,
+    !!p.serviceAreaLabel?.trim(),
   ];
   const filled = checks.filter(Boolean).length;
   return Math.round((filled / checks.length) * 100);

@@ -11,6 +11,8 @@ function vendor(
     businessName: `Vendor ${id}`,
     description: null,
     imageUrl: null,
+    imageFocalX: 50,
+    imageFocalY: 50,
     specialties: null,
     websiteUrl: null,
     facebookUrl: null,
