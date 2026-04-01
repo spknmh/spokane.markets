@@ -72,22 +72,6 @@ export default function BackstoryPage() {
               radial-gradient(ellipse at 85% 15%, rgba(32,77,58,0.06) 0%, transparent 50%)`,
           }}
         />
-        <div
-          className="absolute right-7 top-[52px] h-[140px] w-[140px] rotate-[18deg] rounded-br-[70px] opacity-[0.04]"
-          style={{ backgroundColor: cedar }}
-        />
-        <div
-          className="absolute bottom-16 left-[18px] h-[100px] w-[100px] -rotate-12 rounded-tl-[50px] opacity-[0.04]"
-          style={{ backgroundColor: umber }}
-        />
-        <div
-          className="absolute right-[-28px] top-[210px] h-[180px] w-[180px] rounded-full opacity-[0.03]"
-          style={{ backgroundColor: cedar }}
-        />
-        <div
-          className="absolute bottom-[230px] right-[-28px] h-[190px] w-[190px] rounded-full opacity-[0.025]"
-          style={{ backgroundColor: cedar }}
-        />
       </div>
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">

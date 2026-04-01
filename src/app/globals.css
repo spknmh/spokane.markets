@@ -182,6 +182,16 @@
   .dark {
     color-scheme: dark;
   }
+  @media (prefers-reduced-motion: reduce) {
+    .site-deco-layer {
+      display: none;
+    }
+  }
+  @media print {
+    .site-deco-layer {
+      display: none !important;
+    }
+  }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
   }

@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 import { ConditionalChrome } from "@/components/layout/conditional-chrome";
+import { SiteBackgroundDecor } from "@/components/layout/site-background-decor";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { SiteAnnouncementBar } from "@/components/layout/site-announcement";
@@ -159,8 +160,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 </Suspense>
               }
             >
-              <div id="main" className="min-h-screen">
-                {children}
+              <div className="relative isolate">
+                <SiteBackgroundDecor />
+                <div id="main" className="relative z-[1] min-h-screen">
+                  {children}
+                </div>
               </div>
             </ConditionalChrome>
           </AnalyticsLoader>
