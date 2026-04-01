@@ -73,9 +73,9 @@ export function PromotionForm({ events, vendors, initialData }: PromotionFormPro
 
   useEffect(() => {
     if (targetType === "event") {
-      setValue("vendorProfileId", "", { shouldDirty: true, shouldValidate: true });
+      setValue("vendorProfileId", "", { shouldDirty: true, shouldValidate: false });
     } else {
-      setValue("eventId", "", { shouldDirty: true, shouldValidate: true });
+      setValue("eventId", "", { shouldDirty: true, shouldValidate: false });
     }
   }, [targetType, setValue]);
 

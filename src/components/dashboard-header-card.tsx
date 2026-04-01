@@ -1,5 +1,9 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import {
+  imageUploadAvatarReadOnlyFallbackClassName,
+  imageUploadAvatarReadOnlyImageClassName,
+} from "@/components/image-upload/constants";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { BadgeIcon } from "@/components/badge-icon";
@@ -53,13 +57,13 @@ export function DashboardHeaderCard({
             <Image
               src={user.image}
               alt=""
-              width={64}
-              height={64}
-              className="h-16 w-16 rounded-full object-cover"
+              width={128}
+              height={128}
+              className={imageUploadAvatarReadOnlyImageClassName}
               unoptimized={user.image.startsWith("/uploads/")}
             />
           ) : (
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xl font-bold text-primary">
+            <div className={imageUploadAvatarReadOnlyFallbackClassName}>
               {fallbackLetter}
             </div>
           )}

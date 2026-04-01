@@ -12,7 +12,6 @@ import { PhoneInput } from "@/components/phone-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
-import { ImageFocalSliders } from "@/components/image-focal-sliders";
 import type { NeighborhoodOption } from "@/lib/neighborhoods-config";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -106,10 +105,6 @@ export function OrganizerMarketForm({
         label="Market image"
         aspectRatio="banner"
       />
-      {watchImageUrl?.trim() ? (
-        <ImageFocalSliders register={register} idPrefix="organizer-market" />
-      ) : null}
-
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="websiteUrl">Website URL</Label>

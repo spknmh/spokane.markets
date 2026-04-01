@@ -167,6 +167,18 @@
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
   }
+  /**
+   * Softer than full muted-foreground; blends toward background so placeholders read
+   * clearly as hints. Uses theme vars — works in .dark, admin, and palette data-themes.
+   */
+  input::placeholder,
+  textarea::placeholder {
+    color: color-mix(
+      in srgb,
+      var(--color-muted-foreground) 55%,
+      var(--color-background) 45%
+    );
+  }
   .dark {
     color-scheme: dark;
   }

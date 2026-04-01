@@ -17,7 +17,6 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { PhoneInput } from "@/components/phone-input";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
-import { ImageFocalSliders } from "@/components/image-focal-sliders";
 import { trackEvent } from "@/lib/analytics";
 import { OrganizerOnboardingFieldsGroup } from "@/components/organizer-onboarding-fields";
 import { organizerOnboardingReadinessHints } from "@/lib/validations/organizer-onboarding";
@@ -147,10 +146,6 @@ export function OrganizerMarketCreateForm({
         label="Market image"
         aspectRatio="banner"
       />
-      {watchImageUrl?.trim() ? (
-        <ImageFocalSliders register={register} idPrefix="organizer-market-new" />
-      ) : null}
-
       <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
         <div>
           <p className="text-sm font-medium">Website &amp; social</p>

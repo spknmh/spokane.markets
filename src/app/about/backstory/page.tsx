@@ -27,12 +27,8 @@ export default function BackstoryPage() {
       </p>
 
       <div className="mt-12 flex flex-col gap-10 sm:flex-row sm:items-start sm:gap-12">
-        {/* Photo - add /public/founder.jpg to show your photo */}
         <div className="shrink-0">
           <FounderPhoto />
-          <p className="mt-2 text-center text-sm text-muted-foreground">
-            Add <code className="rounded bg-muted px-1">/public/founder.jpg</code> for your photo
-          </p>
         </div>
 
         <div className="min-w-0 flex-1 space-y-6">

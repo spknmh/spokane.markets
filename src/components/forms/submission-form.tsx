@@ -343,7 +343,7 @@ export function SubmissionForm({
             <Input
               id="venueName"
               type="text"
-              placeholder="Perry Street Market"
+              placeholder="e.g., Riverside Park Pavilion, Spokane County Fair & Expo Center"
               {...register("venueName")}
             />
             {errors.venueName && (

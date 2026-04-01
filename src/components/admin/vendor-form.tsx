@@ -8,6 +8,7 @@ import {
   adminVendorProfileSchema,
   type AdminVendorProfileInput,
 } from "@/lib/validations";
+import { parseGalleryUrlsFromMultilineText } from "@/lib/gallery-urls";
 import { slugify } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,6 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
-import { ImageFocalSliders } from "@/components/image-focal-sliders";
 import {
   UserSearchSelect,
   type UserOption,
@@ -102,10 +102,7 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
 
     const payload: Record<string, unknown> = { ...data };
     const text = (payload.galleryUrlsText as string) ?? "";
-    payload.galleryUrls = text
-      .split("\n")
-      .map((s) => s.trim())
-      .filter((s) => s.startsWith("http"));
+    payload.galleryUrls = parseGalleryUrlsFromMultilineText(text);
     delete payload.galleryUrlsText;
 
     const url = isEditing
@@ -248,9 +245,6 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
             label="Profile image"
             aspectRatio="square"
           />
-          {imageUrl?.trim() ? (
-            <ImageFocalSliders register={register} idPrefix="admin-vendor" />
-          ) : null}
           {errors.imageUrl && (
             <p className="text-sm text-destructive">{errors.imageUrl.message}</p>
           )}
@@ -266,15 +260,6 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
               aspectRatio="banner"
             />
           </div>
-          {heroImageUrl?.trim() ? (
-            <ImageFocalSliders
-              register={register}
-              idPrefix="admin-vendor-hero"
-              xField="heroImageFocalX"
-              yField="heroImageFocalY"
-            />
-          ) : null}
-
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="primaryCategory">Primary category</Label>
@@ -341,10 +326,13 @@ export function AdminVendorForm({ initialData }: AdminVendorFormProps) {
             <Label htmlFor="galleryUrlsText">Gallery Images</Label>
             <Textarea
               id="galleryUrlsText"
-              placeholder="One image URL per line"
+              placeholder="One image URL per line (/uploads/... or https://...)"
               rows={3}
               {...register("galleryUrlsText")}
             />
+            <p className="text-xs text-muted-foreground">
+              Site uploads use paths starting with /uploads/ — these are preserved when you save.
+            </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">

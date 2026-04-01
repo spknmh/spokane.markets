@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { trackApiError, trackEvent } from "@/lib/analytics";
 import {
   useForm,
@@ -163,8 +162,6 @@ export function OrganizerEventForm({
   const useInlineAddress = !watchVenueId;
   const watchImageUrl = watch("imageUrl");
   const watchShowImageInList = watch("showImageInList") ?? false;
-  const watchImageFocalX = watch("imageFocalX") ?? 50;
-  const watchImageFocalY = watch("imageFocalY") ?? 50;
   const watchTagIds = watch("tagIds") ?? [];
   const watchFeatureIds = watch("featureIds") ?? [];
   const formValues = watch();
@@ -493,65 +490,6 @@ export function OrganizerEventForm({
         label="Event image"
         aspectRatio="banner"
       />
-      {watchImageUrl && (
-        <div className="space-y-3 rounded-lg border border-border p-4">
-          <Label>Event image focal point</Label>
-          <div className="relative h-24 overflow-hidden rounded-md bg-muted">
-            <Image
-              src={watchImageUrl}
-              alt="Event image focal preview"
-              fill
-              className="object-cover"
-              style={{ objectPosition: `${watchImageFocalX}% ${watchImageFocalY}%` }}
-              unoptimized
-            />
-          </div>
-          <div className="grid gap-3">
-            <div className="grid grid-cols-[2rem_1fr_3rem] items-center gap-3">
-              <Label htmlFor="imageFocalX" className="text-xs text-muted-foreground">
-                X
-              </Label>
-              <input
-                id="imageFocalX"
-                type="range"
-                min={0}
-                max={100}
-                step={1}
-                value={watchImageFocalX}
-                onChange={(e) =>
-                  setValue("imageFocalX", Number(e.target.value), {
-                    shouldDirty: true,
-                  })
-                }
-              />
-              <span className="text-right text-xs text-muted-foreground">
-                {Math.round(watchImageFocalX)}%
-              </span>
-            </div>
-            <div className="grid grid-cols-[2rem_1fr_3rem] items-center gap-3">
-              <Label htmlFor="imageFocalY" className="text-xs text-muted-foreground">
-                Y
-              </Label>
-              <input
-                id="imageFocalY"
-                type="range"
-                min={0}
-                max={100}
-                step={1}
-                value={watchImageFocalY}
-                onChange={(e) =>
-                  setValue("imageFocalY", Number(e.target.value), {
-                    shouldDirty: true,
-                  })
-                }
-              />
-              <span className="text-right text-xs text-muted-foreground">
-                {Math.round(watchImageFocalY)}%
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
       <div className="rounded-lg border border-border p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-1">

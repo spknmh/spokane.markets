@@ -10,6 +10,10 @@ import { Label } from "@/components/ui/label";
 import { StarRating } from "@/components/forms/star-rating";
 import Image from "next/image";
 import { ImagePlus, X, Loader2 } from "lucide-react";
+import {
+  imageUploadReviewAddButtonClassName,
+  imageUploadReviewPreviewClassName,
+} from "@/components/image-upload/constants";
 import { cn } from "@/lib/utils";
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
 
@@ -202,14 +206,14 @@ export function ReviewForm({ eventId, marketId, onSuccess }: ReviewFormProps) {
         <Label>Photos</Label>
         <div className="flex flex-wrap gap-2">
           {photos.map((photo, index) => (
-            <div key={index} className="relative h-20 w-20 overflow-hidden rounded-md border">
+            <div key={index} className={imageUploadReviewPreviewClassName}>
               <Image
                 src={photo.previewUrl}
                 alt={`Preview ${index + 1}`}
-                width={80}
-                height={80}
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
                 unoptimized
+                sizes="112px"
               />
               <button
                 type="button"
@@ -223,13 +227,10 @@ export function ReviewForm({ eventId, marketId, onSuccess }: ReviewFormProps) {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className={cn(
-              "flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed",
-              "text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-            )}
+            className={cn(imageUploadReviewAddButtonClassName, "gap-1")}
           >
-            <ImagePlus className="h-5 w-5" />
-            <span className="text-[10px]">Add</span>
+            <ImagePlus className="h-6 w-6" />
+            <span className="text-xs">Add</span>
           </button>
         </div>
         <input

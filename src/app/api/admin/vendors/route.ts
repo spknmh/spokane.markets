@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { adminVendorProfileSchema } from "@/lib/validations";
+import { parseGalleryUrlsFromMultilineText } from "@/lib/gallery-urls";
 import { extractSocialHandle, normalizeUrlToHttps, slugify } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { requireApiAdminPermission } from "@/lib/api-auth";
@@ -65,11 +66,8 @@ export async function POST(request: Request) {
 
   const galleryUrls =
     data.galleryUrls ??
-    (data.galleryUrlsText
-      ? data.galleryUrlsText
-          .split("\n")
-          .map((s) => s.trim())
-          .filter((s) => s.startsWith("http"))
+    (data.galleryUrlsText !== undefined
+      ? parseGalleryUrlsFromMultilineText(data.galleryUrlsText)
       : []);
 
   let userId: string | undefined =

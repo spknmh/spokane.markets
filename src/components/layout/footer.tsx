@@ -134,7 +134,7 @@ export async function Footer() {
                 aria-label="Email address"
                 placeholder="you@example.com"
                 required
-                className="h-10 flex-1 rounded-md border border-primary-foreground/30 bg-primary-foreground/10 px-3 text-sm text-primary-foreground placeholder:text-primary-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary-foreground"
+                className="h-10 flex-1 rounded-md border border-primary-foreground/30 bg-primary-foreground/10 px-3 text-sm text-primary-foreground placeholder:text-primary-foreground/45 focus:outline-none focus:ring-2 focus:ring-primary-foreground"
               />
               <Button type="submit" size="default" variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
                 Subscribe

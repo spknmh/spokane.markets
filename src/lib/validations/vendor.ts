@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { GALLERY_URL_MAX, isAllowedGalleryImageUrl } from "@/lib/gallery-urls";
 import {
   imageUrlSchema,
   flexibleUrlSchema,
@@ -39,11 +40,11 @@ export const vendorProfileSchema = z.object({
       z
         .string()
         .refine(
-          (v) => v.startsWith("/uploads/") || /^https?:\/\//.test(v),
+          (v) => isAllowedGalleryImageUrl(v),
           "Gallery images must be upload paths or http(s) URLs"
         )
     )
-    .max(6, "Gallery supports up to 6 images")
+    .max(GALLERY_URL_MAX, "Gallery supports up to 6 images")
     .optional(),
   /** Form-only: textarea value, one URL per line; parsed to galleryUrls on submit */
   galleryUrlsText: z.string().optional(),

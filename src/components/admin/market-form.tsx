@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { UserSearchInput } from "@/components/admin/user-search-input";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
-import { ImageFocalSliders } from "@/components/image-focal-sliders";
 import type { NeighborhoodOption } from "@/lib/neighborhoods-config";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -168,10 +167,6 @@ export function MarketForm({
         label="Market image"
         aspectRatio="banner"
       />
-      {watchImageUrl?.trim() ? (
-        <ImageFocalSliders register={register} idPrefix="admin-market" />
-      ) : null}
-
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="websiteUrl">Website URL</Label>

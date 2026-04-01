@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { submissionSchema, submissionSchemaAuthed } from "./content";
+import {
+  promotionSchema,
+  submissionSchema,
+  submissionSchemaAuthed,
+} from "./content";
 
 describe("submissionSchema", () => {
   const base = {
@@ -27,6 +31,54 @@ describe("submissionSchema", () => {
 
   it("accepts valid venue address fields", () => {
     const parsed = submissionSchema.safeParse(base);
+    expect(parsed.success).toBe(true);
+  });
+});
+
+describe("promotionSchema", () => {
+  const base = {
+    type: "FEATURED" as const,
+    sponsorName: null as string | null,
+    imageUrl: "",
+    linkUrl: "",
+    startDate: "2026-06-01",
+    endDate: "2026-06-30",
+    sortOrder: 0,
+  };
+
+  it("rejects when neither event nor vendor is set", () => {
+    const parsed = promotionSchema.safeParse({
+      ...base,
+      eventId: "",
+      vendorProfileId: "",
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("rejects when both event and vendor are set", () => {
+    const parsed = promotionSchema.safeParse({
+      ...base,
+      eventId: "evt_1",
+      vendorProfileId: "vnd_1",
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("accepts event-only target", () => {
+    const parsed = promotionSchema.safeParse({
+      ...base,
+      eventId: "evt_1",
+      vendorProfileId: "",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("accepts vendor-only target", () => {
+    const parsed = promotionSchema.safeParse({
+      ...base,
+      eventId: "",
+      vendorProfileId: "vnd_1",
+    });
     expect(parsed.success).toBe(true);
   });
 });
