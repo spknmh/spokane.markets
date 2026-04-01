@@ -25,7 +25,8 @@ export default async function AccountSecurityPage() {
     <div className="mx-auto max-w-2xl space-y-8">
       <h1 className="text-3xl font-bold tracking-tight">Security</h1>
       <p className="text-muted-foreground">
-        Manage two-factor authentication and sessions.
+        See where you&apos;re signed in and manage sessions. Two-factor authentication is optional and
+        not required yet.
       </p>
 
       <Card>
@@ -82,8 +83,9 @@ export default async function AccountSecurityPage() {
 
       <p className="text-sm text-muted-foreground">
         <Link href="/account/settings" className="text-primary hover:underline">
-          Change password
-        </Link>
+          Account &amp; data
+        </Link>{" "}
+        — change password, export, or delete your account.
       </p>
     </div>
   );

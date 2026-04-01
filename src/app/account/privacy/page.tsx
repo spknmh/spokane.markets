@@ -27,8 +27,25 @@ export default async function AccountPrivacyPage() {
     <div className="mx-auto max-w-2xl space-y-8">
       <h1 className="text-3xl font-bold tracking-tight">Privacy</h1>
       <p className="text-muted-foreground">
-        Control your profile visibility and data preferences.
+        Control what others see on your vendor profile and how we reach you. Organizer and market
+        contact details are edited on each listing, not here.
       </p>
+
+      <div className="rounded-lg border border-border bg-muted/30 p-4">
+        <h2 className="text-base font-semibold">Account</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Your sign-in email and password are never shown on your public profile. Control emails and
+          in-app alerts under{" "}
+          <Link href="/account/notifications" className="font-medium text-primary hover:underline">
+            Notification settings
+          </Link>
+          . Download or delete your data from{" "}
+          <Link href="/account/settings" className="font-medium text-primary hover:underline">
+            Account &amp; data
+          </Link>
+          .
+        </p>
+      </div>
 
       {vendorProfile ? (
         <div className="space-y-6">
@@ -42,20 +59,17 @@ export default async function AccountPrivacyPage() {
           />
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          You don&apos;t have a vendor profile. Privacy settings are available when you{" "}
-          <Link href="/vendor/profile/edit" className="text-primary hover:underline">
-            create a vendor profile
-          </Link>
-          .
-        </p>
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold">Vendor profile visibility</h2>
+          <p className="text-sm text-muted-foreground">
+            You don&apos;t have a vendor profile yet. When you{" "}
+            <Link href="/vendor/profile/edit" className="font-medium text-primary hover:underline">
+              create one
+            </Link>
+            , you can choose whether contact info and social links appear on your public page.
+          </p>
+        </div>
       )}
-
-      <p className="text-sm text-muted-foreground">
-        <Link href="/account/notifications" className="text-primary hover:underline">
-          Manage notification preferences
-        </Link>
-      </p>
     </div>
   );
 }

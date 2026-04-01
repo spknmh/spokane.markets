@@ -20,6 +20,13 @@ import {
   Store,
   PlusCircle,
   MapPin,
+  Bookmark,
+  Settings,
+  Award,
+  Inbox,
+  SlidersHorizontal,
+  Lock,
+  FileText,
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -33,6 +40,13 @@ const ICON_MAP = {
   Store,
   PlusCircle,
   MapPin,
+  Bookmark,
+  Settings,
+  Award,
+  Inbox,
+  SlidersHorizontal,
+  Lock,
+  FileText,
 } as const;
 
 export type DashboardSidebarProps = {
@@ -86,6 +100,7 @@ export function DashboardSidebar({
   const isActive = (href: string) => {
     const base = href.split("?")[0].split("#")[0];
     if (base === "/dashboard") return pathname === "/dashboard";
+    if (base === "/dashboard/badges") return pathname === "/dashboard/badges";
     if (base.startsWith("/account")) return pathname.startsWith(base);
     return pathname.startsWith(base);
   };
@@ -135,9 +150,9 @@ export function DashboardSidebar({
       >
         <div className="border-b border-border p-6">
           <Link href="/dashboard" className="text-lg font-bold tracking-tight">
-            {SITE_NAME}
+            {title}
           </Link>
-          <p className="mt-1 text-xs text-muted-foreground">{subtitle ?? title}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{subtitle ?? SITE_NAME}</p>
         </div>
 
         <nav className="flex-1 space-y-3 overflow-y-auto p-4">

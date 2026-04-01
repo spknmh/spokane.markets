@@ -8,7 +8,14 @@ export type DashboardNavIcon =
   | "Link2"
   | "ExternalLink"
   | "PlusCircle"
-  | "MapPin";
+  | "MapPin"
+  | "Bookmark"
+  | "Settings"
+  | "Award"
+  | "Inbox"
+  | "SlidersHorizontal"
+  | "Lock"
+  | "FileText";
 
 export type DashboardNavItem = {
   label: string;
@@ -28,20 +35,48 @@ export function buildDashboardNavSections({
   hasVendorProfile,
   hasOrganizerAccess,
   vendorSlug,
+  hasApplications = false,
 }: {
   isAdmin: boolean;
   hasVendorProfile: boolean;
   hasOrganizerAccess: boolean;
   vendorSlug: string | null;
+  hasApplications?: boolean;
 }): DashboardNavSection[] {
+  const accountItems: DashboardNavSection["items"] = [
+    { label: "Overview", href: "/dashboard", icon: "LayoutDashboard" },
+    { label: "Saved", href: "/account/saved", icon: "Bookmark" },
+    { label: "Activity", href: "/notifications", icon: "Inbox" },
+    { label: "Badges", href: "/dashboard/badges", icon: "Award" },
+  ];
+
+  if (hasApplications) {
+    accountItems.splice(2, 0, {
+      label: "Applications",
+      href: "/account/applications",
+      icon: "FileText",
+    });
+  }
+
   const sections: DashboardNavSection[] = [
     {
       id: "account",
       label: "Account",
+      items: accountItems,
+      defaultOpen: true,
+    },
+    {
+      id: "settings",
+      label: "Settings",
       items: [
-        { label: "Overview", href: "/dashboard", icon: "LayoutDashboard" },
-        { label: "Favorite Vendors", href: "/dashboard#favorites", icon: "Heart" },
-        { label: "Notifications", href: "/notifications", icon: "Bell" },
+        { label: "Account & data", href: "/account/settings", icon: "Settings" },
+        {
+          label: "Notification settings",
+          href: "/account/notifications",
+          icon: "SlidersHorizontal",
+        },
+        { label: "Privacy", href: "/account/privacy", icon: "Shield" },
+        { label: "Security", href: "/account/security", icon: "Lock" },
       ],
       defaultOpen: true,
     },

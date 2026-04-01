@@ -45,7 +45,7 @@ export function DashboardHeaderCard({
   const fallbackLetter = displayName.charAt(0).toUpperCase();
 
   return (
-    <Card className="border-2">
+    <Card id="profile" className="scroll-mt-8 border-2">
       <CardContent className="space-y-4 p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
         <div className="flex shrink-0 items-center gap-4">

@@ -4,14 +4,13 @@ import { redirect } from "next/navigation";
 import { requireAuth } from "@/lib/auth-utils";
 import { SITE_NAME } from "@/lib/constants";
 import { db } from "@/lib/db";
-import { ProfileForm } from "@/components/profile-form";
 import { AccountSettingsClient } from "./account-settings-client";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: `Account Settings — ${SITE_NAME}`,
-  description: "Manage your account settings.",
+  title: `Account & data — ${SITE_NAME}`,
+  description: "Password, export, and account deletion.",
 };
 
 export default async function AccountSettingsPage() {
@@ -20,10 +19,6 @@ export default async function AccountSettingsPage() {
   const user = await db.user.findUnique({
     where: { id: session.user.id },
     select: {
-      name: true,
-      email: true,
-      image: true,
-      role: true,
       hashedPassword: true,
     },
   });
@@ -40,25 +35,15 @@ export default async function AccountSettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
-      <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
+      <h1 className="text-3xl font-bold tracking-tight">Account &amp; data</h1>
       <p className="text-muted-foreground">
-        Manage your email, password, and account preferences.
+        Password, email preferences, export, and account deletion. Update your display name and photo
+        from{" "}
+        <Link href="/dashboard#profile" className="font-medium text-primary hover:underline">
+          Account overview
+        </Link>
+        .
       </p>
-
-      <section>
-        <h2 className="text-xl font-semibold">Profile</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Your display name and email. Email change requires verification (coming soon).
-        </p>
-        <div className="mt-4">
-          <ProfileForm
-            initialName={user.name}
-            email={user.email}
-            image={user.image}
-            role={user.role}
-          />
-        </div>
-      </section>
 
       <section>
         <h2 className="text-xl font-semibold">Password</h2>
@@ -124,7 +109,7 @@ export default async function AccountSettingsPage() {
 
       <p className="text-sm text-muted-foreground">
         <Link href="/account/notifications" className="text-primary hover:underline">
-          Manage notification preferences
+          Notification settings
         </Link>
       </p>
     </div>

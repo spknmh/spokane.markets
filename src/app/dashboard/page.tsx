@@ -12,7 +12,16 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { Heart, Shield, KeyRound } from "lucide-react";
+import {
+  Heart,
+  Shield,
+  KeyRound,
+  Calendar,
+  Filter,
+  Bookmark,
+  Store,
+  MapPin,
+} from "lucide-react";
 import { ProfileForm } from "@/components/profile-form";
 import { DashboardHeaderCard } from "@/components/dashboard-header-card";
 import { evaluateAndGrantBadges } from "@/lib/badges";
@@ -20,6 +29,7 @@ import { SITE_NAME } from "@/lib/constants";
 import { PendingVerificationModal } from "@/components/pending-verification-modal";
 import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
 import { organizerAnyMarketWhere } from "@/lib/market-membership";
+import { getAccountSummary } from "@/lib/account-summary";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +81,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   });
   if (!user) redirect("/auth/signin");
 
-  const [favoriteVendors, organizerOwnedMarketsCount, organizerSubmittedEventsCount] =
+  const [favoriteVendors, organizerOwnedMarketsCount, organizerSubmittedEventsCount, summary] =
     await Promise.all([
       db.favoriteVendor.findMany({
       where: { userId: session.user.id! },
@@ -85,6 +95,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     db.event.count({
       where: { submittedById: session.user.id! },
     }),
+    getAccountSummary(session.user.id!, user.role),
   ]);
   const hasOrganizerOwnershipOrMembership =
     organizerOwnedMarketsCount > 0 || organizerSubmittedEventsCount > 0;
@@ -114,7 +125,12 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">My Account</h1>
         <p className="text-sm text-muted-foreground">
-          Manage your profile, security, and saved vendors.
+          Overview of your saved items and roles. Edit profile above; password, export, and deletion
+          live in{" "}
+          <Link href="/account/settings" className="font-medium text-primary hover:underline">
+            Account &amp; data
+          </Link>
+          .
         </p>
       </div>
 
@@ -169,6 +185,90 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </CardContent>
         </Card>
       )}
+
+      <section aria-label="Account summary">
+        <h2 className="sr-only">At a glance</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            href="/account/saved?tab=rsvps"
+            className="flex min-h-[88px] flex-col justify-center rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted"
+          >
+            <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Calendar className="h-4 w-4 shrink-0" />
+              Upcoming RSVPs
+            </span>
+            <span className="mt-1 text-2xl font-semibold tabular-nums">
+              {summary.consumer.upcomingRsvpsCount}
+            </span>
+          </Link>
+          <Link
+            href="/account/saved?tab=filters"
+            className="flex min-h-[88px] flex-col justify-center rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted"
+          >
+            <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Filter className="h-4 w-4 shrink-0" />
+              Saved filters
+            </span>
+            <span className="mt-1 text-2xl font-semibold tabular-nums">
+              {summary.consumer.savedFiltersCount}
+            </span>
+          </Link>
+          <Link
+            href="/account/saved?tab=favorites"
+            className="flex min-h-[88px] flex-col justify-center rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted"
+          >
+            <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Bookmark className="h-4 w-4 shrink-0" />
+              Favorite vendors
+            </span>
+            <span className="mt-1 text-2xl font-semibold tabular-nums">
+              {summary.consumer.favoriteVendorsCount}
+            </span>
+          </Link>
+          {summary.vendor && user.vendorProfile && (
+            <Link
+              href="/vendor/dashboard"
+              className="flex min-h-[88px] flex-col justify-center rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted sm:col-span-2 lg:col-span-1"
+            >
+              <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Store className="h-4 w-4 shrink-0" />
+                Vendor profile
+              </span>
+              <span className="mt-1 text-sm text-foreground">
+                {summary.vendor.profileComplete
+                  ? `${summary.vendor.profileCompletionPercent}% complete`
+                  : "Finish your profile"}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {summary.vendor.upcomingEventsCount} upcoming event
+                {summary.vendor.upcomingEventsCount === 1 ? "" : "s"} linked
+              </span>
+            </Link>
+          )}
+          {summary.organizer && (
+            <Link
+              href="/organizer/dashboard"
+              className="flex min-h-[88px] flex-col justify-center rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted sm:col-span-2 lg:col-span-3"
+            >
+              <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <MapPin className="h-4 w-4 shrink-0" />
+                Organizer
+              </span>
+              <span className="mt-1 text-sm text-foreground">
+                {summary.organizer.marketsCount} market
+                {summary.organizer.marketsCount === 1 ? "" : "s"} · {summary.organizer.eventsCount}{" "}
+                event
+                {summary.organizer.eventsCount === 1 ? "" : "s"}
+                {summary.organizer.pendingReviewsCount > 0
+                  ? ` · ${summary.organizer.pendingReviewsCount} review${
+                      summary.organizer.pendingReviewsCount === 1 ? "" : "s"
+                    } to moderate`
+                  : ""}
+              </span>
+            </Link>
+          )}
+        </div>
+      </section>
 
       <div className="flex flex-col gap-6 sm:gap-8">
         {/* Favorite Vendors */}
@@ -231,7 +331,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             )}
             {favoriteVendors.length > 0 && (
               <Link
-                href="/settings/favorites"
+                href="/account/saved?tab=favorites"
                 className="mt-3 inline-block text-sm text-primary hover:underline"
               >
                 Manage all favorites →

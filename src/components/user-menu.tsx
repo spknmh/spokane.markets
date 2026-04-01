@@ -3,7 +3,18 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, LayoutDashboard, Store, Shield, LogOut, Bell, Home } from "lucide-react";
+import {
+  ChevronDown,
+  LayoutDashboard,
+  Store,
+  Shield,
+  LogOut,
+  Bell,
+  Home,
+  Bookmark,
+  Settings,
+  SlidersHorizontal,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -36,6 +47,8 @@ export function UserMenu({ session }: UserMenuProps) {
   const isAdmin = role === "ADMIN";
   const isVendor = role === "VENDOR" || role === "ORGANIZER";
   const isOrganizer = role === "ORGANIZER";
+  const showRoleBadge =
+    role === "VENDOR" || role === "ORGANIZER" || role === "ADMIN";
 
   return (
     <div className="relative" ref={menuRef}>
@@ -48,7 +61,7 @@ export function UserMenu({ session }: UserMenuProps) {
         <span className="max-w-[120px] truncate">
           {session.user?.name ?? session.user?.email}
         </span>
-        {role && (
+        {showRoleBadge && (
           <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-medium">
             {role}
           </span>
@@ -66,6 +79,27 @@ export function UserMenu({ session }: UserMenuProps) {
           >
             <Home className="h-4 w-4" />
             My Account
+          </Link>
+          <Link
+            href="/account/saved"
+            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
+          >
+            <Bookmark className="h-4 w-4" />
+            Saved
+          </Link>
+          <Link
+            href="/account/settings"
+            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </Link>
+          <Link
+            href="/account/notifications"
+            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Notification settings
           </Link>
           {isAdmin && (
             <Link
@@ -99,7 +133,7 @@ export function UserMenu({ session }: UserMenuProps) {
             className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
           >
             <Bell className="h-4 w-4" />
-            Notifications
+            Activity
           </Link>
           <button
             type="button"
