@@ -168,6 +168,7 @@ UPDATE "user" SET "role" = 'ADMIN' WHERE "email" = 'you@example.com';
 4. `typicalSchedule` — e.g. "Saturdays, May–October".
 5. `baseArea` — neighborhood for filtering (downtown, south-hill, etc.).
 6. Markets can be **verified** and managed through organizer memberships. The market profile shows its venue (address, directions).
+7. **Product reference** (intake gates, shopper vs vendor surfaces, compliance review): [`docs/product/organizer-onboarding-spec.md`](product/organizer-onboarding-spec.md).
 
 ### Creating a venue
 
@@ -193,7 +194,7 @@ UPDATE "user" SET "role" = 'ADMIN' WHERE "email" = 'you@example.com';
 ### Submissions & verification
 
 - **Submissions** (Admin → Submissions): Public event submissions. Approve to create an event (or reject with notes).
-- **Applications** (Admin → Applications): Vendor verification requests are reviewed here (approve/reject).
+- **Applications** (Admin → Applications): Vendor verification requests are reviewed here (approve/reject). Full criteria, API paths, and permission split (`admin.moderation.manage` vs direct verify via `admin.listings.manage`) are documented in [`docs/audits/vendor-verification.md`](audits/vendor-verification.md). For **product options** when vendors lack websites or social (older vendors, low digital literacy), see [`docs/product/vendor-verification-trust-and-inclusion.md`](product/vendor-verification-trust-and-inclusion.md).
 - **Markets** (Admin → Markets): Organizer-created markets enter moderation in `PENDING` verification status.
 
 ### Moderation queues

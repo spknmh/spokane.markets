@@ -1,3 +1,6 @@
+/**
+ * Eligibility rules and operator-facing workflow: `docs/audits/vendor-verification.md`.
+ */
 import type { User, VendorProfile } from "@prisma/client";
 import { computeVendorProfileCompletion } from "@/lib/vendor-profile";
 
