@@ -15,7 +15,12 @@ export default async function AdminSubmissionReviewPage({
   const { id } = await params;
 
   const [submission, markets, tags, features] = await Promise.all([
-    db.submission.findUnique({ where: { id } }),
+    db.submission.findUnique({
+      where: { id },
+      include: {
+        createdEvent: { select: { id: true, slug: true } },
+      },
+    }),
     db.market.findMany({ select: { id: true, name: true } }),
     db.tag.findMany({ select: { id: true, name: true } }),
     db.feature.findMany({ select: { id: true, name: true } }),
@@ -57,11 +62,13 @@ export default async function AdminSubmissionReviewPage({
     websiteUrl: submission.websiteUrl,
     status: submission.status,
     createdAt: submission.createdAt.toISOString(),
+    createdEventId: submission.createdEventId,
+    createdEventSlug: submission.createdEvent?.slug ?? null,
+    reviewNotes: submission.reviewNotes,
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Submission review</h1>
       <AdminSubmissionReview submission={payload} />
     </div>
   );

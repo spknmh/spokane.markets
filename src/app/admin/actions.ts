@@ -311,7 +311,8 @@ export async function setVendorVerificationStatus(
 
 export async function updateSubmissionStatus(
   id: string,
-  status: "APPROVED" | "REJECTED"
+  status: "APPROVED" | "REJECTED",
+  options?: { reviewNotes?: string | null }
 ) {
   const session = await requireAdminAction("admin.moderation.manage");
   if (status === "APPROVED") {
@@ -327,9 +328,18 @@ export async function updateSubmissionStatus(
     select: { submitterEmail: true, status: true },
   });
   if (!submission) return;
+
+  const trimmedNotes = options?.reviewNotes?.trim() ?? "";
+  const reviewNotes =
+    options && "reviewNotes" in options ? (trimmedNotes === "" ? null : trimmedNotes) : undefined;
+
   await db.submission.update({
     where: { id },
-    data: { status, reviewerId: session.user.id },
+    data: {
+      status,
+      reviewerId: session.user.id,
+      ...(reviewNotes !== undefined ? { reviewNotes } : {}),
+    },
   });
   const user = await db.user.findUnique({
     where: { email: submission.submitterEmail },
@@ -347,7 +357,7 @@ export async function updateSubmissionStatus(
   }
   await logAudit(session.user.id, "UPDATE_SUBMISSION_STATUS", "SUBMISSION", id, {
     previousValue: { status: submission.status },
-    newValue: { status },
+    newValue: { status, ...(reviewNotes !== undefined ? { reviewNotes } : {}) },
   });
   revalidatePath("/admin/submissions");
   revalidatePath(`/admin/submissions/${id}`);
