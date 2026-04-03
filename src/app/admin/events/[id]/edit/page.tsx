@@ -4,6 +4,7 @@ import type { EventInput } from "@/lib/validations";
 import { EventForm } from "@/components/admin/event-form";
 import { notFound } from "next/navigation";
 import { formatDateOnlyUTC, formatForDateTimeLocal } from "@/lib/utils";
+import { adminListingEvidenceEnabled } from "@/lib/feature-flags";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,14 @@ export default async function EditEventPage({
   const [event, venues, markets, tags, features] = await Promise.all([
     db.event.findUnique({
       where: { id },
-      include: { tags: true, features: true, scheduleDays: { orderBy: { date: "asc" } } },
+      include: {
+        tags: true,
+        features: true,
+        scheduleDays: { orderBy: { date: "asc" } },
+        venue: true,
+        submittedBy: { select: { name: true, email: true } },
+        photos: { orderBy: { createdAt: "desc" }, take: 24 },
+      },
     }),
     db.venue.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
     db.market.findMany({ select: { id: true, name: true, venueId: true }, orderBy: { name: "asc" } }),
@@ -33,9 +41,9 @@ export default async function EditEventPage({
     event.scheduleDays?.length
       ? event.scheduleDays.map((d) => ({
           date: formatDateOnlyUTC(d.date),
-          allDay: d.allDay,
-          startTime: d.allDay ? undefined : d.startTime,
-          endTime: d.allDay ? undefined : d.endTime,
+          allDay: false,
+          startTime: d.allDay ? "00:00" : d.startTime,
+          endTime: d.allDay ? "23:59" : d.endTime,
         }))
       : undefined;
 
@@ -71,7 +79,26 @@ export default async function EditEventPage({
     publicIntentListEnabled: event.publicIntentListEnabled ?? undefined,
     publicIntentNamesEnabled: event.publicIntentNamesEnabled ?? undefined,
     publicRosterEnabled: event.publicRosterEnabled ?? undefined,
+    complianceNotes: event.complianceNotes ?? "",
   } as EventInput & { id: string; scheduleDays?: typeof scheduleDays };
+
+  const reviewContext = {
+    eventId: event.id,
+    eventSlug: event.slug,
+    moderationNotesApiEnabled: adminListingEvidenceEnabled(),
+    venue: event.venue
+      ? {
+          name: event.venue.name,
+          address: event.venue.address,
+          city: event.venue.city,
+          state: event.venue.state,
+          zip: event.venue.zip,
+        }
+      : null,
+    submittedBy: event.submittedBy,
+    organizerDisplayName: event.organizerDisplayName ?? null,
+    photos: event.photos.map((p) => ({ id: p.id, url: p.url, alt: p.alt })),
+  };
 
   return (
     <div className="space-y-6">
@@ -82,6 +109,7 @@ export default async function EditEventPage({
         tags={tags}
         features={features}
         initialData={initialData}
+        reviewContext={reviewContext}
       />
     </div>
   );

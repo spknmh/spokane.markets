@@ -44,19 +44,6 @@ function absUrl(baseUrl: string, url: string | null | undefined) {
   return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
-function appearanceKindLabel(kind: "official_roster" | "vendor_linked" | "intent"): string | null {
-  switch (kind) {
-    case "official_roster":
-      return "Official vendor list";
-    case "vendor_linked":
-      return "Listed by vendor";
-    case "intent":
-      return "Interest / application";
-    default:
-      return null;
-  }
-}
-
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -274,17 +261,9 @@ export default async function VendorProfilePage({ params }: PageProps) {
               </Card>
             ) : (
               <div className="mt-4 space-y-4">
-                {upcoming.map((row) => {
-                  const label = appearanceKindLabel(row.kind);
-                  return (
-                    <div key={row.event.id}>
-                      {label && (
-                        <p className="mb-1 text-xs font-medium text-muted-foreground">{label}</p>
-                      )}
-                      <EventCard event={row.event} />
-                    </div>
-                  );
-                })}
+                {upcoming.map((row) => (
+                  <EventCard key={row.event.id} event={row.event} />
+                ))}
               </div>
             )}
           </section>
@@ -296,17 +275,9 @@ export default async function VendorProfilePage({ params }: PageProps) {
                 Past appearances on Spokane Markets (from listings and your activity).
               </p>
               <div className="mt-4 space-y-4">
-                {past.map((row) => {
-                  const label = appearanceKindLabel(row.kind);
-                  return (
-                    <div key={row.event.id}>
-                      {label && (
-                        <p className="mb-1 text-xs font-medium text-muted-foreground">{label}</p>
-                      )}
-                      <EventCard event={row.event} />
-                    </div>
-                  );
-                })}
+                {past.map((row) => (
+                  <EventCard key={row.event.id} event={row.event} />
+                ))}
               </div>
             </section>
           )}

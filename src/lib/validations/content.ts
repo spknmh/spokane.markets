@@ -1,16 +1,14 @@
 import { z } from "zod";
 import { imageUrlSchema, neighborhoodSlugSchema } from "./common";
+import { eventScheduleDaySchema } from "./event";
 
 const submissionSchemaBase = z.object({
   submitterName: z.string().min(1, "Name is required"),
   submitterEmail: z.string().email("Valid email is required"),
   eventTitle: z.string().min(1, "Event title is required"),
   eventDescription: z.string().optional(),
-  eventDate: z.string().min(1, "Event date is required"),
-  eventTime: z.string().optional(),
-  endDate: z.string().optional(),
-  endTime: z.string().optional(),
-  allDay: z.boolean().default(false),
+  /** One or more days (same model as admin event form). */
+  scheduleDays: z.array(eventScheduleDaySchema).min(1, "Add at least one day"),
   timezone: z.string().optional().or(z.literal("")),
   imageUrl: imageUrlSchema.optional().or(z.literal("")),
   venueName: z.string().min(1, "Venue name is required"),
@@ -32,25 +30,13 @@ const submissionSchemaBase = z.object({
   company: z.string().max(0).optional(),
 });
 
-const submissionTimeRefine = (
-  data: { allDay?: boolean; eventTime?: string } &
-    Record<string, unknown>
-) =>
-  data.allDay === true ||
-  (typeof data.eventTime === "string" && data.eventTime.trim().length > 0);
-
-export const submissionSchema = submissionSchemaBase.refine(
-  submissionTimeRefine,
-  { message: "Event time is required when not all day", path: ["eventTime"] }
-);
+export const submissionSchema = submissionSchemaBase;
 
 /** Schema for authenticated submissions (submitter from session) */
-export const submissionSchemaAuthed = submissionSchemaBase
-  .omit({ submitterName: true, submitterEmail: true })
-  .refine(
-    submissionTimeRefine,
-    { message: "Event time is required when not all day", path: ["eventTime"] }
-  );
+export const submissionSchemaAuthed = submissionSchemaBase.omit({
+  submitterName: true,
+  submitterEmail: true,
+});
 
 export type SubmissionInput = z.infer<typeof submissionSchema>;
 export type SubmissionInputAuthed = z.infer<typeof submissionSchemaAuthed>;

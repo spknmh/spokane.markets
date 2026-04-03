@@ -26,6 +26,7 @@ describe("buildEventDataFromSubmission", () => {
       endDate: null,
       endTime: null,
       allDay: false,
+      scheduleDays: null,
       eventDescription: "Desc",
       imageUrl: null,
       websiteUrl: null,
@@ -47,6 +48,38 @@ describe("buildEventDataFromSubmission", () => {
     expect(data.venueCity).toBe("Spokane");
     expect(data.instagramUrl).toBe("https://instagram.com/myevent");
     expect(data.scheduleDays).toBeUndefined();
+  });
+
+  it("uses scheduleDays JSON when present", () => {
+    const sub = {
+      eventTitle: "Multi",
+      eventDate: "2026-07-01",
+      eventTime: "09:00",
+      endDate: "2026-07-02",
+      endTime: "17:00",
+      allDay: false,
+      scheduleDays: [
+        { date: "2026-07-01", allDay: false, startTime: "09:00", endTime: "17:00" },
+        { date: "2026-07-02", allDay: false, startTime: "09:00", endTime: "17:00" },
+      ],
+      eventDescription: null,
+      imageUrl: null,
+      websiteUrl: null,
+      facebookUrl: null,
+      instagramUrl: null,
+      marketId: null,
+      tagIds: [],
+      featureIds: [],
+      venueName: "Hall",
+      venueAddress: "1 St",
+      venueCity: "Spokane",
+      venueState: "WA",
+      venueZip: "99201",
+    } as unknown as Submission;
+
+    const data = buildEventDataFromSubmission(sub, "multi");
+    expect(data.scheduleDays?.length).toBe(2);
+    expect(data.scheduleDays?.[0].date).toBe("2026-07-01");
   });
 });
 

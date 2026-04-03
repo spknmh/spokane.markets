@@ -1,0 +1,63 @@
+import type { EventInput } from "@/lib/validations";
+
+export const DEFAULT_START_TIME = "08:00";
+export const DEFAULT_END_TIME = "14:00";
+
+/** Full calendar-day span in the admin UI maps to DB `allDay: true` for listing display. */
+export function isFullDayTimeRange(startTime?: string, endTime?: string): boolean {
+  return startTime === "00:00" && endTime === "23:59";
+}
+
+export function buildTimeOptions(): { value: string; label: string }[] {
+  const options: { value: string; label: string }[] = [];
+  for (let hour = 0; hour < 24; hour += 1) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+      const labelHour = hour % 12 || 12;
+      const labelMinute = String(minute).padStart(2, "0");
+      const period = hour >= 12 ? "PM" : "AM";
+      options.push({ value, label: `${labelHour}:${labelMinute} ${period}` });
+    }
+  }
+  const pivot = options.findIndex((opt) => opt.value === DEFAULT_START_TIME);
+  if (pivot <= 0) return options;
+  return [...options.slice(pivot), ...options.slice(0, pivot)];
+}
+
+export const TIME_OPTIONS = buildTimeOptions();
+
+export type ScheduleDayInput = {
+  date: string;
+  allDay: boolean;
+  startTime?: string;
+  endTime?: string;
+};
+
+/**
+ * Derives `allDay` for API from explicit times (checkbox removed from admin UI).
+ * Preserves "All day" on cards when the span is midnight–11:59 PM.
+ */
+export function mapScheduleDaysForSubmit(days: ScheduleDayInput[]): ScheduleDayInput[] {
+  return days.map((d) => ({
+    ...d,
+    allDay: isFullDayTimeRange(d.startTime, d.endTime),
+  }));
+}
+
+/** Applies mapped schedule days and syncs legacy `startDate` / `endDate` strings on the payload. */
+export function applyScheduleToEventPayload(data: EventInput): EventInput {
+  const scheduleDays = mapScheduleDaysForSubmit(data.scheduleDays ?? []);
+  if (!scheduleDays.length) {
+    return { ...data, scheduleDays };
+  }
+  const first = scheduleDays[0];
+  const last = scheduleDays[scheduleDays.length - 1];
+  const firstStart = first.allDay ? "00:00" : (first.startTime ?? DEFAULT_START_TIME);
+  const lastEnd = last.allDay ? "23:59" : (last.endTime ?? DEFAULT_END_TIME);
+  return {
+    ...data,
+    scheduleDays,
+    startDate: `${first.date}T${firstStart}:00`,
+    endDate: `${last.date}T${lastEnd}:00`,
+  };
+}

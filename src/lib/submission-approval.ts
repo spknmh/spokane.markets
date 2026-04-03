@@ -3,6 +3,7 @@ import { createNotification } from "@/lib/notifications";
 import { logAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { slugify, parseDateTimeInTimezone } from "@/lib/utils";
+import { mapScheduleDaysForSubmit } from "@/lib/event-schedule-day";
 import { createEvent, type EventData } from "@/lib/shared/event-service";
 import type { Submission } from "@prisma/client";
 
@@ -55,6 +56,52 @@ export function buildEventDataFromSubmission(
   submission: Submission,
   slug: string
 ): EventData {
+  if (submission.scheduleDays != null && Array.isArray(submission.scheduleDays)) {
+    const mapped = mapScheduleDaysForSubmit(
+      submission.scheduleDays as {
+        date: string;
+        allDay: boolean;
+        startTime?: string;
+        endTime?: string;
+      }[]
+    );
+    const first = mapped[0];
+    const last = mapped[mapped.length - 1];
+    const firstStart = first.allDay ? "00:00" : (first.startTime ?? "00:00");
+    const lastEnd = last.allDay ? "23:59" : (last.endTime ?? "23:59");
+    const startDateIso = parseDateTimeInTimezone(first.date, firstStart, TZ).toISOString();
+    const endDateIso = parseDateTimeInTimezone(last.date, lastEnd, TZ).toISOString();
+    const scheduleDays: NonNullable<EventData["scheduleDays"]> = mapped.map((d) => ({
+      date: d.date,
+      allDay: d.allDay,
+      startTime: d.allDay ? undefined : d.startTime,
+      endTime: d.allDay ? undefined : d.endTime,
+    }));
+    return {
+      title: submission.eventTitle.trim(),
+      slug,
+      description: submission.eventDescription ?? null,
+      startDate: startDateIso,
+      endDate: endDateIso,
+      scheduleDays,
+      imageUrl: submission.imageUrl ?? null,
+      websiteUrl: submission.websiteUrl ?? null,
+      facebookUrl: submission.facebookUrl ?? null,
+      instagramUrl: submission.instagramUrl ?? null,
+      marketId: submission.marketId ?? null,
+      tagIds: submission.tagIds ?? [],
+      featureIds: submission.featureIds ?? [],
+      venueName: submission.venueName.trim(),
+      venueAddress: submission.venueAddress.trim(),
+      venueCity: submission.venueCity?.trim() ?? "",
+      venueState: submission.venueState?.trim() ?? "",
+      venueZip: submission.venueZip?.trim() ?? "",
+      venueLat: undefined,
+      venueLng: undefined,
+      venueId: null,
+    };
+  }
+
   const eventDate = submission.eventDate.trim();
   const endDayStr = (submission.endDate?.trim() || eventDate).trim();
   const eventTime = submission.eventTime || "00:00";

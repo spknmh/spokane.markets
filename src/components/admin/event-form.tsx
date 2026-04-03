@@ -4,6 +4,13 @@ import { useForm, useFieldArray, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventSchema, type EventInput } from "@/lib/validations";
 import { formatDateOnlyLocal, formatDateOnlyUTC, slugify } from "@/lib/utils";
+import {
+  applyScheduleToEventPayload,
+  DEFAULT_END_TIME,
+  DEFAULT_START_TIME,
+  isFullDayTimeRange,
+  TIME_OPTIONS,
+} from "@/lib/event-schedule-day";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,10 +20,14 @@ import { DatePickerInput } from "@/components/ui/date-picker-input";
 import { Switch } from "@/components/ui/switch";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { ScheduleRecurringGenerator } from "@/components/schedule-recurring-generator";
 import { AddressAutofillFields } from "@/components/address-autocomplete";
+import {
+  EventSubmissionReviewPanel,
+  type AdminEventReviewContext,
+} from "@/components/admin/event-submission-review-panel";
 
 type ScheduleDay = {
   date: string;
@@ -25,27 +36,6 @@ type ScheduleDay = {
   endTime?: string;
 };
 
-const DEFAULT_START_TIME = "08:00";
-const DEFAULT_END_TIME = "14:00";
-
-function buildTimeOptions(): { value: string; label: string }[] {
-  const options: { value: string; label: string }[] = [];
-  for (let hour = 0; hour < 24; hour += 1) {
-    for (let minute = 0; minute < 60; minute += 15) {
-      const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-      const labelHour = hour % 12 || 12;
-      const labelMinute = String(minute).padStart(2, "0");
-      const period = hour >= 12 ? "PM" : "AM";
-      options.push({ value, label: `${labelHour}:${labelMinute} ${period}` });
-    }
-  }
-  const pivot = options.findIndex((opt) => opt.value === DEFAULT_START_TIME);
-  if (pivot <= 0) return options;
-  return [...options.slice(pivot), ...options.slice(0, pivot)];
-}
-
-const TIME_OPTIONS = buildTimeOptions();
-
 function toScheduleDay(start: Date, end: Date): ScheduleDay {
   const d = new Date(start);
   const date = formatDateOnlyUTC(d);
@@ -53,12 +43,15 @@ function toScheduleDay(start: Date, end: Date): ScheduleDay {
   const endLate =
     (end.getHours() === 23 && end.getMinutes() === 59) ||
     (end.getHours() === 0 && end.getMinutes() === 0 && end > d);
-  const allDay = startMidnight && endLate;
+  const spanFullDay = startMidnight && endLate;
+  if (spanFullDay) {
+    return { date, allDay: false, startTime: "00:00", endTime: "23:59" };
+  }
   return {
     date,
-    allDay,
-    startTime: allDay ? undefined : d.toTimeString().slice(0, 5),
-    endTime: allDay ? undefined : new Date(end).toTimeString().slice(0, 5),
+    allDay: false,
+    startTime: d.toTimeString().slice(0, 5),
+    endTime: new Date(end).toTimeString().slice(0, 5),
   };
 }
 
@@ -70,6 +63,8 @@ interface EventFormProps {
   initialData?: EventInput & { id: string; scheduleDays?: ScheduleDay[] };
   /** Show JSON import panel on the right (new event only) */
   showJsonImport?: boolean;
+  /** Server snapshot for the pending-submission review panel (edit page only). */
+  reviewContext?: AdminEventReviewContext;
 }
 
 type JsonImportData = {
@@ -108,12 +103,25 @@ type JsonImportData = {
   publicRosterEnabled?: boolean | null;
 };
 
-export function EventForm({ venues, markets, tags, features, initialData, showJsonImport }: EventFormProps) {
+export function EventForm({
+  venues,
+  markets,
+  tags,
+  features,
+  initialData,
+  showJsonImport,
+  reviewContext,
+}: EventFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [jsonImportText, setJsonImportText] = useState("");
   const [jsonImportError, setJsonImportError] = useState<string | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState<string | null>(null);
+
+  const startTimeRefs = useRef<(HTMLSelectElement | null)[]>([]);
+  const endTimeRefs = useRef<(HTMLSelectElement | null)[]>([]);
 
   const today = formatDateOnlyLocal(new Date());
   const defaultSchedule =
@@ -124,7 +132,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
         : [
             {
               date: today,
-              allDay: true as const,
+              allDay: false,
               startTime: DEFAULT_START_TIME,
               endTime: DEFAULT_END_TIME,
             },
@@ -136,12 +144,14 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
     setValue,
     watch,
     control,
-    formState: { errors },
+    getValues,
+    formState: { errors, isDirty },
   } = useForm<EventInput>({
     resolver: zodResolver(eventSchema) as Resolver<EventInput>,
     defaultValues: initialData
       ? {
           ...initialData,
+          complianceNotes: initialData.complianceNotes ?? "",
           scheduleDays: defaultSchedule,
         }
       : {
@@ -170,6 +180,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
           instagramUrl: "",
           tagIds: [],
           featureIds: [],
+          complianceNotes: "",
           scheduleDays: defaultSchedule,
         },
   });
@@ -179,6 +190,11 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
     name: "scheduleDays",
   });
 
+  useEffect(() => {
+    startTimeRefs.current = startTimeRefs.current.slice(0, fields.length);
+    endTimeRefs.current = endTimeRefs.current.slice(0, fields.length);
+  }, [fields.length]);
+
   const watchTitle = watch("title");
   const watchMarketId = watch("marketId");
   const watchVenueId = watch("venueId");
@@ -187,6 +203,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
   const watchShowImageInList = watch("showImageInList") ?? true;
   const watchTagIds = watch("tagIds") ?? [];
   const watchFeatureIds = watch("featureIds") ?? [];
+  const watchStatus = watch("status");
 
   useEffect(() => {
     if (watchMarketId && !watchVenueId) {
@@ -195,16 +212,19 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
     }
   }, [watchMarketId, watchVenueId, markets, setValue]);
 
+  useEffect(() => {
+    if (watchStatus !== "PENDING") setReviewOpen(false);
+  }, [watchStatus]);
+
   const watchScheduleDays = watch("scheduleDays");
   useEffect(() => {
     const days = watchScheduleDays ?? [];
     let changed = false;
     const normalized = days.map((day) => {
-      if (day.allDay) return day;
       const nextStart = day.startTime || DEFAULT_START_TIME;
       const nextEnd = day.endTime || DEFAULT_END_TIME;
       if (nextStart !== day.startTime || nextEnd !== day.endTime) changed = true;
-      return { ...day, startTime: nextStart, endTime: nextEnd };
+      return { ...day, allDay: false, startTime: nextStart, endTime: nextEnd };
     });
     if (changed) {
       setValue("scheduleDays", normalized, { shouldDirty: true, shouldValidate: true });
@@ -213,8 +233,12 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
     if (days.length) {
       const first = days[0];
       const last = days[days.length - 1];
-      const firstStart = first.allDay ? "00:00" : (first.startTime ?? "00:00");
-      const lastEnd = last.allDay ? "23:59" : (last.endTime ?? "23:59");
+      const firstStart = isFullDayTimeRange(first.startTime, first.endTime)
+        ? "00:00"
+        : (first.startTime ?? DEFAULT_START_TIME);
+      const lastEnd = isFullDayTimeRange(last.startTime, last.endTime)
+        ? "23:59"
+        : (last.endTime ?? DEFAULT_END_TIME);
       setValue("startDate", `${first.date}T${firstStart}:00`);
       setValue("endDate", `${last.date}T${lastEnd}:00`);
     }
@@ -287,9 +311,9 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
         replace(
           data.scheduleDays.map((d) => ({
             date: d.date,
-            allDay: !!d.allDay,
-            startTime: d.startTime,
-            endTime: d.endTime,
+            allDay: false,
+            startTime: d.allDay ? "00:00" : d.startTime,
+            endTime: d.allDay ? "23:59" : d.endTime,
           }))
         );
       }
@@ -310,39 +334,34 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
     }
   };
 
+  const persistEvent = async (data: EventInput, redirect: boolean) => {
+    const prepared = applyScheduleToEventPayload(data);
+    const url = initialData ? `/api/admin/events/${initialData.id}` : "/api/admin/events";
+    const method = initialData ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(prepared),
+    });
+
+    if (!res.ok) {
+      const body = await res.json();
+      throw new Error(body.error?.message || "Failed to save event");
+    }
+
+    if (redirect) {
+      router.push("/admin/events");
+    }
+    router.refresh();
+  };
+
   const onSubmit = async (data: EventInput) => {
     setSubmitting(true);
     setError(null);
-
-    const scheduleDays = data.scheduleDays ?? [];
-    if (scheduleDays.length) {
-      const first = scheduleDays[0];
-      const last = scheduleDays[scheduleDays.length - 1];
-      const firstStart = first.allDay ? "00:00" : (first.startTime ?? "00:00");
-      const lastEnd = last.allDay ? "23:59" : (last.endTime ?? "23:59");
-      data.startDate = `${first.date}T${firstStart}:00`;
-      data.endDate = `${last.date}T${lastEnd}:00`;
-    }
-
+    setReviewSuccess(null);
     try {
-      const url = initialData
-        ? `/api/admin/events/${initialData.id}`
-        : "/api/admin/events";
-      const method = initialData ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        const body = await res.json();
-        throw new Error(body.error?.message || "Failed to save event");
-      }
-
-      router.push("/admin/events");
-      router.refresh();
+      await persistEvent(data, true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -350,121 +369,144 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
     }
   };
 
-  const formContent = (
-    <form
-      onSubmit={handleSubmit(onSubmit, (_err) => {
-        setError("Please fix the errors below.");
-      })}
-      className={`space-y-6 ${showJsonImport ? "" : "max-w-2xl"}`}
-    >
-      {error && (
-        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-          {error}
-        </div>
-      )}
+  const saveFromReview = async (data: EventInput, redirect: boolean, successMessage?: string) => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      await persistEvent(data, redirect);
+      if (!redirect) {
+        setReviewSuccess(successMessage ?? "Saved.");
+        setReviewOpen(false);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-      <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
-        <Input id="title" {...register("title")} />
-        {errors.title && (
-          <p className="text-sm text-destructive">{errors.title.message}</p>
-        )}
-      </div>
+  const appendRejectionNote = async (reason: string) => {
+    if (!reviewContext || !initialData) return;
+    if (reviewContext.moderationNotesApiEnabled) {
+      const res = await fetch("/api/admin/listings/moderation-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: reviewContext.eventId,
+          note: `Rejection reason: ${reason}`,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error?.message ?? "Failed to record rejection note");
+      }
+    } else {
+      const prev = getValues("complianceNotes")?.trim() ?? "";
+      setValue(
+        "complianceNotes",
+        prev ? `${prev}\n\nRejection reason: ${reason}` : `Rejection reason: ${reason}`,
+        { shouldDirty: true }
+      );
+    }
+  };
 
-      <div className="space-y-2">
-        <Label htmlFor="slug">Slug</Label>
-        <div className="flex gap-2">
-          <Input id="slug" {...register("slug")} className="flex-1" />
-          <Button type="button" variant="outline" onClick={autoSlug}>
-            Auto
-          </Button>
-        </div>
-        {errors.slug && (
-          <p className="text-sm text-destructive">{errors.slug.message}</p>
-        )}
-      </div>
+  const isPending = watchStatus === "PENDING";
+  const hideMainTitleDescSchedule = reviewOpen && isPending;
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea id="description" rows={4} {...register("description")} />
-      </div>
-
+  const scheduleSection = (
+    <>
       <div className="space-y-4">
         <Label>Schedule</Label>
         <p className="text-xs text-muted-foreground">
-          Add one or more days. Default is one day, all day. Uncheck All day to use 8:00 AM as the default start.
+          Add one or more days. Start and end times apply to each day (use 12:00 AM–11:59 PM for a full-day span). Same
+          options as when creating an event.
         </p>
         <ScheduleRecurringGenerator onGenerate={(days) => replace(days)} />
-        {fields.map((field, i) => (
-          <div
-            key={field.id}
-            className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4"
-          >
-            <div className="space-y-2 min-w-[140px]">
-              <Label>Date</Label>
-              <DatePickerInput
-                value={watch(`scheduleDays.${i}.date`) || ""}
-                onChange={(value) =>
-                  setValue(`scheduleDays.${i}.date`, value, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  })
-                }
-              />
+        {fields.map((field, i) => {
+          const regStart = register(`scheduleDays.${i}.startTime`);
+          const regEnd = register(`scheduleDays.${i}.endTime`);
+          return (
+            <div
+              key={field.id}
+              className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4"
+            >
+              <div className="min-w-[140px] space-y-2">
+                <Label>Date</Label>
+                <DatePickerInput
+                  value={watch(`scheduleDays.${i}.date`) || ""}
+                  onChange={(value) =>
+                    setValue(`scheduleDays.${i}.date`, value, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Start</Label>
+                <Select
+                  {...regStart}
+                  ref={(el) => {
+                    regStart.ref(el);
+                    startTimeRefs.current[i] = el;
+                  }}
+                  onChange={(e) => {
+                    regStart.onChange(e);
+                    queueMicrotask(() => endTimeRefs.current[i]?.focus());
+                  }}
+                >
+                  <option value="">Select start time (default 8:00 AM)</option>
+                  {TIME_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>End</Label>
+                <Select
+                  {...regEnd}
+                  ref={(el) => {
+                    regEnd.ref(el);
+                    endTimeRefs.current[i] = el;
+                  }}
+                  onChange={(e) => {
+                    regEnd.onChange(e);
+                    if (i < fields.length - 1) {
+                      queueMicrotask(() => startTimeRefs.current[i + 1]?.focus());
+                    }
+                  }}
+                >
+                  <option value="">Select end time (default 2:00 PM)</option>
+                  {TIME_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              {fields.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove(i)}
+                  aria-label="Remove day"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                {...register(`scheduleDays.${i}.allDay`)}
-              />
-              <span className="text-sm">All day</span>
-            </label>
-            {!watch(`scheduleDays.${i}.allDay`) && (
-              <>
-                <div className="space-y-2">
-                  <Label>Start</Label>
-                  <Select {...register(`scheduleDays.${i}.startTime`)}>
-                    <option value="">Select start time (default 8:00 AM)</option>
-                    {TIME_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>End</Label>
-                  <Select {...register(`scheduleDays.${i}.endTime`)}>
-                    <option value="">Select end time (default 2:00 PM)</option>
-                    {TIME_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              </>
-            )}
-            {fields.length > 1 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => remove(i)}
-                aria-label="Remove day"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        ))}
+          );
+        })}
         <Button
           type="button"
           variant="outline"
           onClick={() =>
             append({
               date: formatDateOnlyLocal(new Date()),
-              allDay: true,
+              allDay: false,
               startTime: DEFAULT_START_TIME,
               endTime: DEFAULT_END_TIME,
             })
@@ -474,6 +516,61 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
           Add another day
         </Button>
       </div>
+    </>
+  );
+
+  const titleDescBlock = (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="title">Title</Label>
+        <Input id="title" {...register("title")} />
+        {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea id="description" rows={4} {...register("description")} />
+      </div>
+    </>
+  );
+
+  const formContent = (
+    <form
+      onSubmit={handleSubmit(onSubmit, (_err) => {
+        setError("Please fix the errors below.");
+      })}
+      className={`space-y-6 ${showJsonImport ? "" : "max-w-2xl"}`}
+    >
+      {reviewSuccess && (
+        <div className="rounded-md border border-emerald-600/40 bg-emerald-600/10 px-3 py-2 text-sm text-emerald-800 dark:text-emerald-200">
+          {reviewSuccess}
+        </div>
+      )}
+      {error && (
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
+      )}
+
+      {initialData && reviewContext && isPending && (
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="button" variant="secondary" onClick={() => setReviewOpen(true)}>
+            Review submission
+          </Button>
+        </div>
+      )}
+
+      {!hideMainTitleDescSchedule && titleDescBlock}
+
+      <div className="space-y-2">
+        <Label htmlFor="slug">Slug</Label>
+        <div className="flex gap-2">
+          <Input id="slug" {...register("slug")} className="flex-1" />
+          <Button type="button" variant="outline" onClick={autoSlug}>
+            Auto
+          </Button>
+        </div>
+        {errors.slug && <p className="text-sm text-destructive">{errors.slug.message}</p>}
+      </div>
+
+      {!hideMainTitleDescSchedule && scheduleSection}
 
       <div className="space-y-2">
         <Label htmlFor="marketId">Market (optional)</Label>
@@ -485,18 +582,16 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
             </option>
           ))}
         </Select>
-        <p className="text-xs text-muted-foreground">
-          Selecting a market will default the venue below.
-        </p>
+        <p className="text-xs text-muted-foreground">Selecting a market will default the venue below.</p>
       </div>
 
       <div className="space-y-4 rounded-lg border border-border p-4">
         <Label>Location</Label>
-        <p className="text-xs text-muted-foreground">
-          Select a venue or enter an address. Either is required.
-        </p>
+        <p className="text-xs text-muted-foreground">Select a venue or enter an address. Either is required.</p>
         <div className="space-y-2">
-          <Label htmlFor="venueId" className="text-sm font-normal">Venue (optional)</Label>
+          <Label htmlFor="venueId" className="text-sm font-normal">
+            Venue (optional)
+          </Label>
           <Select
             id="venueId"
             {...register("venueId", {
@@ -533,15 +628,11 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
                   onChange: () => setValue("venueId", ""),
                 })}
               />
-              {errors.venueName && (
-                <p className="text-sm text-destructive">{errors.venueName.message}</p>
-              )}
+              {errors.venueName && <p className="text-sm text-destructive">{errors.venueName.message}</p>}
             </div>
             <div className="space-y-2">
               <Label className="text-muted-foreground">Address details (editable)</Label>
-              <p className="text-xs text-muted-foreground">
-                Start typing in the street address field for suggestions.
-              </p>
+              <p className="text-xs text-muted-foreground">Start typing in the street address field for suggestions.</p>
               <AddressAutofillFields
                 onRetrieve={(addr) => {
                   setValue("venueId", "");
@@ -567,9 +658,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
             </div>
           </div>
         )}
-        {errors.venueId && (
-          <p className="text-sm text-destructive">{errors.venueId.message}</p>
-        )}
+        {errors.venueId && <p className="text-sm text-destructive">{errors.venueId.message}</p>}
       </div>
 
       <ImageUploadWithUrl
@@ -583,16 +672,12 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-1">
             <Label htmlFor="showImageInList">Display Event Banner</Label>
-            <p className="text-xs text-muted-foreground">
-              When on, the event image appears on event listing cards.
-            </p>
+            <p className="text-xs text-muted-foreground">When on, the event image appears on event listing cards.</p>
           </div>
           <Switch
             id="showImageInList"
             checked={watchShowImageInList}
-            onCheckedChange={(checked) =>
-              setValue("showImageInList", checked, { shouldDirty: true })
-            }
+            onCheckedChange={(checked) => setValue("showImageInList", checked, { shouldDirty: true })}
           />
         </div>
       </div>
@@ -608,13 +693,27 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
         </Select>
       </div>
 
+      {initialData && watchStatus !== "PENDING" && (
+        <details className="rounded-lg border border-border">
+          <summary className="cursor-pointer p-4 font-medium">Internal notes (admin)</summary>
+          <div className="space-y-2 border-t border-border p-4">
+            <Label htmlFor="complianceNotes-main">Compliance / internal notes</Label>
+            <Textarea
+              id="complianceNotes-main"
+              rows={3}
+              {...register("complianceNotes")}
+              placeholder="Not shown on the public site."
+            />
+          </div>
+        </details>
+      )}
+
       <details className="rounded-lg border border-border">
-        <summary className="cursor-pointer p-4 font-medium">
-          Vendor participation (override market)
-        </summary>
+        <summary className="cursor-pointer p-4 font-medium">Vendor participation (override market)</summary>
         <div className="space-y-4 border-t border-border p-4">
           <p className="text-xs text-muted-foreground">
-            Override the market&apos;s vendor participation settings for this event. Leave as default to use market settings.
+            Override the market&apos;s vendor participation settings for this event. Leave as default to use market
+            settings.
           </p>
           <div className="space-y-2">
             <Label htmlFor="participationMode">Participation mode</Label>
@@ -635,9 +734,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
               placeholder="Use market default"
               {...register("vendorCapacity", {
                 setValueAs: (v) =>
-                  v === "" || v === undefined || Number.isNaN(Number(v))
-                    ? undefined
-                    : Number(v),
+                  v === "" || v === undefined || Number.isNaN(Number(v)) ? undefined : Number(v),
               })}
             />
           </div>
@@ -657,9 +754,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
                 <span className="text-sm">Show official roster</span>
               </label>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Uncheck to use market default. Leave checked to override.
-            </p>
+            <p className="text-xs text-muted-foreground">Uncheck to use market default. Leave checked to override.</p>
           </div>
         </div>
       </details>
@@ -685,7 +780,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
           {tags.map((tag) => (
             <label
               key={tag.id}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-sm cursor-pointer has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary"
+              className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground"
             >
               <input
                 type="checkbox"
@@ -705,15 +800,13 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
           {features.map((feature) => (
             <label
               key={feature.id}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-sm cursor-pointer has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary"
+              className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground"
             >
               <input
                 type="checkbox"
                 className="sr-only"
                 checked={watchFeatureIds.includes(feature.id)}
-                onChange={() =>
-                  toggleArrayItem("featureIds", watchFeatureIds, feature.id)
-                }
+                onChange={() => toggleArrayItem("featureIds", watchFeatureIds, feature.id)}
               />
               {feature.name}
             </label>
@@ -723,11 +816,7 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
 
       <div className="flex gap-3">
         <Button type="submit" disabled={submitting}>
-          {submitting
-            ? "Saving..."
-            : initialData
-              ? "Update Event"
-              : "Create Event"}
+          {submitting ? "Saving..." : initialData ? "Update Event" : "Create Event"}
         </Button>
         <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancel
@@ -736,37 +825,122 @@ export function EventForm({ venues, markets, tags, features, initialData, showJs
     </form>
   );
 
+  const reviewPanel =
+    initialData && reviewContext && isPending ? (
+      <EventSubmissionReviewPanel
+        open={reviewOpen}
+        onOpenChange={(o) => {
+          if (!o && isDirty) {
+            const ok = window.confirm("Discard unsaved changes in the review panel?");
+            if (!ok) return;
+          }
+          setReviewOpen(o);
+          if (!o) setReviewSuccess(null);
+        }}
+        reviewContext={reviewContext}
+        tags={tags}
+        features={features}
+        watch={watch}
+        submitting={submitting}
+        editableFields={
+          <>
+            {titleDescBlock}
+            {scheduleSection}
+            <div className="space-y-2">
+              <Label htmlFor="complianceNotes-review">Internal reviewer notes</Label>
+              <p className="text-xs text-muted-foreground">
+                Not public-facing.{" "}
+                {reviewContext.moderationNotesApiEnabled
+                  ? "Listing moderation notes API is enabled; rejection reasons are also logged as moderation notes."
+                  : "Stored on the event as compliance notes until moderation notes are enabled."}
+              </p>
+              <Textarea
+                id="complianceNotes-review"
+                rows={4}
+                {...register("complianceNotes")}
+                placeholder="Notes for admins only."
+              />
+            </div>
+          </>
+        }
+        onCancel={() => {
+          if (isDirty) {
+            const ok = window.confirm("Discard unsaved changes in the review panel?");
+            if (!ok) return;
+          }
+          setReviewOpen(false);
+          setReviewSuccess(null);
+        }}
+        onSaveEditsOnly={() =>
+          void handleSubmit(async (data) => {
+            await saveFromReview(data, false);
+          })()
+        }
+        onApprove={() =>
+          void handleSubmit(async (data) => {
+            await saveFromReview({ ...data, status: "PUBLISHED" }, false, "Event published.");
+          })()
+        }
+        onReject={async (reason) => {
+          setSubmitting(true);
+          setError(null);
+          try {
+            await appendRejectionNote(reason);
+            const parsed = eventSchema.safeParse({ ...getValues(), status: "REJECTED" as const });
+            if (!parsed.success) {
+              setError("Please fix the errors below before rejecting.");
+              return;
+            }
+            await persistEvent(parsed.data, false);
+            setReviewSuccess("Event rejected.");
+            setReviewOpen(false);
+            router.refresh();
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to reject event");
+          } finally {
+            setSubmitting(false);
+          }
+        }}
+      />
+    ) : null;
+
   if (showJsonImport) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-start">
-        <div className="min-w-0">{formContent}</div>
-        <div className="lg:sticky lg:top-6">
-          <div className="rounded-lg border border-border p-4 space-y-3 bg-muted/30">
-            <Label className="text-base font-medium">Import from JSON</Label>
-            <p className="text-xs text-muted-foreground">
-              Paste JSON below to populate all form fields. Use tagSlugs and featureSlugs (or tagIds/featureIds).
-            </p>
-            <Textarea
-              value={jsonImportText}
-              onChange={(e) => {
-                setJsonImportText(e.target.value);
-                setJsonImportError(null);
-              }}
-              placeholder='{"title": "My Event", ...}'
-              rows={16}
-              className="font-mono text-xs"
-            />
-            {jsonImportError && (
-              <p className="text-sm text-destructive">{jsonImportError}</p>
-            )}
-            <Button type="button" variant="secondary" onClick={handleJsonImport}>
-              Import
-            </Button>
+      <>
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[1fr_380px]">
+          <div className="min-w-0">{formContent}</div>
+          <div className="lg:sticky lg:top-6">
+            <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+              <Label className="text-base font-medium">Import from JSON</Label>
+              <p className="text-xs text-muted-foreground">
+                Paste JSON below to populate all form fields. Use tagSlugs and featureSlugs (or tagIds/featureIds).
+              </p>
+              <Textarea
+                value={jsonImportText}
+                onChange={(e) => {
+                  setJsonImportText(e.target.value);
+                  setJsonImportError(null);
+                }}
+                placeholder='{"title": "My Event", ...}'
+                rows={16}
+                className="font-mono text-xs"
+              />
+              {jsonImportError && <p className="text-sm text-destructive">{jsonImportError}</p>}
+              <Button type="button" variant="secondary" onClick={handleJsonImport}>
+                Import
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+        {reviewPanel}
+      </>
     );
   }
 
-  return formContent;
+  return (
+    <>
+      {formContent}
+      {reviewPanel}
+    </>
+  );
 }

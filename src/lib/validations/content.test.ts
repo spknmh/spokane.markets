@@ -10,9 +10,9 @@ describe("submissionSchema", () => {
     submitterName: "Jane",
     submitterEmail: "jane@example.com",
     eventTitle: "Spring Market",
-    eventDate: "2026-06-01",
-    eventTime: "10:00",
-    allDay: false,
+    scheduleDays: [
+      { date: "2026-06-01", allDay: false, startTime: "10:00", endTime: "11:00" },
+    ],
     venueName: "Hall",
     venueAddress: "123 Main St",
     venueCity: "Spokane",
@@ -87,9 +87,9 @@ describe("submissionSchemaAuthed", () => {
   it("requires venue city, state, zip without submitter fields", () => {
     const parsed = submissionSchemaAuthed.safeParse({
       eventTitle: "Spring Market",
-      eventDate: "2026-06-01",
-      eventTime: "10:00",
-      allDay: false,
+      scheduleDays: [
+        { date: "2026-06-01", allDay: false, startTime: "10:00", endTime: "11:00" },
+      ],
       venueName: "Hall",
       venueAddress: "123 Main St",
       venueCity: "Spokane",

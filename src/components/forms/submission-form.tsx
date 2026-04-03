@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useState, useEffect, useRef } from "react";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import {
   trackApiError,
   trackEvent,
@@ -32,6 +32,15 @@ import {
 } from "@/components/ui/card";
 import { AddressAutofillFields } from "@/components/address-autocomplete";
 import { useAbandonTracking } from "@/hooks/use-abandon-tracking";
+import { formatDateOnlyLocal } from "@/lib/utils";
+import {
+  DEFAULT_END_TIME,
+  DEFAULT_START_TIME,
+  mapScheduleDaysForSubmit,
+  TIME_OPTIONS,
+} from "@/lib/event-schedule-day";
+import { Plus, Trash2 } from "lucide-react";
+import { ScheduleRecurringGenerator } from "@/components/schedule-recurring-generator";
 
 interface SubmissionFormProps {
   session: Session | null;
@@ -54,11 +63,25 @@ export function SubmissionForm({
 
   const isAuthed = !!session?.user;
 
+  const today = formatDateOnlyLocal(new Date());
+  const defaultSchedule = [
+    {
+      date: today,
+      allDay: false as const,
+      startTime: DEFAULT_START_TIME,
+      endTime: DEFAULT_END_TIME,
+    },
+  ];
+
+  const startTimeRefs = useRef<(HTMLSelectElement | null)[]>([]);
+  const endTimeRefs = useRef<(HTMLSelectElement | null)[]>([]);
+
   const {
     register,
     handleSubmit,
     setValue,
     control,
+    watch,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<SubmissionInput | SubmissionInputAuthed>({
     resolver: zodResolver(
@@ -68,11 +91,7 @@ export function SubmissionForm({
       ...(isAuthed ? {} : { submitterName: "", submitterEmail: "" }),
       eventTitle: "",
       eventDescription: "",
-      eventDate: "",
-      eventTime: "",
-      endDate: "",
-      endTime: "",
-      allDay: false,
+      scheduleDays: defaultSchedule,
       timezone: "",
       imageUrl: "",
       venueName: "",
@@ -91,9 +110,16 @@ export function SubmissionForm({
     },
   });
 
-  const watchAllDay = useWatch({ control, name: "allDay" });
-  const watchEventDate = useWatch({ control, name: "eventDate" }) as string | undefined;
-  const watchEndDate = useWatch({ control, name: "endDate" }) as string | undefined;
+  const { fields, append, remove, replace } = useFieldArray({
+    control,
+    name: "scheduleDays",
+  });
+
+  useEffect(() => {
+    startTimeRefs.current = startTimeRefs.current.slice(0, fields.length);
+    endTimeRefs.current = endTimeRefs.current.slice(0, fields.length);
+  }, [fields.length]);
+
   const watchTagIds = (useWatch({ control, name: "tagIds" }) ?? []) as string[];
   const watchFeatureIds = (useWatch({ control, name: "featureIds" }) ?? []) as string[];
 
@@ -122,10 +148,11 @@ export function SubmissionForm({
     setError(null);
     trackEvent("submit_event_start");
     const payload = isAuthed ? data : (data as SubmissionInput);
+    const scheduleDays = mapScheduleDaysForSubmit(payload.scheduleDays);
     const res = await fetch("/api/submissions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, scheduleDays }),
     });
 
     const json = await res.json();
@@ -254,59 +281,116 @@ export function SubmissionForm({
 
           <div className="space-y-4">
             <Label>Schedule</Label>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="eventDate">{req("Start date")}</Label>
-                <DatePickerInput
-                  id="eventDate"
-                  value={watchEventDate ?? ""}
-                  onChange={(value) =>
-                    setValue("eventDate", value, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })
-                  }
-                />
-                {errors.eventDate && (
-                  <p className="text-sm text-destructive">
-                    {errors.eventDate.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endDate">End date (optional)</Label>
-                <DatePickerInput
-                  id="endDate"
-                  value={watchEndDate ?? ""}
-                  onChange={(value) =>
-                    setValue("endDate", value, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })
-                  }
-                />
-              </div>
-            </div>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" {...register("allDay")} />
-              <span className="text-sm">All day event</span>
-            </label>
-            {!watchAllDay && (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="eventTime">{req("Start time")}</Label>
-                  <Input id="eventTime" type="time" {...register("eventTime")} />
-                  {errors.eventTime && (
-                    <p className="text-sm text-destructive">
-                      {errors.eventTime.message}
-                    </p>
+            <p className="text-xs text-muted-foreground">
+              Add one or more days. Use 12:00 AM–11:59 PM for a full-day span on a given day. Same layout as our admin
+              event form.
+            </p>
+            <ScheduleRecurringGenerator onGenerate={(days) => replace(days)} />
+            {fields.map((field, i) => {
+              const regStart = register(`scheduleDays.${i}.startTime`);
+              const regEnd = register(`scheduleDays.${i}.endTime`);
+              return (
+                <div
+                  key={field.id}
+                  className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4"
+                >
+                  <input type="checkbox" className="sr-only" aria-hidden tabIndex={-1} {...register(`scheduleDays.${i}.allDay`)} />
+                  <div className="min-w-[140px] space-y-2">
+                    <Label>Date</Label>
+                    <DatePickerInput
+                      value={watch(`scheduleDays.${i}.date`) || ""}
+                      onChange={(value) =>
+                        setValue(`scheduleDays.${i}.date`, value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
+                    />
+                    {errors.scheduleDays?.[i]?.date && (
+                      <p className="text-sm text-destructive">{errors.scheduleDays[i]?.date?.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Start</Label>
+                    <Select
+                      {...regStart}
+                      ref={(el) => {
+                        regStart.ref(el);
+                        startTimeRefs.current[i] = el;
+                      }}
+                      onChange={(e) => {
+                        regStart.onChange(e);
+                        queueMicrotask(() => endTimeRefs.current[i]?.focus());
+                      }}
+                    >
+                      <option value="">Select start time</option>
+                      {TIME_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </Select>
+                    {errors.scheduleDays?.[i]?.startTime && (
+                      <p className="text-sm text-destructive">{errors.scheduleDays[i]?.startTime?.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>End</Label>
+                    <Select
+                      {...regEnd}
+                      ref={(el) => {
+                        regEnd.ref(el);
+                        endTimeRefs.current[i] = el;
+                      }}
+                      onChange={(e) => {
+                        regEnd.onChange(e);
+                        if (i < fields.length - 1) {
+                          queueMicrotask(() => startTimeRefs.current[i + 1]?.focus());
+                        }
+                      }}
+                    >
+                      <option value="">Select end time</option>
+                      {TIME_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </Select>
+                    {errors.scheduleDays?.[i]?.endTime && (
+                      <p className="text-sm text-destructive">{errors.scheduleDays[i]?.endTime?.message}</p>
+                    )}
+                  </div>
+                  {fields.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => remove(i)}
+                      aria-label="Remove day"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endTime">End time (optional)</Label>
-                  <Input id="endTime" type="time" {...register("endTime")} />
-                </div>
-              </div>
+              );
+            })}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                append({
+                  date: formatDateOnlyLocal(new Date()),
+                  allDay: false,
+                  startTime: DEFAULT_START_TIME,
+                  endTime: DEFAULT_END_TIME,
+                })
+              }
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add another day
+            </Button>
+            {errors.scheduleDays && typeof errors.scheduleDays.message === "string" && (
+              <p className="text-sm text-destructive">{errors.scheduleDays.message}</p>
             )}
           </div>
 
@@ -393,7 +477,7 @@ export function SubmissionForm({
                 {tags.map((tag) => (
                   <label
                     key={tag.id}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-sm cursor-pointer has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary"
+                    className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground"
                   >
                     <input
                       type="checkbox"
@@ -417,7 +501,7 @@ export function SubmissionForm({
                 {features.map((feature) => (
                   <label
                     key={feature.id}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-sm cursor-pointer has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary"
+                    className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground"
                   >
                     <input
                       type="checkbox"

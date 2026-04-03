@@ -783,6 +783,8 @@ model Submission {
   endDate          String?
   endTime          String?
   allDay           Boolean          @default(false)
+  /// When set, per-day schedule (same shape as event schedule days). Legacy `eventDate`/`eventTime`/… remain denormalized for list views.
+  scheduleDays     Json?
   timezone         String?
   imageUrl         String?
   venueName        String

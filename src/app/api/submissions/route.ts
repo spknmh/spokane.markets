@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+import type { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { mapScheduleDaysForSubmit } from "@/lib/event-schedule-day";
 import { submissionSchemaAuthed } from "@/lib/validations";
 
 const RATE_LIMIT_COUNT = 5;
@@ -59,17 +61,27 @@ export async function POST(request: Request) {
 
     const submitterName = session.user.name ?? "Unknown";
 
+    const scheduleMapped = mapScheduleDaysForSubmit(data.scheduleDays);
+    const first = scheduleMapped[0];
+    const last = scheduleMapped[scheduleMapped.length - 1];
+    const eventDate = first.date;
+    const endDate = last.date;
+    const eventTime = first.allDay ? "00:00" : (first.startTime ?? "00:00");
+    const endTime = last.allDay ? "23:59" : (last.endTime ?? "23:59");
+    const allDayLegacy = scheduleMapped.length === 1 && first.allDay;
+
     await db.submission.create({
       data: {
         submitterName,
         submitterEmail,
         eventTitle: data.eventTitle,
         eventDescription: toOptional(data.eventDescription),
-        eventDate: data.eventDate,
-        eventTime: data.allDay ? "00:00" : (data.eventTime ?? "00:00"),
-        endDate: toOptional(data.endDate),
-        endTime: data.allDay ? "23:59" : toOptional(data.endTime),
-        allDay: data.allDay ?? false,
+        eventDate,
+        eventTime,
+        endDate,
+        endTime,
+        allDay: allDayLegacy,
+        scheduleDays: scheduleMapped as unknown as Prisma.InputJsonValue,
         timezone: toOptional(data.timezone),
         imageUrl: toOptional(data.imageUrl),
         venueName: data.venueName,

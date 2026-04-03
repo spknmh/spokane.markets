@@ -2,7 +2,8 @@ import { z } from "zod";
 import { imageUrlSchema, participationModeEnum } from "./common";
 import { organizerOnboardingFieldsSchema } from "./organizer-onboarding";
 
-const eventScheduleDaySchema = z
+/** Shared by event forms and public submission `scheduleDays`. */
+export const eventScheduleDaySchema = z
   .object({
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
     allDay: z.boolean(),
