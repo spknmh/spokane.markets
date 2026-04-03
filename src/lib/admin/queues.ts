@@ -180,7 +180,7 @@ export async function getQueueItems(opts: {
         title: s.eventTitle,
         subtitle: `by ${s.submitterName}`,
         status: "pending" as const,
-        href: "/admin/submissions?status=PENDING",
+        href: `/admin/submissions/${s.id}`,
       })),
       ...revs.map((r) => ({
         type: "review" as const,
@@ -249,7 +249,7 @@ export async function getQueueItems(opts: {
         title: s.eventTitle,
         subtitle: `by ${s.submitterName}`,
         status: "pending" as const,
-        href: "/admin/submissions?status=PENDING",
+        href: `/admin/submissions/${s.id}`,
       }));
     }
     case "review": {

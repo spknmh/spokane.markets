@@ -316,6 +316,9 @@ export async function updateSubmissionStatus(
   const session = await requireAdminAction("admin.moderation.manage");
   if (status === "APPROVED") {
     await approveSubmissionWithEvent(id, session.user.id);
+    revalidatePath("/admin/submissions");
+    revalidatePath(`/admin/submissions/${id}`);
+    revalidatePath("/admin/queues");
     return;
   }
 
@@ -347,6 +350,7 @@ export async function updateSubmissionStatus(
     newValue: { status },
   });
   revalidatePath("/admin/submissions");
+  revalidatePath(`/admin/submissions/${id}`);
   revalidatePath("/admin/queues");
 }
 

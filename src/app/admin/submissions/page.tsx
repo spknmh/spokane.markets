@@ -5,55 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { StatusButton } from "@/components/admin/action-buttons";
 import { Pagination } from "@/components/pagination";
 import { bulkUpdateSubmissionStatus, updateSubmissionStatus } from "../actions";
-import { formatDate, formatTime12hr, cn } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
+import { formatSubmissionScheduleSummary } from "@/lib/submission-display";
 import Link from "next/link";
 import type { ModerationStatus } from "@prisma/client";
 import { BulkActionButton } from "@/components/admin/bulk-action-button";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
 const DEFAULT_LIMIT = 25;
-
-function formatSubmissionScheduleSummary(sub: {
-  scheduleDays: unknown;
-  eventDate: string;
-  eventTime: string;
-  endDate: string | null;
-  endTime: string | null;
-  allDay: boolean;
-}): string {
-  if (sub.scheduleDays && Array.isArray(sub.scheduleDays)) {
-    const days = sub.scheduleDays as {
-      date: string;
-      allDay?: boolean;
-      startTime?: string;
-      endTime?: string;
-    }[];
-    if (days.length === 0) {
-      return sub.eventDate;
-    }
-    if (days.length === 1) {
-      const d = days[0];
-      const fullDay =
-        d.allDay === true || (d.startTime === "00:00" && d.endTime === "23:59");
-      if (fullDay) {
-        return `${d.date} (all day)`;
-      }
-      const start = d.startTime ?? sub.eventTime;
-      const end = d.endTime;
-      return `${d.date} at ${formatTime12hr(start)}${
-        end && end !== start ? ` – ${formatTime12hr(end)}` : ""
-      }`;
-    }
-    return `${days[0].date} – ${days[days.length - 1].date} (${days.length} days)`;
-  }
-  return [
-    sub.eventDate,
-    sub.allDay ? " (all day)" : ` at ${formatTime12hr(sub.eventTime)}`,
-    sub.endDate && sub.endDate !== sub.eventDate ? ` – ${sub.endDate}` : "",
-    sub.endTime && !sub.allDay && sub.endTime !== sub.eventTime ? ` at ${formatTime12hr(sub.endTime)}` : "",
-  ].join("");
-}
 
 const STATUS_TABS = [
   { label: "Pending", value: "PENDING" },
@@ -183,7 +144,12 @@ export default async function AdminSubmissionsPage({
                   )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {sub.status === "PENDING" && (
+                    <Button size="sm" asChild>
+                      <Link href={`/admin/submissions/${sub.id}`}>Review</Link>
+                    </Button>
+                  )}
                   <Badge variant={statusVariant[sub.status]}>
                     {sub.status}
                   </Badge>
