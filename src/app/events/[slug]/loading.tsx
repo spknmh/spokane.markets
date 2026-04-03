@@ -1,7 +1,7 @@
 export default function EventDetailLoading() {
   return (
     <div className="container mx-auto px-4 py-8 animate-pulse">
-      <div className="h-64 bg-muted rounded-lg mb-6" />
+      <div className="aspect-[16/9] w-full max-w-6xl rounded-xl bg-muted mb-6" />
       <div className="h-10 bg-muted rounded w-96 mb-4" />
       <div className="h-4 bg-muted rounded w-48 mb-8" />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

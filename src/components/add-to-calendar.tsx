@@ -82,7 +82,7 @@ export function AddToCalendar({
         className="min-h-[44px]"
         onClick={() => setOpen(true)}
       >
-        <CalendarPlus className="mr-1.5 h-4 w-4" aria-hidden />
+        <CalendarPlus className="mr-1.5 h-4 w-4 stroke-[1.5]" aria-hidden />
         Add to calendar
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -93,7 +93,7 @@ export function AddToCalendar({
           </DialogHeader>
           <div className="flex flex-col gap-2 px-6 pb-6">
             <Button variant="outline" className="justify-start" onClick={downloadIcs} type="button">
-              <CalendarPlus className="mr-2 h-4 w-4" aria-hidden />
+              <CalendarPlus className="mr-2 h-4 w-4 stroke-[1.5]" aria-hidden />
               Download (.ics)
             </Button>
             <Button variant="outline" className="justify-start" asChild>

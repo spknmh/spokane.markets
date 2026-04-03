@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { EventsEmptyStateTracker } from "@/components/events-empty-state-tracker";
 import { getNeighborhoodOptions } from "@/lib/neighborhoods";
 import { getAttendanceCountsByEventIds } from "@/lib/attendance-counts";
+import { getVendorParticipationCountsByEventIds } from "@/lib/event-vendor-participation-count";
 
 export const dynamic = "force-dynamic";
 
@@ -180,7 +181,11 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
     db.event.count({ where }),
   ]);
 
-  const attendanceMap = await getAttendanceCountsByEventIds(events.map((e) => e.id));
+  const eventIds = events.map((e) => e.id);
+  const [attendanceMap, vendorParticipationMap] = await Promise.all([
+    getAttendanceCountsByEventIds(eventIds),
+    getVendorParticipationCountsByEventIds(eventIds),
+  ]);
 
   const totalPages = Math.ceil(totalCount / limit);
   const hasQuery = query.trim().length > 0;
@@ -309,7 +314,11 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                   {events.map((event, index) => (
                     <EventCard
                       key={event.id}
-                      event={{ ...event, attendance: attendanceMap[event.id] }}
+                      event={{
+                        ...event,
+                        attendance: attendanceMap[event.id],
+                        vendorParticipationCount: vendorParticipationMap[event.id],
+                      }}
                       analyticsContext={
                         hasQuery || hasFiltersOnly
                           ? {

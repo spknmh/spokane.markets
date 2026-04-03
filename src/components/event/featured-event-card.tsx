@@ -16,10 +16,16 @@ type EventWithRelations = Event & {
   _count?: { vendorEvents: number };
   scheduleDays?: ScheduleDay[];
   attendance?: { going: number; interested: number };
+  vendorParticipationCount?: number;
 };
 
+function vendorMetricCount(event: EventWithRelations): number {
+  if (typeof event.vendorParticipationCount === "number") return event.vendorParticipationCount;
+  return event._count?.vendorEvents ?? 0;
+}
+
 function hasFeaturedCardStats(event: EventWithRelations): boolean {
-  const v = event._count?.vendorEvents ?? 0;
+  const v = vendorMetricCount(event);
   const g = event.attendance?.going ?? 0;
   const i = event.attendance?.interested ?? 0;
   return v > 0 || g > 0 || i > 0;
@@ -106,6 +112,8 @@ export function FeaturedEventCard({
     }
   }
 
+  const vendorCountForCard = vendorMetricCount(event);
+
   return (
     <Link href={`/events/${event.slug}`} prefetch={false} className="group block">
       <Card className="relative h-full min-h-[140px] border-2 border-accent/40 bg-accent/5 transition-all hover:shadow-lg hover:border-accent/60 hover:bg-accent/10">
@@ -172,11 +180,11 @@ export function FeaturedEventCard({
                     <span className="text-foreground">{event.attendance?.interested} interested</span>
                   </span>
                 )}
-                {(event._count?.vendorEvents ?? 0) > 0 && (
+                {vendorCountForCard > 0 && (
                   <span className="inline-flex items-center gap-1.5">
                     <Store className="h-4 w-4 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
                     <span className="text-foreground">
-                      {event._count?.vendorEvents} vendor{event._count?.vendorEvents !== 1 ? "s" : ""}
+                      {vendorCountForCard} vendor{vendorCountForCard !== 1 ? "s" : ""}
                     </span>
                   </span>
                 )}

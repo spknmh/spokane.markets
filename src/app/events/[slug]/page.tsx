@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import {
@@ -8,7 +7,6 @@ import {
   type EventForDisplay,
 } from "@/lib/services/event-occurrence-service";
 import { getBannerImages } from "@/lib/banner-images";
-import { isBannerUnoptimized } from "@/lib/utils";
 import { getSession } from "@/lib/auth-utils";
 import { getDirectionsUrl, formatTime12hr, formatEventTimeFromSchedule } from "@/lib/utils";
 import { TrackedExternalLink } from "@/components/analytics/tracked-external-link";
@@ -26,10 +24,11 @@ import { OfficialVendorRoster } from "@/components/vendor/official-vendor-roster
 import { SelfReportedVendorList } from "@/components/vendor/self-reported-vendor-list";
 import { EventVendorActions } from "@/components/event-vendor-actions";
 import { TrackEventView } from "@/components/track-content-view";
+import { MediaFrame } from "@/components/media";
 import { getParticipationConfig } from "@/lib/participation-config";
 import { SITE_NAME } from "@/lib/constants";
 import { organizerOnboardingDisplayEnabled } from "@/lib/feature-flags";
-import { Globe, Facebook, Instagram } from "lucide-react";
+import { Globe, Facebook, Instagram, MapPin } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -187,34 +186,48 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
       </nav>
 
       <div className="relative mb-6 overflow-hidden rounded-xl ring-1 ring-border sm:mb-8">
-        <div className="relative h-48 w-full sm:h-64">
-          {event.imageUrl ? (
-            <Image
-              src={event.imageUrl}
-              alt={event.title}
-              fill
-              className="object-cover"
-              style={{ objectPosition: `${event.imageFocalX ?? 50}% ${event.imageFocalY ?? 50}%` }}
-              priority
-              sizes="(max-width: 1152px) 100vw, 1152px"
-              unoptimized={event.imageUrl.startsWith("/uploads/") || event.imageUrl.startsWith("http")}
-            />
-          ) : (
-            <Image
-              src={banners.events.url}
-              alt={event.title}
-              fill
-              className="object-cover"
-              style={{ objectPosition: banners.events.objectPosition }}
-              sizes="(max-width: 1152px) 100vw, 1152px"
-              unoptimized={isBannerUnoptimized(banners.events.url)}
-            />
-          )}
-        </div>
+        {/* 16:9 matches `getCropPresetForBanner()` / ImageUploadWithUrl aspectRatio="banner" */}
+        {event.imageUrl ? (
+          <MediaFrame
+            src={event.imageUrl}
+            alt={event.title}
+            aspect="16/9"
+            focalX={event.imageFocalX ?? 50}
+            focalY={event.imageFocalY ?? 50}
+            sizes="(max-width: 1152px) 100vw, 1152px"
+            priority
+            objectFit="contain"
+            className="bg-muted"
+          />
+        ) : (
+          <MediaFrame
+            src={banners.events.url}
+            alt={event.title}
+            aspect="16/9"
+            focalX={banners.events.focalX}
+            focalY={banners.events.focalY}
+            sizes="(max-width: 1152px) 100vw, 1152px"
+            priority
+            className="bg-muted"
+          />
+        )}
         <div className="relative border-t border-border bg-background/95 px-4 py-4 sm:px-6 sm:py-5">
-          <h1 className="font-sans text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
-            {event.title}
-          </h1>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+            <h1 className="min-w-0 flex-1 font-sans text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
+              {event.title}
+            </h1>
+            <EventShareDialog
+              eventId={event.id}
+              title={event.title}
+              description={event.description}
+              shareUrl={eventUrl}
+              analyticsParams={{
+                event_id: event.id,
+                surface: "detail_page",
+              }}
+              triggerClassName="shrink-0 self-end sm:self-start"
+            />
+          </div>
         </div>
       </div>
 
@@ -382,7 +395,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 )}
               </p>
               {event.scheduleDays && event.scheduleDays.length > 1 && (
-                <details className="mt-3 rounded-lg border border-border bg-background">
+                <details open className="mt-3 rounded-lg border border-border bg-background">
                   <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:bg-muted/50">
                     Schedule ({event.scheduleDays.length} days)
                   </summary>
@@ -446,8 +459,8 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               </div>
             )}
 
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="outline" className="min-h-[44px] shrink-0" asChild>
+            <div className="flex flex-wrap items-stretch gap-2">
+              <Button size="sm" variant="outline" className="min-h-[44px] shrink-0 inline-flex items-center gap-1.5" asChild>
                 <TrackedExternalLink
                   href={directionsUrl}
                   target="_blank"
@@ -457,20 +470,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                     event_id: event.id,
                     surface: "detail_page",
                   }}
+                  className="inline-flex items-center gap-1.5"
                 >
+                  <MapPin className="h-4 w-4 shrink-0 stroke-[1.5] text-foreground" aria-hidden />
                   Get Directions
                 </TrackedExternalLink>
               </Button>
-              <EventShareDialog
-                eventId={event.id}
-                title={event.title}
-                description={event.description}
-                shareUrl={eventUrl}
-                analyticsParams={{
-                  event_id: event.id,
-                  surface: "detail_page",
-                }}
-              />
               <AddToCalendar
                 event={{
                   id: event.id,

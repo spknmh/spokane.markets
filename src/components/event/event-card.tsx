@@ -20,6 +20,8 @@ type EventWithRelations = Event & {
   _count?: { vendorEvents: number };
   scheduleDays?: ScheduleDay[];
   attendance?: { going: number; interested: number };
+  /** Prefer over `_count.vendorEvents` when set (roster + intents + linked vendors). */
+  vendorParticipationCount?: number;
 };
 
 interface EventCardProps {
@@ -32,8 +34,13 @@ interface EventCardProps {
   };
 }
 
+function vendorMetricCount(event: EventWithRelations): number {
+  if (typeof event.vendorParticipationCount === "number") return event.vendorParticipationCount;
+  return event._count?.vendorEvents ?? 0;
+}
+
 function hasCardStats(event: EventWithRelations): boolean {
-  const v = event._count?.vendorEvents ?? 0;
+  const v = vendorMetricCount(event);
   const g = event.attendance?.going ?? 0;
   const i = event.attendance?.interested ?? 0;
   return v > 0 || g > 0 || i > 0;
@@ -100,6 +107,7 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
     }
   }
   const showListImage = !!event.showImageInList && !!event.imageUrl;
+  const vendorCountForCard = vendorMetricCount(event);
 
   const content = (
     <>
@@ -109,10 +117,11 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
             src={event.imageUrl}
             alt={event.title}
             aspect="16/9"
+            objectFit="contain"
             focalX={event.imageFocalX ?? 50}
             focalY={event.imageFocalY ?? 50}
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-            className="rounded-t-none"
+            className="rounded-t-none bg-muted"
           />
         ) : null}
         <CardContent className="flex gap-4 p-5">
@@ -168,11 +177,11 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
                     <span className="text-foreground">{event.attendance?.interested} interested</span>
                   </span>
                 )}
-                {(event._count?.vendorEvents ?? 0) > 0 && (
+                {vendorCountForCard > 0 && (
                   <span className="inline-flex items-center gap-1.5">
                     <Store className="h-4 w-4 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
                     <span className="text-foreground">
-                      {event._count?.vendorEvents} vendor{event._count?.vendorEvents !== 1 ? "s" : ""}
+                      {vendorCountForCard} vendor{vendorCountForCard !== 1 ? "s" : ""}
                     </span>
                   </span>
                 )}

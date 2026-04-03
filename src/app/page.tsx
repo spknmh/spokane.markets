@@ -17,6 +17,7 @@ import { SITE_NAME } from "@/lib/constants";
 import { HomeScrollDepth } from "@/components/analytics/home-scroll-depth";
 import { getVendorOfWeek } from "@/lib/vendor-of-week";
 import { getAttendanceCountsByEventIds } from "@/lib/attendance-counts";
+import { getVendorParticipationCountsByEventIds } from "@/lib/event-vendor-participation-count";
 
 export const dynamic = "force-dynamic";
 
@@ -96,7 +97,10 @@ export default async function HomePage() {
   for (const p of promotions) {
     if (p.event) eventIdsForAttendance.add(p.event.id);
   }
-  const attendanceMap = await getAttendanceCountsByEventIds([...eventIdsForAttendance]);
+  const [attendanceMap, vendorParticipationMap] = await Promise.all([
+    getAttendanceCountsByEventIds([...eventIdsForAttendance]),
+    getVendorParticipationCountsByEventIds([...eventIdsForAttendance]),
+  ]);
 
   return (
     <>
@@ -162,6 +166,7 @@ export default async function HomePage() {
                         ...p.event,
                         _count: p.event._count,
                         attendance: attendanceMap[p.event.id],
+                        vendorParticipationCount: vendorParticipationMap[p.event.id],
                       }}
                       promotionType={p.type}
                       sponsorName={p.sponsorName}
@@ -208,7 +213,11 @@ export default async function HomePage() {
             {weekEvents.map((event) => (
               <EventCard
                 key={event.id}
-                event={{ ...event, attendance: attendanceMap[event.id] }}
+                event={{
+                  ...event,
+                  attendance: attendanceMap[event.id],
+                  vendorParticipationCount: vendorParticipationMap[event.id],
+                }}
               />
             ))}
           </div>
@@ -261,7 +270,11 @@ export default async function HomePage() {
             {planAheadEvents.map((event) => (
               <EventCard
                 key={event.id}
-                event={{ ...event, attendance: attendanceMap[event.id] }}
+                event={{
+                  ...event,
+                  attendance: attendanceMap[event.id],
+                  vendorParticipationCount: vendorParticipationMap[event.id],
+                }}
               />
             ))}
           </div>

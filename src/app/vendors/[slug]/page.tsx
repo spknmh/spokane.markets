@@ -26,6 +26,7 @@ import {
   splitAppearancesByTime,
 } from "@/lib/services/vendor-appearances";
 import { getAttendanceCountsByEventIds } from "@/lib/attendance-counts";
+import { getVendorParticipationCountsByEventIds } from "@/lib/event-vendor-participation-count";
 
 export const dynamic = "force-dynamic";
 
@@ -99,7 +100,10 @@ export default async function VendorProfilePage({ params }: PageProps) {
   const { upcoming, past } = splitAppearancesByTime(appearanceRows);
 
   const appearanceEventIds = [...upcoming, ...past].map((r) => r.event.id);
-  const attendanceMap = await getAttendanceCountsByEventIds(appearanceEventIds);
+  const [attendanceMap, vendorParticipationMap] = await Promise.all([
+    getAttendanceCountsByEventIds(appearanceEventIds),
+    getVendorParticipationCountsByEventIds(appearanceEventIds),
+  ]);
 
   const favorite = session?.user
     ? await db.favoriteVendor.findUnique({
@@ -268,7 +272,11 @@ export default async function VendorProfilePage({ params }: PageProps) {
                 {upcoming.map((row) => (
                   <EventCard
                     key={row.event.id}
-                    event={{ ...row.event, attendance: attendanceMap[row.event.id] }}
+                    event={{
+                      ...row.event,
+                      attendance: attendanceMap[row.event.id],
+                      vendorParticipationCount: vendorParticipationMap[row.event.id],
+                    }}
                   />
                 ))}
               </div>
@@ -285,7 +293,11 @@ export default async function VendorProfilePage({ params }: PageProps) {
                 {past.map((row) => (
                   <EventCard
                     key={row.event.id}
-                    event={{ ...row.event, attendance: attendanceMap[row.event.id] }}
+                    event={{
+                      ...row.event,
+                      attendance: attendanceMap[row.event.id],
+                      vendorParticipationCount: vendorParticipationMap[row.event.id],
+                    }}
                   />
                 ))}
               </div>

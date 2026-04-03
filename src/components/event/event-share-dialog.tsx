@@ -11,15 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Link2,
-  Mail,
-  MessageCircle,
-  MessageSquare,
-  Share2,
-  Facebook,
-  Instagram,
-} from "lucide-react";
+import { Link2, Mail, MessageCircle, MessageSquare, Share2, Facebook } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function buildShareBody(title: string, url: string, description?: string | null): string {
   const lines = [title, "", url];
@@ -35,15 +28,18 @@ export function EventShareDialog({
   description,
   shareUrl,
   analyticsParams,
+  triggerClassName,
 }: {
   eventId: string;
   title: string;
   description: string | null;
   shareUrl: string;
   analyticsParams?: AnalyticsParams;
+  /** Extra classes for the trigger control (e.g. hero title row alignment). */
+  triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState<"link" | "caption" | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const shareText = buildShareBody(title, shareUrl, description);
   const tweetText = encodeURIComponent(`${title} ${shareUrl}`);
@@ -66,12 +62,12 @@ export function EventShareDialog({
   );
 
   const copy = useCallback(
-    async (text: string, kind: "link" | "caption") => {
+    async (text: string) => {
       try {
         await navigator.clipboard.writeText(text);
-        setCopied(kind);
-        setTimeout(() => setCopied(null), 2000);
-        track(kind === "link" ? "copy_link" : "copy_caption");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        track("copy_link");
       } catch {
         track("copy_failed");
       }
@@ -96,30 +92,36 @@ export function EventShareDialog({
         setOpen(false);
       } catch (e) {
         if ((e as Error).name !== "AbortError") {
-          await copy(shareUrl, "link");
+          await copy(shareUrl);
         }
       }
     } else {
-      await copy(shareUrl, "link");
+      await copy(shareUrl);
     }
   }, [copy, description, shareUrl, title, track]);
 
   return (
     <>
-      <Button type="button" variant="outline" size="sm" className="min-h-[44px]" onClick={() => setOpen(true)}>
-        <Share2 className="mr-1.5 h-4 w-4" aria-hidden />
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className={cn("min-h-[44px]", triggerClassName)}
+        onClick={() => setOpen(true)}
+      >
+        <Share2 className="mr-1.5 h-4 w-4 stroke-[1.5]" aria-hidden />
         Share
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Share this event</DialogTitle>
-            <DialogDescription>Copy a link or open your favorite app.</DialogDescription>
+            <DialogDescription>Copy a link or open another app to share.</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2 px-6 pb-6">
             {canNativeShare && (
               <Button type="button" variant="secondary" className="justify-start" onClick={() => void tryNativeShare()}>
-                <Share2 className="mr-2 h-4 w-4 shrink-0" aria-hidden />
+                <Share2 className="mr-2 h-4 w-4 shrink-0 stroke-[1.5]" aria-hidden />
                 Share via device…
               </Button>
             )}
@@ -127,26 +129,26 @@ export function EventShareDialog({
               type="button"
               variant="outline"
               className="justify-start"
-              onClick={() => void copy(shareUrl, "link")}
+              onClick={() => void copy(shareUrl)}
             >
-              <Link2 className="mr-2 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />
-              {copied === "link" ? "Copied!" : "Copy link"}
+              <Link2 className="mr-2 h-4 w-4 shrink-0 stroke-[1.5] text-emerald-600 dark:text-emerald-400" aria-hidden />
+              {copied ? "Copied!" : "Copy link"}
             </Button>
             <Button type="button" variant="outline" className="justify-start" asChild>
               <a href={mailtoHref} onClick={() => track("email")}>
-                <Mail className="mr-2 h-4 w-4 shrink-0 text-slate-600 dark:text-slate-300" aria-hidden />
+                <Mail className="mr-2 h-4 w-4 shrink-0 stroke-[1.5] text-slate-600 dark:text-slate-300" aria-hidden />
                 Email
               </a>
             </Button>
             <Button type="button" variant="outline" className="justify-start" asChild>
               <a href={smsHref} onClick={() => track("sms")}>
-                <MessageSquare className="mr-2 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" aria-hidden />
+                <MessageSquare className="mr-2 h-4 w-4 shrink-0 stroke-[1.5] text-blue-600 dark:text-blue-400" aria-hidden />
                 Messages / SMS
               </a>
             </Button>
             <Button type="button" variant="outline" className="justify-start" asChild>
               <a href={waHref} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp")}>
-                <MessageCircle className="mr-2 h-4 w-4 shrink-0 text-green-600 dark:text-green-400" aria-hidden />
+                <MessageCircle className="mr-2 h-4 w-4 shrink-0 stroke-[1.5] text-green-600 dark:text-green-400" aria-hidden />
                 WhatsApp
               </a>
             </Button>
@@ -164,21 +166,6 @@ export function EventShareDialog({
                 X (Twitter)
               </a>
             </Button>
-            <div className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-              <p className="flex items-start gap-2">
-                <Instagram className="mt-0.5 h-4 w-4 shrink-0 text-pink-600" aria-hidden />
-                Instagram doesn&apos;t support one-tap web sharing. Copy the caption below, then paste in the app.
-              </p>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                className="mt-2 w-full justify-start"
-                onClick={() => void copy(shareText, "caption")}
-              >
-                {copied === "caption" ? "Caption copied!" : "Copy caption for Instagram"}
-              </Button>
-            </div>
           </div>
         </DialogContent>
       </Dialog>
