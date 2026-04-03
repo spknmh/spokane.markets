@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { AttendanceToggle } from "@/components/attendance-toggle";
 import { ReviewList } from "@/components/review-list";
 import { WriteReviewButton } from "@/components/write-review-button";
-import { ShareButton } from "@/components/share-button";
+import { EventShareDialog } from "@/components/event/event-share-dialog";
 import { AddToCalendar } from "@/components/add-to-calendar";
 import { ReportButton } from "@/components/report-button";
 import { OfficialVendorRoster } from "@/components/vendor/official-vendor-roster";
@@ -125,6 +125,13 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const privateSelfReportedCount = selfReportIntents.filter((i) => i.visibility === "PRIVATE").length;
   const selfReportedTotal = selfReportIntents.length;
 
+  const rosterVisible =
+    participationConfig.publicRosterEnabled &&
+    (officialVendors.length > 0 || participationConfig.vendorCapacity != null);
+  const selfReportedVisible =
+    participationConfig.publicIntentListEnabled && selfReportedTotal > 0;
+  const showVendorsSection = rosterVisible || selfReportedVisible;
+
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const eventUrl = `${baseUrl}/events/${event.slug}`;
   const eventImage = event.imageUrl
@@ -171,46 +178,49 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
         category={event.tags[0]?.slug}
         neighborhood={event.venue.neighborhood ?? undefined}
       />
+      <nav className="mb-6 text-sm text-muted-foreground">
+        <Link href="/events" className="transition-colors hover:text-primary">
+          Events
+        </Link>
+        <span className="mx-2">·</span>
+        <span className="text-foreground">{event.title}</span>
+      </nav>
+
+      <div className="relative mb-6 overflow-hidden rounded-xl ring-1 ring-border sm:mb-8">
+        <div className="relative h-48 w-full sm:h-64">
+          {event.imageUrl ? (
+            <Image
+              src={event.imageUrl}
+              alt={event.title}
+              fill
+              className="object-cover"
+              style={{ objectPosition: `${event.imageFocalX ?? 50}% ${event.imageFocalY ?? 50}%` }}
+              priority
+              sizes="(max-width: 1152px) 100vw, 1152px"
+              unoptimized={event.imageUrl.startsWith("/uploads/") || event.imageUrl.startsWith("http")}
+            />
+          ) : (
+            <Image
+              src={banners.events.url}
+              alt={event.title}
+              fill
+              className="object-cover"
+              style={{ objectPosition: banners.events.objectPosition }}
+              sizes="(max-width: 1152px) 100vw, 1152px"
+              unoptimized={isBannerUnoptimized(banners.events.url)}
+            />
+          )}
+        </div>
+        <div className="relative border-t border-border bg-background/95 px-4 py-4 sm:px-6 sm:py-5">
+          <h1 className="font-sans text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
+            {event.title}
+          </h1>
+        </div>
+      </div>
+
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
         {/* Main content */}
         <div className="min-w-0 flex-1">
-          <nav className="mb-6 text-sm text-muted-foreground">
-            <Link href="/events" className="transition-colors hover:text-primary">
-              Events
-            </Link>
-            <span className="mx-2">·</span>
-            <span className="text-foreground">{event.title}</span>
-          </nav>
-
-          <div className="overflow-hidden rounded-lg ring-1 ring-border">
-            {event.imageUrl ? (
-              <Image
-                src={event.imageUrl}
-                alt={event.title}
-                width={1200}
-                height={400}
-                className="h-64 w-full object-cover sm:h-80"
-                style={{ objectPosition: `${event.imageFocalX ?? 50}% ${event.imageFocalY ?? 50}%` }}
-                priority
-                unoptimized={event.imageUrl.startsWith("/uploads/") || event.imageUrl.startsWith("http")}
-              />
-            ) : (
-              <Image
-                src={banners.events.url}
-                alt={event.title}
-                width={800}
-                height={320}
-                className="h-64 w-full object-cover sm:h-80"
-                style={{ objectPosition: banners.events.objectPosition }}
-                unoptimized={isBannerUnoptimized(banners.events.url)}
-              />
-            )}
-          </div>
-
-          <h1 className="mt-6 font-sans text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            {event.title}
-          </h1>
-
           {event.description && (
             <div className="mt-6">
               <h2 className="text-lg font-semibold text-foreground">About this event</h2>
@@ -322,6 +332,31 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             </div>
           )}
 
+          {showVendorsSection ? (
+            <section className="mt-10 rounded-xl border border-border bg-muted/20 p-5">
+              <h2 className="text-lg font-semibold text-foreground">Vendors</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Official listings are organizer-verified; self-reported attendance is not confirmed by the host.
+              </p>
+              <div className="mt-4 space-y-6">
+                {rosterVisible ? (
+                  <OfficialVendorRoster
+                    vendors={officialVendors}
+                    capacity={participationConfig.vendorCapacity}
+                    publicRosterEnabled={participationConfig.publicRosterEnabled}
+                  />
+                ) : null}
+                {selfReportedVisible ? (
+                  <SelfReportedVendorList
+                    publicVendors={publicSelfReportedVendors}
+                    privateVendorCount={privateSelfReportedCount}
+                    showNames={participationConfig.publicIntentNamesEnabled}
+                  />
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+
           <div className="mt-10">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Reviews</h2>
@@ -397,45 +432,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   🅿️ {event.venue.parkingNotes}
                 </p>
               )}
-              <Button size="sm" variant="outline" className="mt-2 min-h-[44px]" asChild>
-                <TrackedExternalLink
-                  href={directionsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  eventName="event_get_directions_click"
-                  eventParams={{
-                    event_id: event.id,
-                    surface: "detail_page",
-                  }}
-                >
-                  Get Directions →
-                </TrackedExternalLink>
-              </Button>
             </div>
-
-            <ShareButton
-              url={`${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/events/${event.slug}`}
-              title={event.title}
-              text={event.description ?? undefined}
-              analyticsEventName="event_share_click"
-              analyticsParams={{
-                event_id: event.id,
-                surface: "detail_page",
-              }}
-            />
-
-            <AddToCalendar
-              event={{
-                id: event.id,
-                title: event.title,
-                slug: event.slug,
-                description: event.description,
-                startDate: event.startDate,
-                endDate: event.endDate,
-              }}
-              venue={event.venue}
-              eventPageUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/events/${event.slug}`}
-            />
 
             {event.market && (
               <div>
@@ -449,19 +446,44 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               </div>
             )}
 
-            <OfficialVendorRoster
-              vendors={officialVendors}
-              capacity={participationConfig.vendorCapacity}
-              publicRosterEnabled={participationConfig.publicRosterEnabled}
-            />
-
-            {participationConfig.publicIntentListEnabled && selfReportedTotal > 0 && (
-              <SelfReportedVendorList
-                publicVendors={publicSelfReportedVendors}
-                privateVendorCount={privateSelfReportedCount}
-                showNames={participationConfig.publicIntentNamesEnabled}
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" className="min-h-[44px] shrink-0" asChild>
+                <TrackedExternalLink
+                  href={directionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  eventName="event_get_directions_click"
+                  eventParams={{
+                    event_id: event.id,
+                    surface: "detail_page",
+                  }}
+                >
+                  Get Directions
+                </TrackedExternalLink>
+              </Button>
+              <EventShareDialog
+                eventId={event.id}
+                title={event.title}
+                description={event.description}
+                shareUrl={eventUrl}
+                analyticsParams={{
+                  event_id: event.id,
+                  surface: "detail_page",
+                }}
               />
-            )}
+              <AddToCalendar
+                event={{
+                  id: event.id,
+                  title: event.title,
+                  slug: event.slug,
+                  description: event.description,
+                  startDate: event.startDate,
+                  endDate: event.endDate,
+                }}
+                venue={event.venue}
+                eventPageUrl={eventUrl}
+              />
+            </div>
 
             <EventVendorActions
               eventId={event.id}
@@ -482,21 +504,23 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               callbackUrl={`/events/${event.slug}`}
             />
 
-            <ReportButton
-              targetType="EVENT"
-              targetId={event.id}
-              isLoggedIn={!!session?.user}
-            />
-
-            {(event.tags.length > 0 || event.features.length > 0) && (
+            {event.tags.length > 0 && (
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Categories</p>
+                <p className="text-sm font-medium text-muted-foreground">Tags</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {event.tags.map((tag) => (
                     <Badge key={tag.id} variant="secondary">
                       {tag.name}
                     </Badge>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {event.features.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Features &amp; amenities</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
                   {event.features.map((feature) => (
                     <Badge key={feature.id} variant="outline">
                       {feature.icon && <span className="mr-0.5">{feature.icon}</span>}
@@ -506,6 +530,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 </div>
               </div>
             )}
+
+            <ReportButton
+              targetType="EVENT"
+              targetId={event.id}
+              isLoggedIn={!!session?.user}
+            />
           </div>
         </aside>
       </div>

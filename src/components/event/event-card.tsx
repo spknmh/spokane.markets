@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { isMultiDayEvent, formatTime12hr } from "@/lib/utils";
 import { MediaFrame } from "@/components/media";
+import { UserCheck, Heart, Store } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type ScheduleDay = { date: Date; startTime: string; endTime: string; allDay: boolean };
 
@@ -17,6 +19,7 @@ type EventWithRelations = Event & {
   features: Feature[];
   _count?: { vendorEvents: number };
   scheduleDays?: ScheduleDay[];
+  attendance?: { going: number; interested: number };
 };
 
 interface EventCardProps {
@@ -27,6 +30,13 @@ interface EventCardProps {
     resultIndex?: number;
     queryPresent: boolean;
   };
+}
+
+function hasCardStats(event: EventWithRelations): boolean {
+  const v = event._count?.vendorEvents ?? 0;
+  const g = event.attendance?.going ?? 0;
+  const i = event.attendance?.interested ?? 0;
+  return v > 0 || g > 0 || i > 0;
 }
 
 const monthFormatUTC = new Intl.DateTimeFormat("en-US", {
@@ -139,10 +149,34 @@ export function EventCard({ event, analyticsContext }: EventCardProps) {
               {event.venue.name}
             </p>
 
-            {event._count && event._count.vendorEvents > 0 && (
-              <p className="text-sm font-medium text-foreground">
-                {event._count.vendorEvents} vendor{event._count.vendorEvents !== 1 ? "s" : ""} participating
-              </p>
+            {hasCardStats(event) && (
+              <div
+                className={cn(
+                  "flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-sm tabular-nums",
+                  "text-muted-foreground"
+                )}
+              >
+                {(event.attendance?.going ?? 0) > 0 && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <UserCheck className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />
+                    <span className="text-foreground">{event.attendance?.going} going</span>
+                  </span>
+                )}
+                {(event.attendance?.interested ?? 0) > 0 && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Heart className="h-4 w-4 shrink-0 text-rose-500 dark:text-rose-400" aria-hidden />
+                    <span className="text-foreground">{event.attendance?.interested} interested</span>
+                  </span>
+                )}
+                {(event._count?.vendorEvents ?? 0) > 0 && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Store className="h-4 w-4 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+                    <span className="text-foreground">
+                      {event._count?.vendorEvents} vendor{event._count?.vendorEvents !== 1 ? "s" : ""}
+                    </span>
+                  </span>
+                )}
+              </div>
             )}
 
             <div className="flex flex-wrap gap-1.5 pt-0.5">

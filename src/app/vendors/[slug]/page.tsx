@@ -25,6 +25,7 @@ import {
   getVendorAppearances,
   splitAppearancesByTime,
 } from "@/lib/services/vendor-appearances";
+import { getAttendanceCountsByEventIds } from "@/lib/attendance-counts";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +97,9 @@ export default async function VendorProfilePage({ params }: PageProps) {
 
   const { rows: appearanceRows } = await getVendorAppearances(vendor.id);
   const { upcoming, past } = splitAppearancesByTime(appearanceRows);
+
+  const appearanceEventIds = [...upcoming, ...past].map((r) => r.event.id);
+  const attendanceMap = await getAttendanceCountsByEventIds(appearanceEventIds);
 
   const favorite = session?.user
     ? await db.favoriteVendor.findUnique({
@@ -262,7 +266,10 @@ export default async function VendorProfilePage({ params }: PageProps) {
             ) : (
               <div className="mt-4 space-y-4">
                 {upcoming.map((row) => (
-                  <EventCard key={row.event.id} event={row.event} />
+                  <EventCard
+                    key={row.event.id}
+                    event={{ ...row.event, attendance: attendanceMap[row.event.id] }}
+                  />
                 ))}
               </div>
             )}
@@ -276,7 +283,10 @@ export default async function VendorProfilePage({ params }: PageProps) {
               </p>
               <div className="mt-4 space-y-4">
                 {past.map((row) => (
-                  <EventCard key={row.event.id} event={row.event} />
+                  <EventCard
+                    key={row.event.id}
+                    event={{ ...row.event, attendance: attendanceMap[row.event.id] }}
+                  />
                 ))}
               </div>
             </section>

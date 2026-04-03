@@ -24,6 +24,7 @@ import {
   getVendorAppearances,
   splitAppearancesByTime,
 } from "@/lib/services/vendor-appearances";
+import { getAttendanceCountsByEventIds } from "@/lib/attendance-counts";
 import { RequestVerificationButton } from "@/components/vendor/request-verification-button";
 import { VendorOnboardingChecklist } from "@/components/vendor/vendor-onboarding-checklist";
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +98,9 @@ export default async function VendorDashboardPage({
   const { rows: appearanceRows } = await getVendorAppearances(profile.id);
   const { upcoming: upcomingAppearanceRows, past: pastAppearanceRows } =
     splitAppearancesByTime(appearanceRows, new Date(), { pastLimit: 12 });
+
+  const dashEventIds = [...upcomingAppearanceRows, ...pastAppearanceRows].map((r) => r.event.id);
+  const attendanceMap = await getAttendanceCountsByEventIds(dashEventIds);
 
   const favoritedCount = profile._count.favoriteVendors;
   const profileCompletionPercent = computeVendorProfileCompletion(profile);
@@ -300,7 +304,10 @@ export default async function VendorDashboardPage({
         ) : (
           <div className="space-y-3">
             {upcomingAppearanceRows.map((row) => (
-              <EventCard key={row.event.id} event={row.event} />
+              <EventCard
+                key={row.event.id}
+                event={{ ...row.event, attendance: attendanceMap[row.event.id] }}
+              />
             ))}
           </div>
         )}
@@ -311,7 +318,10 @@ export default async function VendorDashboardPage({
           <h2 className="text-xl font-semibold">Recent appearances</h2>
           <div className="space-y-3">
             {pastAppearanceRows.map((row) => (
-              <EventCard key={row.event.id} event={row.event} />
+              <EventCard
+                key={row.event.id}
+                event={{ ...row.event, attendance: attendanceMap[row.event.id] }}
+              />
             ))}
           </div>
         </section>

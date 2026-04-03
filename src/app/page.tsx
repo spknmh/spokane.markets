@@ -16,6 +16,7 @@ import {
 import { SITE_NAME } from "@/lib/constants";
 import { HomeScrollDepth } from "@/components/analytics/home-scroll-depth";
 import { getVendorOfWeek } from "@/lib/vendor-of-week";
+import { getAttendanceCountsByEventIds } from "@/lib/attendance-counts";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +90,14 @@ export default async function HomePage() {
     getVendorOfWeek(),
   ]);
 
+  const eventIdsForAttendance = new Set<string>();
+  for (const e of weekEvents) eventIdsForAttendance.add(e.id);
+  for (const e of planAheadEvents) eventIdsForAttendance.add(e.id);
+  for (const p of promotions) {
+    if (p.event) eventIdsForAttendance.add(p.event.id);
+  }
+  const attendanceMap = await getAttendanceCountsByEventIds([...eventIdsForAttendance]);
+
   return (
     <>
       <HomeScrollDepth />
@@ -152,6 +161,7 @@ export default async function HomePage() {
                       event={{
                         ...p.event,
                         _count: p.event._count,
+                        attendance: attendanceMap[p.event.id],
                       }}
                       promotionType={p.type}
                       sponsorName={p.sponsorName}
@@ -196,7 +206,10 @@ export default async function HomePage() {
         {weekEvents.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
             {weekEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard
+                key={event.id}
+                event={{ ...event, attendance: attendanceMap[event.id] }}
+              />
             ))}
           </div>
         ) : (
@@ -246,7 +259,10 @@ export default async function HomePage() {
         {planAheadEvents.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
             {planAheadEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard
+                key={event.id}
+                event={{ ...event, attendance: attendanceMap[event.id] }}
+              />
             ))}
           </div>
         ) : (
