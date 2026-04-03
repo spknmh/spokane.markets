@@ -118,9 +118,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const officialVendors = event.vendorRoster.map((r) => r.vendorProfile);
 
   const officialIds = new Set(officialVendors.map((v) => v.id));
-  const selfReportedVendors = event.vendorIntents
-    .map((i) => i.vendorProfile)
-    .filter((v) => !officialIds.has(v.id));
+  const selfReportIntents = event.vendorIntents.filter((i) => !officialIds.has(i.vendorProfile.id));
+  const publicSelfReportedVendors = selfReportIntents
+    .filter((i) => i.visibility === "PUBLIC")
+    .map((i) => i.vendorProfile);
+  const privateSelfReportedCount = selfReportIntents.filter((i) => i.visibility === "PRIVATE").length;
+  const selfReportedTotal = selfReportIntents.length;
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const eventUrl = `${baseUrl}/events/${event.slug}`;
@@ -452,14 +455,13 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               publicRosterEnabled={participationConfig.publicRosterEnabled}
             />
 
-            {participationConfig.publicIntentListEnabled &&
-              selfReportedVendors.length > 0 && (
-                <SelfReportedVendorList
-                  vendors={selfReportedVendors}
-                  count={selfReportedVendors.length}
-                  showNames={participationConfig.publicIntentNamesEnabled}
-                />
-              )}
+            {participationConfig.publicIntentListEnabled && selfReportedTotal > 0 && (
+              <SelfReportedVendorList
+                publicVendors={publicSelfReportedVendors}
+                privateVendorCount={privateSelfReportedCount}
+                showNames={participationConfig.publicIntentNamesEnabled}
+              />
+            )}
 
             <EventVendorActions
               eventId={event.id}

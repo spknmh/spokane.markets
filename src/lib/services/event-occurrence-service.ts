@@ -81,7 +81,6 @@ export async function findEventBySlug(slug: string, userId?: string): Promise<Ev
       vendorIntents: {
         where: {
           status: { in: ["ATTENDING", "INTERESTED"] },
-          visibility: "PUBLIC",
         },
         include: {
           vendorProfile: {
@@ -147,7 +146,6 @@ export async function findEventByIdOrSlug(idOrSlug: string, userId?: string): Pr
       vendorIntents: {
         where: {
           status: { in: ["ATTENDING", "INTERESTED"] },
-          visibility: "PUBLIC",
         },
         include: {
           vendorProfile: {

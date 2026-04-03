@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { findEventByIdOrSlug } from "@/lib/services/event-occurrence-service";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { vendorIntentSchema } from "@/lib/validations";
+import { resolveIntentVisibilityForCreate } from "@/lib/vendor-intent-visibility";
 
 async function findEvent(eventIdOrSlug: string) {
   return findEventByIdOrSlug(eventIdOrSlug);
@@ -60,6 +61,8 @@ export async function POST(
 
     const { status, visibility, notes } = parsed.data;
 
+    const visibilityOnCreate = resolveIntentVisibilityForCreate(status, visibility);
+
     const intent = await db.eventVendorIntent.upsert({
       where: {
         eventId_vendorProfileId: {
@@ -71,7 +74,7 @@ export async function POST(
         eventId: event.id,
         vendorProfileId: profile.id,
         status,
-        visibility: visibility ?? "PRIVATE",
+        visibility: visibilityOnCreate,
         notes: notes ?? null,
       },
       update: {

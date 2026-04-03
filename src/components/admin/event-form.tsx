@@ -3,7 +3,7 @@
 import { useForm, useFieldArray, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventSchema, type EventInput } from "@/lib/validations";
-import { formatDateOnlyLocal, formatDateOnlyUTC, slugify } from "@/lib/utils";
+import { formatDateOnlyLocal, formatDateOnlyUTC, slugify, cn } from "@/lib/utils";
 import {
   applyScheduleToEventPayload,
   DEFAULT_END_TIME,
@@ -28,6 +28,14 @@ import {
   EventSubmissionReviewPanel,
   type AdminEventReviewContext,
 } from "@/components/admin/event-submission-review-panel";
+
+const EVENT_STATUS_OPTIONS = [
+  { value: "DRAFT" as const, label: "Draft" },
+  { value: "PENDING" as const, label: "Pending Review" },
+  { value: "PUBLISHED" as const, label: "Published" },
+  { value: "REJECTED" as const, label: "Rejected" },
+  { value: "CANCELLED" as const, label: "Cancelled" },
+] as const;
 
 type ScheduleDay = {
   date: string;
@@ -683,14 +691,21 @@ export function EventForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="status">Status</Label>
-        <Select id="status" {...register("status")}>
-          <option value="DRAFT">Draft</option>
-          <option value="PENDING">Pending Review</option>
-          <option value="PUBLISHED">Published</option>
-          <option value="REJECTED">Rejected</option>
-          <option value="CANCELLED">Cancelled</option>
-        </Select>
+        <Label>Status</Label>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Event status">
+          {EVENT_STATUS_OPTIONS.map((opt) => (
+            <label
+              key={opt.value}
+              className={cn(
+                "flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm",
+                "has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground"
+              )}
+            >
+              <input type="radio" className="sr-only" value={opt.value} {...register("status")} />
+              {opt.label}
+            </label>
+          ))}
+        </div>
       </div>
 
       {initialData && watchStatus !== "PENDING" && (
