@@ -27,6 +27,7 @@ import {
   Database,
   Megaphone,
   Tag,
+  WandSparkles,
 } from "lucide-react";
 
 type NavItem = { label: string; href: string; icon: React.ComponentType<{ className?: string }> };
@@ -76,6 +77,13 @@ const navGroups: NavGroup[] = [
       { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
       { label: "Photos", href: "/admin/photos", icon: ImageIcon },
       { label: "Reports", href: "/admin/reports", icon: Flag },
+    ],
+  },
+  {
+    label: "Marketing",
+    defaultOpen: true,
+    items: [
+      { label: "Asset Studio", href: "/admin/marketing/asset-studio", icon: WandSparkles },
     ],
   },
   {

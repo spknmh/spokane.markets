@@ -9,6 +9,7 @@ export const ADMIN_PERMISSION_KEYS = [
   "admin.audit.read",
   "admin.analytics.read",
   "admin.system.read",
+  "admin.marketing.manage",
 ] as const;
 
 export type AdminPermissionKey = (typeof ADMIN_PERMISSION_KEYS)[number];

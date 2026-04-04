@@ -21,6 +21,7 @@ const LABELS: Record<AdminPermissionKey, string> = {
   "admin.audit.read": "View audit log",
   "admin.analytics.read": "View analytics",
   "admin.system.read": "View system health",
+  "admin.marketing.manage": "Manage marketing studio",
 };
 
 export function PermissionsMatrix({

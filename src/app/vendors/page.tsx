@@ -9,7 +9,6 @@ import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import { getBannerImages } from "@/lib/banner-images";
 import { isBannerUnoptimized } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { FavoriteVendorButton } from "@/components/vendor/favorite-vendor-button";
 import {
   Card,
@@ -24,6 +23,7 @@ import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
 import { getVendorOfWeek } from "@/lib/vendor-of-week";
 import { MediaFrame } from "@/components/media";
 import { VENDOR_PROFILE_INTENT_STATUSES } from "@/lib/vendor-public-events";
+import { CalendarDays, History, Heart } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -263,16 +263,23 @@ export default async function VendorsPage({
                       <VendorVerifiedBadge status={vendor.verificationStatus} />
                     </div>
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    <Badge variant="secondary" className="shrink-0">
-                      {appearanceCountByVendor.get(vendor.id)?.upcoming ?? 0} upcoming
-                    </Badge>
-                    <Badge variant="outline" className="shrink-0">
-                      {appearanceCountByVendor.get(vendor.id)?.past ?? 0} past
-                    </Badge>
-                    <Badge variant="outline" className="shrink-0">
-                      {vendor._count.favoriteVendors} likes
-                    </Badge>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-0.5 text-sm tabular-nums text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                      <CalendarDays className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />
+                      <span className="text-foreground">
+                        {appearanceCountByVendor.get(vendor.id)?.upcoming ?? 0} upcoming
+                      </span>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <History className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
+                      <span className="text-foreground">
+                        {appearanceCountByVendor.get(vendor.id)?.past ?? 0} past
+                      </span>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Heart className="h-4 w-4 shrink-0 text-rose-500 dark:text-rose-400" aria-hidden />
+                      <span className="text-foreground">{vendor._count.favoriteVendors} likes</span>
+                    </span>
                   </div>
                   {vendor.specialties && (
                     <p className="line-clamp-1 text-sm font-semibold text-foreground">

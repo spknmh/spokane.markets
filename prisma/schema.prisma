@@ -244,6 +244,8 @@ model User {
   applications           Application[]
   listingModerationNotes ListingModerationNote[] @relation("ListingModerationAuthor")
   uploadedListingEvidences ListingEvidence[]     @relation("ListingEvidenceUploader")
+  marketingRenders       MarketingRender[]
+  marketingFolders       MarketingFolder[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -489,6 +491,7 @@ model Market {
   memberships   MarketMembership[]
   evidences     ListingEvidence[]       @relation("MarketEvidence")
   moderationNotes ListingModerationNote[] @relation("MarketModerationNotes")
+  marketingRenders MarketingRender[]    @relation("MarketingRenderMarket")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -578,6 +581,7 @@ model Event {
   submissionFrom Submission? @relation("SubmissionCreatedEvent")
   evidences     ListingEvidence[]       @relation("EventEvidence")
   moderationNotes ListingModerationNote[] @relation("EventModerationNotes")
+  marketingRenders MarketingRender[]     @relation("MarketingRenderEvent")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -917,6 +921,7 @@ model VendorProfile {
   vendorRoster    EventVendorRoster[]
   favoriteVendors FavoriteVendor[]
   promotions      Promotion[]
+  marketingRenders MarketingRender[]    @relation("MarketingRenderVendor")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1070,6 +1075,158 @@ model SiteConfig {
   @@map("site_config")
 }
 
+model MarketingCampaign {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  name      String
+  year      Int?
+  metadata  Json?
+  active    Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  templates MarketingTemplate[]
+
+  @@index([active])
+  @@map("marketing_campaigns")
+}
+
+model MarketingTemplate {
+  id                    String                   @id @default(cuid())
+  slug                  String                   @unique
+  name                  String
+  category              String
+  profile               MarketingTemplateProfile
+  placeholderSchemaJson Json?
+  safeHtmlPlaceholders  String[]                 @default([])
+  companionTextKeys     String[]                 @default([])
+  friendlyFilenameStem  String?
+  defaultScale          Int                      @default(2)
+  active                Boolean                  @default(true)
+  version               Int                      @default(1)
+  campaignId            String?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  campaign MarketingCampaign?    @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  assets   MarketingTemplateAsset[]
+  renders  MarketingRender[]
+
+  @@index([category, active])
+  @@index([campaignId])
+  @@map("marketing_templates")
+}
+
+model MarketingTemplateAsset {
+  id            String                    @id @default(cuid())
+  templateId    String
+  kind          MarketingTemplateAssetKind
+  name          String
+  storageKey    String?
+  inlineContent String?                   @db.Text
+  mimeType      String?
+  checksum      String?
+  sizeBytes     Int?
+  version       Int                       @default(1)
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  template MarketingTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId, kind])
+  @@unique([templateId, kind, name])
+  @@map("marketing_template_assets")
+}
+
+model MarketingRender {
+  id              String              @id @default(cuid())
+  userId          String
+  templateId      String
+  templateVersion Int
+  vendorId        String?
+  eventId         String?
+  marketId        String?
+  variablesJson   Json
+  scale           Int
+  status          MarketingRenderStatus @default(QUEUED)
+  errorMessage    String?             @db.Text
+  pngOutputsJson  Json?
+  textOutputsJson Json?
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template MarketingTemplate @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  vendor   VendorProfile?   @relation("MarketingRenderVendor", fields: [vendorId], references: [id], onDelete: SetNull)
+  event    Event?           @relation("MarketingRenderEvent", fields: [eventId], references: [id], onDelete: SetNull)
+  market   Market?          @relation("MarketingRenderMarket", fields: [marketId], references: [id], onDelete: SetNull)
+  folders  MarketingRenderFolder[]
+  tags     MarketingRenderTag[]
+
+  @@index([userId, createdAt])
+  @@index([templateId, createdAt])
+  @@index([status, createdAt])
+  @@index([deletedAt])
+  @@map("marketing_renders")
+}
+
+model MarketingFolder {
+  id          String   @id @default(cuid())
+  name        String
+  createdById String
+  deletedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User                   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  renders   MarketingRenderFolder[]
+
+  @@index([createdById, createdAt])
+  @@index([deletedAt])
+  @@map("marketing_folders")
+}
+
+model MarketingTag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  renders MarketingRenderTag[]
+
+  @@map("marketing_tags")
+}
+
+model MarketingRenderFolder {
+  renderId String
+  folderId String
+  createdAt DateTime @default(now())
+
+  render MarketingRender @relation(fields: [renderId], references: [id], onDelete: Cascade)
+  folder MarketingFolder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@id([renderId, folderId])
+  @@index([folderId, createdAt])
+  @@map("marketing_render_folders")
+}
+
+model MarketingRenderTag {
+  renderId String
+  tagId    String
+  createdAt DateTime @default(now())
+
+  render MarketingRender @relation(fields: [renderId], references: [id], onDelete: Cascade)
+  tag    MarketingTag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([renderId, tagId])
+  @@index([tagId, createdAt])
+  @@map("marketing_render_tags")
+}
+
 // ─── Application Forms (admin-configurable) ─────────────────────────
 
 enum ApplicationFormType {
@@ -1084,6 +1241,25 @@ enum ApplicationStatus {
   REJECTED
   NEEDS_INFO
   DUPLICATE
+}
+
+enum MarketingTemplateProfile {
+  SQUARE
+  IG_STORY
+}
+
+enum MarketingTemplateAssetKind {
+  HTML
+  TEXT
+  IMAGE
+}
+
+enum MarketingRenderStatus {
+  QUEUED
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
 }
 
 model ApplicationForm {
