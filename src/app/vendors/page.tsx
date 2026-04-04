@@ -65,7 +65,7 @@ export default async function VendorsPage({
     db.vendorProfile.findMany({
       where,
       orderBy: { businessName: "asc" },
-      include: { _count: { select: { vendorEvents: true } } },
+      include: { _count: { select: { favoriteVendors: true } } },
       skip: (page - 1) * limit,
       take: limit,
     }),
@@ -76,6 +76,42 @@ export default async function VendorsPage({
 
   const totalPages = Math.ceil(totalCount / limit);
   const showVendorOfWeek = !q && page === 1 && !!vendorOfWeek;
+  const vendorIds = vendors.map((vendor) => vendor.id);
+  const now = new Date();
+  const [upcomingEventCounts, pastEventCounts] = vendorIds.length
+    ? await Promise.all([
+        db.vendorEvent.groupBy({
+          by: ["vendorProfileId"],
+          where: {
+            vendorProfileId: { in: vendorIds },
+            event: {
+              deletedAt: null,
+              status: "PUBLISHED",
+              startDate: { gte: now },
+            },
+          },
+          _count: { _all: true },
+        }),
+        db.vendorEvent.groupBy({
+          by: ["vendorProfileId"],
+          where: {
+            vendorProfileId: { in: vendorIds },
+            event: {
+              deletedAt: null,
+              status: "PUBLISHED",
+              startDate: { lt: now },
+            },
+          },
+          _count: { _all: true },
+        }),
+      ])
+    : [[], []];
+  const upcomingEventCountByVendor = new Map(
+    upcomingEventCounts.map((row) => [row.vendorProfileId, row._count._all])
+  );
+  const pastEventCountByVendor = new Map(
+    pastEventCounts.map((row) => [row.vendorProfileId, row._count._all])
+  );
   const favoriteIds = session?.user
     ? (
         await db.favoriteVendor.findMany({
@@ -199,12 +235,17 @@ export default async function VendorsPage({
                       </CardTitle>
                       <VendorVerifiedBadge status={vendor.verificationStatus} />
                     </div>
-                    {vendor._count.vendorEvents > 0 && (
-                      <Badge variant="secondary" className="shrink-0">
-                        {vendor._count.vendorEvents} event
-                        {vendor._count.vendorEvents !== 1 ? "s" : ""}
-                      </Badge>
-                    )}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <Badge variant="secondary" className="shrink-0">
+                      {upcomingEventCountByVendor.get(vendor.id) ?? 0} upcoming
+                    </Badge>
+                    <Badge variant="outline" className="shrink-0">
+                      {pastEventCountByVendor.get(vendor.id) ?? 0} past
+                    </Badge>
+                    <Badge variant="outline" className="shrink-0">
+                      {vendor._count.favoriteVendors} likes
+                    </Badge>
                   </div>
                   {vendor.specialties && (
                     <p className="line-clamp-1 text-sm font-semibold text-foreground">
