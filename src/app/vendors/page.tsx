@@ -23,6 +23,7 @@ import { VendorOfWeekCard } from "@/components/vendor/vendor-of-week-card";
 import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
 import { getVendorOfWeek } from "@/lib/vendor-of-week";
 import { MediaFrame } from "@/components/media";
+import { VENDOR_PROFILE_INTENT_STATUSES } from "@/lib/vendor-public-events";
 
 export const dynamic = "force-dynamic";
 
@@ -78,40 +79,66 @@ export default async function VendorsPage({
   const showVendorOfWeek = !q && page === 1 && !!vendorOfWeek;
   const vendorIds = vendors.map((vendor) => vendor.id);
   const now = new Date();
-  const [upcomingEventCounts, pastEventCounts] = vendorIds.length
-    ? await Promise.all([
-        db.vendorEvent.groupBy({
-          by: ["vendorProfileId"],
-          where: {
-            vendorProfileId: { in: vendorIds },
-            event: {
-              deletedAt: null,
-              status: "PUBLISHED",
-              startDate: { gte: now },
-            },
-          },
-          _count: { _all: true },
-        }),
-        db.vendorEvent.groupBy({
-          by: ["vendorProfileId"],
-          where: {
-            vendorProfileId: { in: vendorIds },
-            event: {
-              deletedAt: null,
-              status: "PUBLISHED",
-              startDate: { lt: now },
-            },
-          },
-          _count: { _all: true },
-        }),
-      ])
-    : [[], []];
-  const upcomingEventCountByVendor = new Map(
-    upcomingEventCounts.map((row) => [row.vendorProfileId, row._count._all])
-  );
-  const pastEventCountByVendor = new Map(
-    pastEventCounts.map((row) => [row.vendorProfileId, row._count._all])
-  );
+  const appearanceCountByVendor = new Map<string, { upcoming: number; past: number }>();
+  if (vendorIds.length) {
+    const [linkedRows, intentRows, rosterRows] = await Promise.all([
+      db.vendorEvent.findMany({
+        where: {
+          vendorProfileId: { in: vendorIds },
+          event: { deletedAt: null, status: "PUBLISHED" },
+        },
+        select: {
+          vendorProfileId: true,
+          event: { select: { id: true, startDate: true } },
+        },
+      }),
+      db.eventVendorIntent.findMany({
+        where: {
+          vendorProfileId: { in: vendorIds },
+          status: { in: VENDOR_PROFILE_INTENT_STATUSES },
+          event: { deletedAt: null, status: "PUBLISHED" },
+        },
+        select: {
+          vendorProfileId: true,
+          event: { select: { id: true, startDate: true } },
+        },
+      }),
+      db.eventVendorRoster.findMany({
+        where: {
+          vendorProfileId: { in: vendorIds },
+          status: { in: ["INVITED", "ACCEPTED", "CONFIRMED"] },
+          event: { deletedAt: null, status: "PUBLISHED" },
+        },
+        select: {
+          vendorProfileId: true,
+          event: { select: { id: true, startDate: true } },
+        },
+      }),
+    ]);
+
+    const dedupedEventsByVendor = new Map<string, Map<string, Date>>();
+    const rows = [...linkedRows, ...intentRows, ...rosterRows];
+    for (const row of rows) {
+      let eventMap = dedupedEventsByVendor.get(row.vendorProfileId);
+      if (!eventMap) {
+        eventMap = new Map<string, Date>();
+        dedupedEventsByVendor.set(row.vendorProfileId, eventMap);
+      }
+      if (!eventMap.has(row.event.id)) {
+        eventMap.set(row.event.id, row.event.startDate);
+      }
+    }
+
+    for (const [vendorId, eventMap] of dedupedEventsByVendor.entries()) {
+      let upcoming = 0;
+      let past = 0;
+      for (const startDate of eventMap.values()) {
+        if (startDate >= now) upcoming += 1;
+        else past += 1;
+      }
+      appearanceCountByVendor.set(vendorId, { upcoming, past });
+    }
+  }
   const favoriteIds = session?.user
     ? (
         await db.favoriteVendor.findMany({
@@ -238,10 +265,10 @@ export default async function VendorsPage({
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     <Badge variant="secondary" className="shrink-0">
-                      {upcomingEventCountByVendor.get(vendor.id) ?? 0} upcoming
+                      {appearanceCountByVendor.get(vendor.id)?.upcoming ?? 0} upcoming
                     </Badge>
                     <Badge variant="outline" className="shrink-0">
-                      {pastEventCountByVendor.get(vendor.id) ?? 0} past
+                      {appearanceCountByVendor.get(vendor.id)?.past ?? 0} past
                     </Badge>
                     <Badge variant="outline" className="shrink-0">
                       {vendor._count.favoriteVendors} likes
