@@ -162,6 +162,10 @@ export function MarketingRenderEditor() {
   }
 
   async function prefillFromEntities() {
+    if (!vendorId && !eventId && !marketId) {
+      setError("Pick at least one Vendor, Event, or Market before prefilling.");
+      return;
+    }
     const query = new URLSearchParams({
       mode: "prefill",
       ...(vendorId ? { vendorId } : {}),
@@ -174,7 +178,7 @@ export function MarketingRenderEditor() {
       setError(data?.error?.message ?? "Failed to prefill from entities");
       return;
     }
-    setVariables((prev) => ({ ...data.variables, ...prev }));
+    setVariables((prev) => ({ ...prev, ...(data.variables ?? {}) }));
   }
 
   async function uploadForPlaceholder(key: string, file: File) {
