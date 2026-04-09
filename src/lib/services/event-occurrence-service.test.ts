@@ -29,6 +29,7 @@ describe("EventOccurrenceService", () => {
       _count: { attendances: 0 },
       vendorRoster: [],
       vendorIntents: [],
+      vendorEvents: [],
     };
     mockFindFirst.mockResolvedValue(mockDbResult);
 

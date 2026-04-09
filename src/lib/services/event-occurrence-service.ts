@@ -46,6 +46,21 @@ export type EventForDisplay = Event & {
       verificationStatus: VerificationStatus;
     };
   })[];
+  vendorEvents: {
+    id: string;
+    vendorProfileId: string;
+    eventId: string;
+    vendorProfile: {
+      id: string;
+      businessName: string;
+      slug: string;
+      imageUrl: string | null;
+      imageFocalX: number;
+      imageFocalY: number;
+      specialties: string | null;
+      verificationStatus: VerificationStatus;
+    };
+  }[];
 };
 
 /**
@@ -82,6 +97,22 @@ export async function findEventBySlug(slug: string, userId?: string): Promise<Ev
         where: {
           status: { in: ["ATTENDING", "INTERESTED"] },
         },
+        include: {
+          vendorProfile: {
+            select: {
+              id: true,
+              businessName: true,
+              slug: true,
+              imageUrl: true,
+              imageFocalX: true,
+              imageFocalY: true,
+              specialties: true,
+              verificationStatus: true,
+            },
+          },
+        },
+      },
+      vendorEvents: {
         include: {
           vendorProfile: {
             select: {
@@ -147,6 +178,22 @@ export async function findEventByIdOrSlug(idOrSlug: string, userId?: string): Pr
         where: {
           status: { in: ["ATTENDING", "INTERESTED"] },
         },
+        include: {
+          vendorProfile: {
+            select: {
+              id: true,
+              businessName: true,
+              slug: true,
+              imageUrl: true,
+              imageFocalX: true,
+              imageFocalY: true,
+              specialties: true,
+              verificationStatus: true,
+            },
+          },
+        },
+      },
+      vendorEvents: {
         include: {
           vendorProfile: {
             select: {

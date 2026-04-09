@@ -117,12 +117,23 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const officialVendors = event.vendorRoster.map((r) => r.vendorProfile);
 
   const officialIds = new Set(officialVendors.map((v) => v.id));
-  const selfReportIntents = event.vendorIntents.filter((i) => !officialIds.has(i.vendorProfile.id));
+  const linkedVendors = event.vendorEvents
+    .map((link) => link.vendorProfile)
+    .filter((vendor) => !officialIds.has(vendor.id));
+  const linkedIds = new Set(linkedVendors.map((vendor) => vendor.id));
+  const selfReportIntents = event.vendorIntents.filter(
+    (i) => !officialIds.has(i.vendorProfile.id) && !linkedIds.has(i.vendorProfile.id)
+  );
   const publicSelfReportedVendors = selfReportIntents
     .filter((i) => i.visibility === "PUBLIC")
     .map((i) => i.vendorProfile);
+  const publicSelfReportedById = new Map<string, (typeof publicSelfReportedVendors)[number]>();
+  for (const vendor of [...linkedVendors, ...publicSelfReportedVendors]) {
+    publicSelfReportedById.set(vendor.id, vendor);
+  }
+  const visibleSelfReportedVendors = [...publicSelfReportedById.values()];
   const privateSelfReportedCount = selfReportIntents.filter((i) => i.visibility === "PRIVATE").length;
-  const selfReportedTotal = selfReportIntents.length;
+  const selfReportedTotal = visibleSelfReportedVendors.length + privateSelfReportedCount;
 
   const rosterVisible =
     participationConfig.publicRosterEnabled &&
@@ -361,7 +372,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 ) : null}
                 {selfReportedVisible ? (
                   <SelfReportedVendorList
-                    publicVendors={publicSelfReportedVendors}
+                    publicVendors={visibleSelfReportedVendors}
                     privateVendorCount={privateSelfReportedCount}
                     showNames={participationConfig.publicIntentNamesEnabled}
                   />
