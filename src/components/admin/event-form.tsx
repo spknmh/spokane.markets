@@ -20,7 +20,7 @@ import { DatePickerInput } from "@/components/ui/date-picker-input";
 import { Switch } from "@/components/ui/switch";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { ScheduleRecurringGenerator } from "@/components/schedule-recurring-generator";
 import { AddressAutofillFields } from "@/components/address-autocomplete";
@@ -128,9 +128,6 @@ export function EventForm({
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState<string | null>(null);
 
-  const startTimeRefs = useRef<(HTMLSelectElement | null)[]>([]);
-  const endTimeRefs = useRef<(HTMLSelectElement | null)[]>([]);
-
   const today = formatDateOnlyLocal(new Date());
   const defaultSchedule =
     initialData?.scheduleDays?.length
@@ -198,11 +195,6 @@ export function EventForm({
     name: "scheduleDays",
   });
 
-  useEffect(() => {
-    startTimeRefs.current = startTimeRefs.current.slice(0, fields.length);
-    endTimeRefs.current = endTimeRefs.current.slice(0, fields.length);
-  }, [fields.length]);
-
   const watchTitle = watch("title");
   const watchMarketId = watch("marketId");
   const watchVenueId = watch("venueId");
@@ -227,30 +219,28 @@ export function EventForm({
   const watchScheduleDays = watch("scheduleDays");
   useEffect(() => {
     const days = watchScheduleDays ?? [];
-    let changed = false;
-    const normalized = days.map((day) => {
-      const nextStart = day.startTime || DEFAULT_START_TIME;
-      const nextEnd = day.endTime || DEFAULT_END_TIME;
-      if (nextStart !== day.startTime || nextEnd !== day.endTime) changed = true;
-      return { ...day, allDay: false, startTime: nextStart, endTime: nextEnd };
-    });
-    if (changed) {
-      setValue("scheduleDays", normalized, { shouldDirty: true, shouldValidate: true });
-      return;
-    }
     if (days.length) {
       const first = days[0];
       const last = days[days.length - 1];
+      if (!first?.date || !last?.date) return;
+      // Explicit times are required; only sync legacy datetime fields when schedule is complete.
+      if (!first.startTime || !last.endTime) return;
       const firstStart = isFullDayTimeRange(first.startTime, first.endTime)
         ? "00:00"
-        : (first.startTime ?? DEFAULT_START_TIME);
+        : first.startTime;
       const lastEnd = isFullDayTimeRange(last.startTime, last.endTime)
         ? "23:59"
-        : (last.endTime ?? DEFAULT_END_TIME);
-      setValue("startDate", `${first.date}T${firstStart}:00`);
-      setValue("endDate", `${last.date}T${lastEnd}:00`);
+        : last.endTime;
+      const nextStartDate = `${first.date}T${firstStart}:00`;
+      const nextEndDate = `${last.date}T${lastEnd}:00`;
+      if (getValues("startDate") !== nextStartDate) {
+        setValue("startDate", nextStartDate, { shouldDirty: false, shouldValidate: false });
+      }
+      if (getValues("endDate") !== nextEndDate) {
+        setValue("endDate", nextEndDate, { shouldDirty: false, shouldValidate: false });
+      }
     }
-  }, [watchScheduleDays, setValue]);
+  }, [watchScheduleDays, setValue, getValues]);
 
   const autoSlug = () => {
     setValue("slug", slugify(watchTitle));
@@ -426,84 +416,87 @@ export function EventForm({
       <div className="space-y-4">
         <Label>Schedule</Label>
         <p className="text-xs text-muted-foreground">
-          Add one or more days. Start and end times apply to each day (use 12:00 AM–11:59 PM for a full-day span). Same
-          options as when creating an event.
+          Add one or more days. Start and end times are required for each day (use 12:00 AM-11:59 PM for a full-day span).
         </p>
         <ScheduleRecurringGenerator onGenerate={(days) => replace(days)} />
+        {errors.scheduleDays?.message && (
+          <p className="text-sm text-destructive">{String(errors.scheduleDays.message)}</p>
+        )}
         {fields.map((field, i) => {
           const regStart = register(`scheduleDays.${i}.startTime`);
           const regEnd = register(`scheduleDays.${i}.endTime`);
+          const dayError = errors.scheduleDays?.[i];
+          const dateError = dayError?.date?.message;
+          const startError = dayError?.startTime?.message;
+          const endError = dayError?.endTime?.message;
           return (
             <div
               key={field.id}
-              className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4"
+              className="rounded-lg border border-border p-4"
             >
-              <div className="min-w-[140px] space-y-2">
-                <Label>Date</Label>
-                <DatePickerInput
-                  value={watch(`scheduleDays.${i}.date`) || ""}
-                  onChange={(value) =>
-                    setValue(`scheduleDays.${i}.date`, value, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Start</Label>
-                <Select
-                  {...regStart}
-                  ref={(el) => {
-                    regStart.ref(el);
-                    startTimeRefs.current[i] = el;
-                  }}
-                  onChange={(e) => {
-                    regStart.onChange(e);
-                    queueMicrotask(() => endTimeRefs.current[i]?.focus());
-                  }}
-                >
-                  <option value="">Select start time (default 8:00 AM)</option>
-                  {TIME_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>End</Label>
-                <Select
-                  {...regEnd}
-                  ref={(el) => {
-                    regEnd.ref(el);
-                    endTimeRefs.current[i] = el;
-                  }}
-                  onChange={(e) => {
-                    regEnd.onChange(e);
-                    if (i < fields.length - 1) {
-                      queueMicrotask(() => startTimeRefs.current[i + 1]?.focus());
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="min-w-[140px] space-y-2">
+                  <Label>Date</Label>
+                  <DatePickerInput
+                    value={watch(`scheduleDays.${i}.date`) || ""}
+                    onChange={(value) =>
+                      setValue(`scheduleDays.${i}.date`, value, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
                     }
-                  }}
-                >
-                  <option value="">Select end time (default 2:00 PM)</option>
-                  {TIME_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </Select>
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Start</Label>
+                  <Select
+                    {...regStart}
+                    onChange={(e) => {
+                      regStart.onChange(e);
+                    }}
+                  >
+                    <option value="">Select start time</option>
+                    {TIME_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>End</Label>
+                  <Select
+                    {...regEnd}
+                    onChange={(e) => {
+                      regEnd.onChange(e);
+                    }}
+                  >
+                    <option value="">Select end time</option>
+                    {TIME_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                {fields.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => remove(i)}
+                    aria-label="Remove day"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
-              {fields.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => remove(i)}
-                  aria-label="Remove day"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              {(dateError || startError || endError) && (
+                <div className="mt-3 space-y-1">
+                  {dateError && <p className="text-sm text-destructive">{String(dateError)}</p>}
+                  {startError && <p className="text-sm text-destructive">{String(startError)}</p>}
+                  {endError && <p className="text-sm text-destructive">{String(endError)}</p>}
+                </div>
               )}
             </div>
           );
@@ -541,30 +534,19 @@ export function EventForm({
     </>
   );
 
-  const formContent = (
-    <form
-      onSubmit={handleSubmit(onSubmit, (_err) => {
-        setError("Please fix the errors below.");
-      })}
-      className={`space-y-6 ${showJsonImport ? "" : "max-w-2xl"}`}
-    >
-      {reviewSuccess && (
-        <div className="rounded-md border border-emerald-600/40 bg-emerald-600/10 px-3 py-2 text-sm text-emerald-800 dark:text-emerald-200">
-          {reviewSuccess}
-        </div>
-      )}
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
-      )}
+  const actionButtons = (
+    <div className="flex flex-wrap gap-3">
+      <Button type="submit" disabled={submitting}>
+        {submitting ? "Saving..." : initialData ? "Update Event" : "Create Event"}
+      </Button>
+      <Button type="button" variant="outline" onClick={() => router.back()}>
+        Cancel
+      </Button>
+    </div>
+  );
 
-      {initialData && reviewContext && isPending && (
-        <div className="flex flex-wrap items-center gap-3">
-          <Button type="button" variant="secondary" onClick={() => setReviewOpen(true)}>
-            Review submission
-          </Button>
-        </div>
-      )}
-
+  const leftColumnSections = (
+    <>
       {!hideMainTitleDescSchedule && titleDescBlock}
 
       <div className="space-y-2">
@@ -668,6 +650,12 @@ export function EventForm({
         )}
         {errors.venueId && <p className="text-sm text-destructive">{errors.venueId.message}</p>}
       </div>
+    </>
+  );
+
+  const rightColumnSections = (
+    <>
+      {!showJsonImport && <div className="hidden lg:block">{actionButtons}</div>}
 
       <ImageUploadWithUrl
         value={watchImageUrl ?? ""}
@@ -829,14 +817,50 @@ export function EventForm({
         </div>
       </div>
 
-      <div className="flex gap-3">
-        <Button type="submit" disabled={submitting}>
-          {submitting ? "Saving..." : initialData ? "Update Event" : "Create Event"}
-        </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
-          Cancel
-        </Button>
-      </div>
+      <div className="lg:hidden">{actionButtons}</div>
+      <div className="hidden lg:block">{actionButtons}</div>
+    </>
+  );
+
+  const formContent = (
+    <form
+      onSubmit={handleSubmit(onSubmit, (formErrors) => {
+        if (formErrors.scheduleDays) {
+          setError("Please fix schedule row errors, then submit again.");
+          return;
+        }
+        setError("Please fix the errors below.");
+      })}
+      className="space-y-6"
+    >
+      {reviewSuccess && (
+        <div className="rounded-md border border-emerald-600/40 bg-emerald-600/10 px-3 py-2 text-sm text-emerald-800 dark:text-emerald-200">
+          {reviewSuccess}
+        </div>
+      )}
+      {error && (
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
+      )}
+
+      {initialData && reviewContext && isPending && (
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="button" variant="secondary" onClick={() => setReviewOpen(true)}>
+            Review submission
+          </Button>
+        </div>
+      )}
+
+      {showJsonImport ? (
+        <div className="space-y-6">
+          {leftColumnSections}
+          {rightColumnSections}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-8">
+          <div className="min-w-0 space-y-6">{leftColumnSections}</div>
+          <div className="min-w-0 space-y-6 lg:sticky lg:top-6">{rightColumnSections}</div>
+        </div>
+      )}
     </form>
   );
 

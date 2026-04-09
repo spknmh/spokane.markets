@@ -52,8 +52,16 @@ export function applyScheduleToEventPayload(data: EventInput): EventInput {
   }
   const first = scheduleDays[0];
   const last = scheduleDays[scheduleDays.length - 1];
-  const firstStart = first.allDay ? "00:00" : (first.startTime ?? DEFAULT_START_TIME);
-  const lastEnd = last.allDay ? "23:59" : (last.endTime ?? DEFAULT_END_TIME);
+  // Explicit time selection is required in the admin editor.
+  // If times are incomplete, keep original legacy datetimes unchanged.
+  if (!first.allDay && !first.startTime) {
+    return { ...data, scheduleDays };
+  }
+  if (!last.allDay && !last.endTime) {
+    return { ...data, scheduleDays };
+  }
+  const firstStart = first.allDay ? "00:00" : first.startTime!;
+  const lastEnd = last.allDay ? "23:59" : last.endTime!;
   return {
     ...data,
     scheduleDays,
