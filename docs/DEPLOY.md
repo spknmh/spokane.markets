@@ -23,8 +23,8 @@ If you run a command in the wrong place, deployment will fail.
 
 ## Architecture Summary
 
-- App image: `ghcr.io/redkeysh/spokane.markets:latest`
-- Init image: `ghcr.io/redkeysh/spokane.markets:init`
+- App image: `ghcr.io/spknmh/spokane.markets:latest`
+- Init image: `ghcr.io/spknmh/spokane.markets:init`
 - CI flow: push to `main` -> lint/test -> build/push images -> SSH into server -> compose pull/up
 - Runtime: `init` runs migrations and upload-dir prep, then exits; `web` starts after init succeeds
 - **Caddy** runs in a **separate** Compose project under `caddy/` (same repo `Caddyfile`) so the edge proxy stays up when the app stack restarts. It joins the external `webapp` network with the app `web` service.
@@ -75,7 +75,7 @@ The external network **`webapp`** is shared by the app `web` container, the **`c
 **Run on [SERVER-DEPLOY]:**
 
 ```bash
-git clone https://github.com/redkeysh/spokane.markets.git /opt/spokane.markets
+git clone https://github.com/spknmh/spokane.markets.git /opt/spokane.markets
 cd /opt/spokane.markets
 ```
 
