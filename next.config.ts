@@ -3,6 +3,11 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Caddy handles compression (`encode zstd gzip` in /opt/caddy/Caddyfile).
+  // Leaving Next's default gzip on causes double-encoding → NS_ERROR_CORRUPTED_CONTENT
+  // in Firefox on fresh requests (masked in non-private windows by the immutable
+  // cache headers on /_next/static/*).
+  compress: false,
   async redirects() {
     return [
       { source: "/admin/analytics", destination: "/admin", permanent: true },
