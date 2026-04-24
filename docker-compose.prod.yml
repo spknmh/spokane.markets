@@ -26,13 +26,19 @@ services:
   web:
     image: ghcr.io/redkeysh/spokane.markets:latest
     env_file: .env.local
+    environment:
+      # Pin V8 old-space heap so Node doesn't OOM inside the cgroup.
+      # Rule of thumb: ~75% of mem_limit. Leave headroom for sharp, libuv, and Next's worker pool.
+      #   mem_limit: 2g  → --max-old-space-size=1536
+      #   mem_limit: 4g  → --max-old-space-size=3072
+      NODE_OPTIONS: "--max-old-space-size=1536"
     depends_on:
       init:
         condition: service_completed_successfully
     restart: unless-stopped
     # `deploy.resources` is ignored by `docker compose up` (non-Swarm). Use these so limits apply.
-    mem_limit: 1g
-    cpus: 1.0
+    mem_limit: 2g
+    cpus: 2.0
     # In production, `docker compose up -d` (without --build) pulls the image.
     # The base `build` key is ignored when pulling a pre-built image.
 
