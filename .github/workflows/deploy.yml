@@ -171,6 +171,9 @@ jobs:
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
           docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
           docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
-          docker compose -f caddy/docker-compose.yml -f caddy/docker-compose.prod.yml up -d --remove-orphans
+          # Caddy is intentionally NOT touched here — it lives in /opt/caddy as a
+          # standalone, host-owned compose project shared by every site (markets,
+          # beer, umami, etc.). Touching it from any single app's CI would couple
+          # unrelated services and has historically reverted the routing config.
           docker image prune -f
           EOF

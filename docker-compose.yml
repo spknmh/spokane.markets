@@ -67,8 +67,14 @@ services:
         max-size: "10m"
         max-file: "3"
     networks:
-      - default
-      - webapp
+      default: {}
+      # The standalone Caddy at /opt/caddy reverse-proxies to this exact alias.
+      # Do NOT remove or rename it without coordinating with the Caddy operator —
+      # short names like `web` collide with other apps on the shared `webapp`
+      # network and route non-deterministically.
+      webapp:
+        aliases:
+          - spokane-markets-web
 
 secrets:
   NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:

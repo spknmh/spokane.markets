@@ -19,8 +19,6 @@
     "dev:local:migrate": "docker compose -f docker-compose.local.yml run --rm web npx prisma migrate deploy",
     "dev:local:seed": "docker compose -f docker-compose.local.yml run --rm web npx prisma db seed",
     "dev:docker": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up",
-    "caddy:up": "docker compose -f caddy/docker-compose.yml up -d",
-    "caddy:down": "docker compose -f caddy/docker-compose.yml down",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

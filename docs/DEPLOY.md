@@ -27,8 +27,8 @@ If you run a command in the wrong place, deployment will fail.
 - Init image: `ghcr.io/spknmh/spokane.markets:init`
 - CI flow: push to `main` -> lint/test -> build/push images -> SSH into server -> compose pull/up
 - Runtime: `init` runs migrations and upload-dir prep, then exits; `web` starts after init succeeds
-- **Caddy** runs in a **separate** Compose project under `caddy/` (same repo `Caddyfile`) so the edge proxy stays up when the app stack restarts. It joins the external `webapp` network with the app `web` service.
-- **Migrating** from an older setup where Caddy lived in the app compose file: [MIGRATION-CADDY.md](MIGRATION-CADDY.md).
+- **Caddy** is operated **outside this repo** at `/opt/caddy` on the server. It is a host-owned, host-versioned Compose project shared by every site on the box (markets, beer, umami, etc.). Markets CI deliberately does NOT touch Caddy. The markets `web` service joins the external `webapp` network with the alias `spokane-markets-web`; Caddy's standalone Caddyfile reverse-proxies to that alias.
+- This repo's contract with Caddy is limited to: (a) attaching `web` to `webapp`, (b) declaring a unique alias on `webapp`, (c) communicating that alias to the Caddy operator. See `docker-compose.yml` for the alias declaration.
 
 ## 1) Choose and lock hostnames
 
