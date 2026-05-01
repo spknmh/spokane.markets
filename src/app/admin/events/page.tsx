@@ -5,11 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDateRangeInTimezone, cn } from "@/lib/utils";
 import { DeleteButton, StatusButton } from "@/components/admin/action-buttons";
+import { AdminEventTableRow } from "@/components/admin/admin-event-table-row";
 import { Pagination } from "@/components/pagination";
 import { deleteEvent, restoreEvent } from "../actions";
 import Link from "next/link";
 import type { EventStatus } from "@prisma/client";
 import { parseAdminPagination, parseFlag, parseQuery } from "@/lib/admin/table-query";
+import { buildAdminEventsWhere, resolveAdminEventsTimeScope } from "@/lib/admin/events-query";
+import {
+  buildAdminEventsOrderBy,
+  parseAdminEventsSort,
+  type AdminEventsSortField,
+} from "@/lib/admin/events-list-order";
+import { ArrowDown, ArrowUp, ArrowUpDown, Recycle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -41,40 +49,95 @@ const statusLabel: Record<EventStatus, string> = {
 export default async function AdminEventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; limit?: string; archived?: string; q?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    page?: string;
+    limit?: string;
+    archived?: string;
+    past?: string;
+    q?: string;
+    sort?: string;
+    dir?: string;
+  }>;
 }) {
   await requireAdmin();
 
   const params = await searchParams;
   const statusFilter = params.status as EventStatus | undefined;
   const archived = parseFlag(params.archived);
+  const past = parseFlag(params.past);
+  const timeScope = resolveAdminEventsTimeScope({ archived, past });
   const q = parseQuery(params.q);
   const { page, limit } = parseAdminPagination(params);
+  const { sort, dir } = parseAdminEventsSort({
+    sort: params.sort,
+    dir: params.dir,
+    timeScope,
+  });
 
-  const where = {
-    ...(statusFilter ? { status: statusFilter } : {}),
-    ...(archived ? {} : { deletedAt: null }),
-    ...(q
-      ? {
-          OR: [
-            { title: { contains: q, mode: "insensitive" as const } },
-            { slug: { contains: q, mode: "insensitive" as const } },
-            { venue: { name: { contains: q, mode: "insensitive" as const } } },
-          ],
-        }
-      : {}),
-  };
+  // Pin `now` once per request so count and findMany see the same cutoff.
+  const now = new Date();
+  const where = buildAdminEventsWhere({ statusFilter, timeScope, q, now });
+  const orderBy = buildAdminEventsOrderBy({ sort, dir });
   const [total, events] = await Promise.all([
     db.event.count({ where }),
     db.event.findMany({
       where,
       include: { venue: { select: { name: true } } },
-      orderBy: { startDate: "desc" },
+      orderBy,
       skip: (page - 1) * limit,
       take: limit,
     }),
   ]);
   const totalPages = Math.ceil(total / limit);
+
+  function buildEventsHref(overrides: {
+    status?: string;
+    page?: string;
+    archived?: string;
+    past?: string;
+    q?: string;
+    sort?: string;
+    dir?: string;
+    limit?: string;
+  }) {
+    const next = {
+      status: statusFilter,
+      page: page > 1 ? String(page) : undefined,
+      archived: archived ? "1" : undefined,
+      past: past ? "1" : undefined,
+      q: q || undefined,
+      sort,
+      dir,
+      limit: params.limit,
+      ...overrides,
+    };
+    const qp = new URLSearchParams();
+    if (next.status) qp.set("status", next.status);
+    if (next.page) qp.set("page", next.page);
+    if (next.archived) qp.set("archived", next.archived);
+    if (next.past) qp.set("past", next.past);
+    if (next.q) qp.set("q", next.q);
+    if (next.sort) qp.set("sort", next.sort);
+    if (next.dir) qp.set("dir", next.dir);
+    if (next.limit) qp.set("limit", next.limit);
+    const qs = qp.toString();
+    return qs ? `/admin/events?${qs}` : "/admin/events";
+  }
+
+  function buildSortHref(column: AdminEventsSortField) {
+    const nextDir = sort === column && dir === "asc" ? "desc" : "asc";
+    return buildEventsHref({ sort: column, dir: nextDir, page: "1" });
+  }
+
+  function renderSortIcon(column: AdminEventsSortField) {
+    if (sort !== column) return <ArrowUpDown className="h-3.5 w-3.5" aria-hidden />;
+    return dir === "asc" ? (
+      <ArrowUp className="h-3.5 w-3.5" aria-hidden />
+    ) : (
+      <ArrowDown className="h-3.5 w-3.5" aria-hidden />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -82,8 +145,8 @@ export default async function AdminEventsPage({
         <h1 className="text-3xl font-bold tracking-tight">Events</h1>
         <div className="flex items-center gap-2">
           <Button asChild variant={archived ? "default" : "outline"}>
-            <Link href={archived ? "/admin/events" : "/admin/events?archived=1"}>
-              {archived ? "Hide archived" : "Show archived"}
+            <Link href={archived ? buildEventsHref({ archived: undefined, page: "1" }) : buildEventsHref({ archived: "1", page: "1" })}>
+              {archived ? "Hide all records" : "Show all records"}
             </Link>
           </Button>
           <Button asChild>
@@ -92,14 +155,43 @@ export default async function AdminEventsPage({
         </div>
       </div>
 
+      <div className="flex gap-2 border-b border-border pb-2">
+        <Link
+          href={buildEventsHref({ archived: undefined, past: undefined, page: "1" })}
+          className={cn(
+            "px-3 py-1.5 text-sm rounded-md transition-colors",
+            !archived && timeScope === "active"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-muted"
+          )}
+        >
+          Active
+        </Link>
+        <Link
+          href={buildEventsHref({ archived: undefined, past: "1", page: "1" })}
+          className={cn(
+            "px-3 py-1.5 text-sm rounded-md transition-colors",
+            !archived && timeScope === "past"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-muted"
+          )}
+        >
+          Past
+        </Link>
+      </div>
+
       <form className="flex items-center gap-2">
         <Input name="q" defaultValue={q} placeholder="Search title, slug, venue..." />
         {statusFilter && <input type="hidden" name="status" value={statusFilter} />}
         {archived && <input type="hidden" name="archived" value="1" />}
+        {past && !archived && <input type="hidden" name="past" value="1" />}
+        {params.sort && <input type="hidden" name="sort" value={params.sort} />}
+        {params.dir && <input type="hidden" name="dir" value={params.dir} />}
+        {params.limit && <input type="hidden" name="limit" value={params.limit} />}
         <Button type="submit" variant="outline">Search</Button>
         <Button type="button" variant="outline" asChild>
           <Link
-            href={`/api/admin/data/export/entity?entity=events${statusFilter ? `&status=${statusFilter}` : ""}${archived ? "&archived=1" : ""}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+            href={`/api/admin/data/export/entity?entity=events${statusFilter ? `&status=${statusFilter}` : ""}${archived ? "&archived=1" : ""}${past && !archived ? "&past=1" : ""}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
           >
             Export CSV
           </Link>
@@ -110,7 +202,7 @@ export default async function AdminEventsPage({
         {STATUS_TABS.map((tab) => (
           <Link
             key={tab.value}
-            href={tab.value ? `/admin/events?status=${tab.value}&page=1${archived ? "&archived=1" : ""}` : `/admin/events?page=1${archived ? "&archived=1" : ""}`}
+            href={buildEventsHref({ status: tab.value || undefined, page: "1" })}
             className={cn(
               "px-3 py-1.5 text-sm rounded-md transition-colors",
               (statusFilter ?? "") === tab.value
@@ -127,10 +219,30 @@ export default async function AdminEventsPage({
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              <th className="text-left p-3 font-medium">Title</th>
-              <th className="text-left p-3 font-medium">Date</th>
-              <th className="text-left p-3 font-medium">Venue</th>
-              <th className="text-left p-3 font-medium">Status</th>
+              <th className="text-left p-3 font-medium">
+                <Link href={buildSortHref("title")} className="inline-flex items-center gap-1.5 hover:text-foreground">
+                  Title
+                  {renderSortIcon("title")}
+                </Link>
+              </th>
+              <th className="text-left p-3 font-medium">
+                <Link href={buildSortHref("startDate")} className="inline-flex items-center gap-1.5 hover:text-foreground">
+                  Date
+                  {renderSortIcon("startDate")}
+                </Link>
+              </th>
+              <th className="text-left p-3 font-medium">
+                <Link href={buildSortHref("venue")} className="inline-flex items-center gap-1.5 hover:text-foreground">
+                  Venue
+                  {renderSortIcon("venue")}
+                </Link>
+              </th>
+              <th className="text-left p-3 font-medium">
+                <Link href={buildSortHref("status")} className="inline-flex items-center gap-1.5 hover:text-foreground">
+                  Status
+                  {renderSortIcon("status")}
+                </Link>
+              </th>
               <th className="text-right p-3 font-medium">Actions</th>
             </tr>
           </thead>
@@ -143,7 +255,7 @@ export default async function AdminEventsPage({
               </tr>
             ) : (
               events.map((event) => (
-                <tr key={event.id} className="hover:bg-muted/30">
+                <AdminEventTableRow key={event.id} eventId={event.id}>
                   <td className="p-3 font-medium">{event.title}</td>
                   <td className="p-3 text-muted-foreground">
                     {formatDateRangeInTimezone(event.startDate, event.endDate, null)}
@@ -155,12 +267,13 @@ export default async function AdminEventsPage({
                         {statusLabel[event.status]}
                       </Badge>
                       {event.deletedAt && <Badge variant="secondary">Archived</Badge>}
+                      {!event.deletedAt && event.endDate < now && (
+                        <Badge variant="secondary">Past</Badge>
+                      )}
                     </div>
                   </td>
-                  <td className="p-3 text-right space-x-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/admin/events/${event.id}/edit`}>Edit</Link>
-                    </Button>
+                  <td className="p-3 text-right">
+                    <div className="flex items-center justify-end gap-2" data-row-action>
                     {event.deletedAt ? (
                       <StatusButton
                         action={restoreEvent.bind(null, event.id)}
@@ -173,10 +286,15 @@ export default async function AdminEventsPage({
                         title="Archive event"
                         description={`Archive "${event.title}"? You can restore it later from archived events.`}
                         label="Archive"
+                        confirmLabel="Archive"
+                        pendingLabel="Archiving..."
+                        iconOnly
+                        icon={Recycle}
                       />
                     )}
+                    </div>
                   </td>
-                </tr>
+                </AdminEventTableRow>
               ))
             )}
           </tbody>

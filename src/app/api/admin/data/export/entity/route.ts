@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireApiAdminPermission } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import {
+  buildAdminEventsExportWhere,
+  resolveAdminEventsTimeScope,
+} from "@/lib/admin/events-query";
+import type { EventStatus } from "@prisma/client";
 
 type Entity = "events" | "markets" | "vendors" | "venues";
 
@@ -30,6 +35,7 @@ export async function GET(request: Request) {
   const entity = searchParams.get("entity") as Entity | null;
   const q = (searchParams.get("q") ?? "").trim();
   const archived = searchParams.get("archived") === "1";
+  const past = searchParams.get("past") === "1";
 
   if (!entity || !["events", "markets", "vendors", "venues"].includes(entity)) {
     return NextResponse.json({ error: "Invalid entity" }, { status: 400 });
@@ -38,20 +44,15 @@ export async function GET(request: Request) {
   let rows: Record<string, unknown>[] = [];
 
   if (entity === "events") {
-    const status = searchParams.get("status");
+    const status = searchParams.get("status") as EventStatus | null;
+    const timeScope = resolveAdminEventsTimeScope({ archived, past });
     const data = await db.event.findMany({
-      where: {
-        ...(status ? { status: status as never } : {}),
-        ...(archived ? {} : { deletedAt: null }),
-        ...(q
-          ? {
-              OR: [
-                { title: { contains: q, mode: "insensitive" } },
-                { slug: { contains: q, mode: "insensitive" } },
-              ],
-            }
-          : {}),
-      },
+      where: buildAdminEventsExportWhere({
+        statusFilter: status ?? undefined,
+        timeScope,
+        q,
+        now: new Date(),
+      }),
       include: { venue: { select: { name: true } } },
       orderBy: { startDate: "desc" },
       take: 5000,

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTransition } from "react";
 import type { AnalyticsParams } from "@/lib/analytics";
 import { trackEvent } from "@/lib/analytics";
-import { Trash2 } from "lucide-react";
+import { Trash2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,13 +20,19 @@ export function DeleteButton({
   label = "Delete",
   title = "Delete",
   description = "Are you sure? This action cannot be undone.",
+  confirmLabel = "Delete",
+  pendingLabel = "Deleting...",
   iconOnly = false,
+  icon: Icon = Trash2,
 }: {
   action: () => Promise<void>;
   label?: string;
   title?: string;
   description?: string;
+  confirmLabel?: string;
+  pendingLabel?: string;
   iconOnly?: boolean;
+  icon?: LucideIcon;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -50,9 +56,9 @@ export function DeleteButton({
         className={iconOnly ? "h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10" : undefined}
       >
         {iconOnly ? (
-          <Trash2 className="h-4 w-4" />
+          <Icon className="h-4 w-4" />
         ) : (
-          isPending ? "Deleting..." : label
+          isPending ? pendingLabel : label
         )}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -66,7 +72,7 @@ export function DeleteButton({
               Cancel
             </Button>
             <Button type="button" variant="destructive" onClick={handleConfirm} disabled={isPending}>
-              {isPending ? "Deleting…" : "Delete"}
+              {isPending ? pendingLabel : confirmLabel}
             </Button>
           </DialogFooter>
         </DialogContent>
