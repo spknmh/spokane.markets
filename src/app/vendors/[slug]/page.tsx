@@ -228,9 +228,6 @@ export default async function VendorProfilePage({ params }: PageProps) {
             {vendor.listingCommunityBadges.length > 0 && (
               <div className="mt-3 space-y-2">
                 <CommunityBadgeChips badges={vendor.listingCommunityBadges} />
-                <p className="text-xs text-muted-foreground">
-                  Inclusion badges are self-identified by the business.
-                </p>
               </div>
             )}
           </div>
