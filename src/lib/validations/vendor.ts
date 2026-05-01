@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { GALLERY_URL_MAX, isAllowedGalleryImageUrl } from "@/lib/gallery-urls";
+import { MAX_LISTING_COMMUNITY_BADGES } from "@/lib/listing-community-badges";
 import {
   imageUrlSchema,
   flexibleUrlSchema,
@@ -49,6 +50,13 @@ export const vendorProfileSchema = z.object({
   /** Form-only: textarea value, one URL per line; parsed to galleryUrls on submit */
   galleryUrlsText: z.string().optional(),
   specialties: z.string().optional(),
+  listingCommunityBadgeIds: z
+    .array(z.string().min(1))
+    .max(
+      MAX_LISTING_COMMUNITY_BADGES,
+      `Select at most ${MAX_LISTING_COMMUNITY_BADGES} community badges`
+    )
+    .optional(),
 });
 export type VendorProfileInput = z.infer<typeof vendorProfileSchema>;
 

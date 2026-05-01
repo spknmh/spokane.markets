@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { MarketForm } from "@/components/admin/market-form";
+import { getListingCommunityBadgeOptions } from "@/lib/listing-community-badges";
 import { getNeighborhoodOptions } from "@/lib/neighborhoods";
 import { notFound } from "next/navigation";
 import { prismaListingToOnboardingFormDefaults } from "@/lib/validations/organizer-onboarding";
@@ -16,16 +17,21 @@ export default async function EditMarketPage({
   await requireAdmin();
   const { id } = await params;
 
-  const [market, venues, neighborhoods] = await Promise.all([
+  const [market, venues, neighborhoods, listingCommunityBadgeOptions] =
+    await Promise.all([
     db.market.findUnique({
       where: { id },
-      include: { owner: { select: { name: true, email: true } } },
+      include: {
+        owner: { select: { name: true, email: true } },
+        listingCommunityBadges: { select: { id: true } },
+      },
     }),
     db.venue.findMany({
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
     getNeighborhoodOptions(),
+    getListingCommunityBadgeOptions(),
   ]);
   if (!market) notFound();
 
@@ -58,6 +64,9 @@ export default async function EditMarketPage({
     publicRosterEnabled: market.publicRosterEnabled ?? true,
     complianceFlagged: market.complianceFlagged ?? false,
     complianceNotes: market.complianceNotes ?? "",
+    listingCommunityBadgeIds: market.listingCommunityBadges.map(
+      (badge) => badge.id
+    ),
     ...prismaListingToOnboardingFormDefaults(market as unknown as Record<string, unknown>),
   };
 
@@ -69,6 +78,7 @@ export default async function EditMarketPage({
         venues={venues}
         neighborhoods={neighborhoods}
         ownerDisplay={ownerDisplay}
+        listingCommunityBadgeOptions={listingCommunityBadgeOptions}
       />
     </div>
   );

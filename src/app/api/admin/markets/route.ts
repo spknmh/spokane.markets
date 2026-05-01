@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { assertListingCommunityBadgeIds } from "@/lib/listing-community-badges";
 import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
 import { marketSchema } from "@/lib/validations";
 import {
@@ -22,6 +23,22 @@ export async function POST(request: Request) {
   }
 
   const data = parsed.data;
+  let listingCommunityBadgeIds: string[] = [];
+  try {
+    listingCommunityBadgeIds = await assertListingCommunityBadgeIds(
+      data.listingCommunityBadgeIds
+    );
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: {
+          message:
+            err instanceof Error ? err.message : "Invalid community badges",
+        },
+      },
+      { status: 400 }
+    );
+  }
   const onboarding = toMarketOnboardingPrismaData(
     pickOnboardingFields(data as unknown as Record<string, unknown>)
   );
@@ -79,6 +96,11 @@ export async function POST(request: Request) {
       ...(data.complianceFlagged !== undefined && { complianceFlagged: data.complianceFlagged }),
       ...(data.complianceNotes !== undefined && {
         complianceNotes: data.complianceNotes === "" ? null : data.complianceNotes,
+      }),
+      ...(listingCommunityBadgeIds.length > 0 && {
+        listingCommunityBadges: {
+          connect: listingCommunityBadgeIds.map((id) => ({ id })),
+        },
       }),
     },
   });

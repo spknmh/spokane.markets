@@ -1,6 +1,7 @@
 import { requireApiAdminPermission } from "@/lib/api-auth";
 import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
+import { assertListingCommunityBadgeIds } from "@/lib/listing-community-badges";
 import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
 import { marketSchema } from "@/lib/validations";
 import {
@@ -26,6 +27,19 @@ export async function PUT(
     }
 
     const data = parsed.data;
+    let listingCommunityBadgeIds: string[] | undefined;
+    if (data.listingCommunityBadgeIds !== undefined) {
+      try {
+        listingCommunityBadgeIds = await assertListingCommunityBadgeIds(
+          data.listingCommunityBadgeIds
+        );
+      } catch (err) {
+        return apiError(
+          err instanceof Error ? err.message : "Invalid community badges",
+          400
+        );
+      }
+    }
     const onboarding = toMarketOnboardingPrismaData(
       pickOnboardingFields(data as unknown as Record<string, unknown>)
     );
@@ -91,6 +105,11 @@ export async function PUT(
         ...(data.complianceFlagged !== undefined && { complianceFlagged: data.complianceFlagged }),
         ...(data.complianceNotes !== undefined && {
           complianceNotes: data.complianceNotes === "" ? null : data.complianceNotes,
+        }),
+        ...(listingCommunityBadgeIds !== undefined && {
+          listingCommunityBadges: {
+            set: listingCommunityBadgeIds.map((badgeId) => ({ id: badgeId })),
+          },
         }),
       },
     });

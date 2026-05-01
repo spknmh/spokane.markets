@@ -10,6 +10,13 @@ import {
   CalendarCheck,
   Trophy,
   Building2,
+  HeartHandshake,
+  Medal,
+  Flag,
+  Globe2,
+  Flower2,
+  Trees,
+  Accessibility,
   type LucideIcon,
 } from "lucide-react";
 
@@ -23,6 +30,13 @@ const ICON_MAP: Record<string, LucideIcon> = {
   CalendarCheck,
   Trophy,
   Building2,
+  HeartHandshake,
+  Medal,
+  Flag,
+  Globe2,
+  Flower2,
+  Trees,
+  Accessibility,
 };
 
 export function BadgeIcon({ name, className }: { name: string | null; className?: string }) {

@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/select";
 import { UserSearchInput } from "@/components/admin/user-search-input";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 import type { NeighborhoodOption } from "@/lib/neighborhoods-config";
+import type { ListingCommunityBadgeOption } from "@/lib/listing-community-badges";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -22,6 +23,7 @@ interface MarketFormProps {
   neighborhoods: NeighborhoodOption[];
   users?: Array<{ id: string; name: string | null; email: string }>;
   ownerDisplay?: string;
+  listingCommunityBadgeOptions: ListingCommunityBadgeOption[];
 }
 
 export function MarketForm({
@@ -30,6 +32,7 @@ export function MarketForm({
   neighborhoods,
   users: _users = [],
   ownerDisplay,
+  listingCommunityBadgeOptions,
 }: MarketFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -48,6 +51,8 @@ export function MarketForm({
           ...initialData,
           imageFocalX: initialData.imageFocalX ?? 50,
           imageFocalY: initialData.imageFocalY ?? 50,
+          listingCommunityBadgeIds:
+            initialData.listingCommunityBadgeIds ?? [],
         }
       : {
       name: "",
@@ -71,6 +76,7 @@ export function MarketForm({
       publicRosterEnabled: true,
       imageFocalX: 50,
       imageFocalY: 50,
+      listingCommunityBadgeIds: [],
     },
   });
 
@@ -213,6 +219,36 @@ export function MarketForm({
           <Label htmlFor="contactPhone">Contact Phone</Label>
           <PhoneInput id="contactPhone" {...register("contactPhone")} />
         </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-muted/20 p-4">
+        <p className="text-sm font-medium text-foreground">
+          Community trust badges
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Self-identified badges for inclusion and representation.
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {listingCommunityBadgeOptions.map((badge) => (
+            <label
+              key={badge.id}
+              className="flex cursor-pointer items-start gap-2 rounded-md border border-border bg-background/80 px-3 py-2"
+            >
+              <input
+                type="checkbox"
+                value={badge.id}
+                className="mt-0.5 rounded border-border"
+                {...register("listingCommunityBadgeIds")}
+              />
+              <span className="text-sm">{badge.name}</span>
+            </label>
+          ))}
+        </div>
+        {errors.listingCommunityBadgeIds && (
+          <p className="mt-2 text-sm text-destructive">
+            {errors.listingCommunityBadgeIds.message as string}
+          </p>
+        )}
       </div>
 
       {initialData && (

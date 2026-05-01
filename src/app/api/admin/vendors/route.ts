@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { adminVendorProfileSchema } from "@/lib/validations";
 import { parseGalleryUrlsFromMultilineText } from "@/lib/gallery-urls";
+import { assertListingCommunityBadgeIds } from "@/lib/listing-community-badges";
 import { extractSocialHandle, normalizeUrlToHttps, slugify } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { requireApiAdminPermission } from "@/lib/api-auth";
@@ -52,6 +53,17 @@ export async function POST(request: Request) {
   }
 
   const data = parsed.data;
+  let listingCommunityBadgeIds: string[] = [];
+  try {
+    listingCommunityBadgeIds = await assertListingCommunityBadgeIds(
+      data.listingCommunityBadgeIds
+    );
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Invalid community badges" },
+      { status: 400 }
+    );
+  }
   const slug = data.slug || (await generateUniqueSlug(data.businessName));
 
   const existing = await db.vendorProfile.findFirst({
@@ -110,6 +122,11 @@ export async function POST(request: Request) {
       socialLinksVisible: data.socialLinksVisible ?? false,
       ...(data.verificationStatus !== undefined && {
         verificationStatus: data.verificationStatus,
+      }),
+      ...(listingCommunityBadgeIds.length > 0 && {
+        listingCommunityBadges: {
+          connect: listingCommunityBadgeIds.map((id) => ({ id })),
+        },
       }),
     },
   });

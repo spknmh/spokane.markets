@@ -34,6 +34,7 @@ export default async function BadgesPage() {
   const userRole = user.role;
 
   const visibleBadges = allBadges.filter((b) => {
+    if (b.category !== "USER_ACHIEVEMENT") return false;
     if (b.requiredRole === "VENDOR" && userRole !== "VENDOR") return false;
     if (b.requiredRole === "ORGANIZER" && userRole !== "ORGANIZER" && userRole !== "ADMIN") return false;
     return true;

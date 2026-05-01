@@ -3,13 +3,17 @@
  */
 
 import { db } from "@/lib/db";
-import type { Market, Venue, Event, Neighborhood } from "@prisma/client";
+import type { Market, Venue, Event, Neighborhood, BadgeDefinition } from "@prisma/client";
 
 /** Market-like shape with venue and events. */
 export type MarketForDisplay = Market & {
   baseAreaRef: Neighborhood | null;
   venue: Venue;
   events: (Event & { venue: Venue })[];
+  listingCommunityBadges: Pick<
+    BadgeDefinition,
+    "id" | "slug" | "name" | "icon" | "sortOrder"
+  >[];
 };
 
 /**
@@ -20,6 +24,10 @@ export async function findMarketBySlug(slug: string): Promise<MarketForDisplay |
     where: { slug, deletedAt: null },
     include: {
       baseAreaRef: true,
+      listingCommunityBadges: {
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, slug: true, name: true, icon: true, sortOrder: true },
+      },
       venue: true,
       events: {
         where: { status: "PUBLISHED", startDate: { gte: new Date() }, deletedAt: null },

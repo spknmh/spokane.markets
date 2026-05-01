@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { extractSocialHandle } from "@/lib/utils";
 import { AdminVendorForm } from "@/components/admin/vendor-form";
+import { getListingCommunityBadgeOptions } from "@/lib/listing-community-badges";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -14,10 +15,16 @@ export default async function EditVendorPage({
   await requireAdmin();
   const { id } = await params;
 
-  const vendor = await db.vendorProfile.findUnique({
-    where: { id },
-    include: { user: { select: { id: true, name: true, email: true } } },
-  });
+  const [vendor, listingCommunityBadgeOptions] = await Promise.all([
+    db.vendorProfile.findUnique({
+      where: { id },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        listingCommunityBadges: { select: { id: true } },
+      },
+    }),
+    getListingCommunityBadgeOptions(),
+  ]);
   if (!vendor) notFound();
 
   const initialData = {
@@ -51,12 +58,18 @@ export default async function EditVendorPage({
     contactVisible: vendor.contactVisible,
     socialLinksVisible: vendor.socialLinksVisible,
     verificationStatus: vendor.verificationStatus,
+    listingCommunityBadgeIds: vendor.listingCommunityBadges.map(
+      (badge) => badge.id
+    ),
   };
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Edit Vendor</h1>
-      <AdminVendorForm initialData={initialData} />
+      <AdminVendorForm
+        initialData={initialData}
+        listingCommunityBadgeOptions={listingCommunityBadgeOptions}
+      />
     </div>
   );
 }

@@ -67,6 +67,11 @@ enum BadgeRole {
   ORGANIZER
 }
 
+enum BadgeCategory {
+  USER_ACHIEVEMENT
+  LISTING_COMMUNITY
+}
+
 enum VendorIntentStatus {
   INTERESTED
   APPLIED
@@ -259,11 +264,14 @@ model BadgeDefinition {
   name         String
   description  String?     @db.Text
   icon         String? // Lucide icon name
+  category     BadgeCategory @default(USER_ACHIEVEMENT)
   requiredRole BadgeRole   @default(GLOBAL)
   criteria     Json? // e.g. { "type": "member_years", "years": 1 }
   sortOrder    Int         @default(0)
   createdAt    DateTime    @default(now())
   userBadges   UserBadge[]
+  vendorProfiles VendorProfile[] @relation("VendorProfileListingBadges")
+  markets      Market[]    @relation("MarketListingBadges")
 
   @@map("badge_definitions")
 }
@@ -492,6 +500,7 @@ model Market {
   evidences     ListingEvidence[]       @relation("MarketEvidence")
   moderationNotes ListingModerationNote[] @relation("MarketModerationNotes")
   marketingRenders MarketingRender[]    @relation("MarketingRenderMarket")
+  listingCommunityBadges BadgeDefinition[] @relation("MarketListingBadges")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -922,6 +931,7 @@ model VendorProfile {
   favoriteVendors FavoriteVendor[]
   promotions      Promotion[]
   marketingRenders MarketingRender[]    @relation("MarketingRenderVendor")
+  listingCommunityBadges BadgeDefinition[] @relation("VendorProfileListingBadges")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

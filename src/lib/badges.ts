@@ -1,10 +1,15 @@
 import { db } from "@/lib/db";
+import type { BadgeCategory } from "@prisma/client";
 
 type Criteria = {
   type: string;
   years?: number;
   min?: number;
 };
+
+export function isAutoGrantedBadgeCategory(category: BadgeCategory): boolean {
+  return category === "USER_ACHIEVEMENT";
+}
 
 /**
  * Evaluates badge criteria for a user and grants any newly earned badges.
@@ -36,6 +41,7 @@ export async function evaluateAndGrantBadges(userId: string): Promise<void> {
 
   for (const badge of badges) {
     if (earnedBadgeIds.has(badge.id)) continue;
+    if (!isAutoGrantedBadgeCategory(badge.category)) continue;
 
     // Role gate: VENDOR badges require VENDOR role, ORGANIZER badges require ORGANIZER role
     if (badge.requiredRole === "VENDOR" && userRole !== "VENDOR") continue;

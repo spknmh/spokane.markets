@@ -3,6 +3,7 @@ import { apiError, apiValidationError } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { adminVendorProfileSchema } from "@/lib/validations";
 import { parseGalleryUrlsFromMultilineText } from "@/lib/gallery-urls";
+import { assertListingCommunityBadgeIds } from "@/lib/listing-community-badges";
 import { extractSocialHandle, normalizeUrlToHttps, slugify } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
@@ -59,6 +60,19 @@ export async function PUT(
     }
 
     const data = parsed.data;
+    let listingCommunityBadgeIds: string[] | undefined;
+    if (data.listingCommunityBadgeIds !== undefined) {
+      try {
+        listingCommunityBadgeIds = await assertListingCommunityBadgeIds(
+          data.listingCommunityBadgeIds
+        );
+      } catch (err) {
+        return apiError(
+          err instanceof Error ? err.message : "Invalid community badges",
+          400
+        );
+      }
+    }
     let slug = data.slug;
 
     if (slug) {
@@ -122,6 +136,11 @@ export async function PUT(
         socialLinksVisible: data.socialLinksVisible ?? false,
         ...(data.verificationStatus !== undefined && {
           verificationStatus: data.verificationStatus,
+        }),
+        ...(listingCommunityBadgeIds !== undefined && {
+          listingCommunityBadges: {
+            set: listingCommunityBadgeIds.map((badgeId) => ({ id: badgeId })),
+          },
         }),
       },
     });

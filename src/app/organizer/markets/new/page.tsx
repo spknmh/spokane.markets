@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { SITE_NAME } from "@/lib/constants";
+import { getListingCommunityBadgeOptions } from "@/lib/listing-community-badges";
 import { getNeighborhoodOptions } from "@/lib/neighborhoods";
 import { OrganizerMarketCreateForm } from "@/components/organizer-market-create-form";
 
@@ -20,12 +21,13 @@ export default async function OrganizerCreateMarketPage() {
     redirect("/auth/signin");
   }
 
-  const [venues, neighborhoods] = await Promise.all([
+  const [venues, neighborhoods, listingCommunityBadgeOptions] = await Promise.all([
     db.venue.findMany({
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
     getNeighborhoodOptions(),
+    getListingCommunityBadgeOptions(),
   ]);
 
   return (
@@ -43,7 +45,11 @@ export default async function OrganizerCreateMarketPage() {
         </p>
       </div>
 
-      <OrganizerMarketCreateForm venues={venues} neighborhoods={neighborhoods} />
+      <OrganizerMarketCreateForm
+        venues={venues}
+        neighborhoods={neighborhoods}
+        listingCommunityBadgeOptions={listingCommunityBadgeOptions}
+      />
     </div>
   );
 }

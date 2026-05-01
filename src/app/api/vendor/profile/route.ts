@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { vendorProfileSchema } from "@/lib/validations";
+import { assertListingCommunityBadgeIds } from "@/lib/listing-community-badges";
 import { extractSocialHandle, normalizeUrlToHttps, slugify } from "@/lib/utils";
 
 function toOptional(value: string | undefined): string | undefined {
@@ -100,6 +101,17 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
+    let listingCommunityBadgeIds: string[] = [];
+    try {
+      listingCommunityBadgeIds = await assertListingCommunityBadgeIds(
+        data.listingCommunityBadgeIds
+      );
+    } catch (err) {
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : "Invalid community badges" },
+        { status: 400 },
+      );
+    }
     const requestedSlug = normalizeSlugInput(data.slug);
     let slug: string;
 
@@ -143,6 +155,11 @@ export async function POST(request: Request) {
           socialLinksVisible: data.socialLinksVisible ?? false,
           galleryUrls: data.galleryUrls ?? [],
           specialties: toOptional(data.specialties),
+          ...(listingCommunityBadgeIds.length > 0 && {
+            listingCommunityBadges: {
+              connect: listingCommunityBadgeIds.map((id) => ({ id })),
+            },
+          }),
         },
       });
 
@@ -192,6 +209,19 @@ export async function PUT(request: Request) {
     }
 
     const data = parsed.data;
+    let listingCommunityBadgeIds: string[] | undefined;
+    if (data.listingCommunityBadgeIds !== undefined) {
+      try {
+        listingCommunityBadgeIds = await assertListingCommunityBadgeIds(
+          data.listingCommunityBadgeIds
+        );
+      } catch (err) {
+        return NextResponse.json(
+          { error: err instanceof Error ? err.message : "Invalid community badges" },
+          { status: 400 },
+        );
+      }
+    }
     const requestedSlug = normalizeSlugInput(data.slug);
     let slug = existing.slug;
 
@@ -234,6 +264,11 @@ export async function PUT(request: Request) {
         }),
         galleryUrls: data.galleryUrls ?? [],
         specialties: toOptional(data.specialties),
+        ...(listingCommunityBadgeIds !== undefined && {
+          listingCommunityBadges: {
+            set: listingCommunityBadgeIds.map((badgeId) => ({ id: badgeId })),
+          },
+        }),
       },
     });
 

@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { SITE_NAME } from "@/lib/constants";
 import { OrganizerMarketForm } from "@/components/organizer-market-form";
+import { getListingCommunityBadgeOptions } from "@/lib/listing-community-badges";
 import { getNeighborhoodOptions } from "@/lib/neighborhoods";
 import { notFound } from "next/navigation";
 import { prismaListingToOnboardingFormDefaults } from "@/lib/validations/organizer-onboarding";
@@ -23,11 +24,12 @@ export default async function OrganizerMarketEditPage({
   const session = await requireRole("ORGANIZER");
   const { id } = await params;
 
-  const [market, neighborhoods] = await Promise.all([
+  const [market, neighborhoods, listingCommunityBadgeOptions] = await Promise.all([
     db.market.findUnique({
       where: { id },
       include: {
         venue: { select: { name: true } },
+        listingCommunityBadges: { select: { id: true } },
         memberships: {
           where: { role: { in: ["OWNER", "MANAGER"] } },
           select: { userId: true },
@@ -35,6 +37,7 @@ export default async function OrganizerMarketEditPage({
       },
     }),
     getNeighborhoodOptions(),
+    getListingCommunityBadgeOptions(),
   ]);
 
   if (!market) notFound();
@@ -64,6 +67,9 @@ export default async function OrganizerMarketEditPage({
     typicalSchedule: market.typicalSchedule ?? "",
     contactEmail: market.contactEmail ?? "",
     contactPhone: market.contactPhone ?? "",
+    listingCommunityBadgeIds: market.listingCommunityBadges.map(
+      (badge) => badge.id
+    ),
     ...prismaListingToOnboardingFormDefaults(market as unknown as Record<string, unknown>),
   };
 
@@ -88,6 +94,7 @@ export default async function OrganizerMarketEditPage({
         marketId={id}
         initialData={initialData as OrganizerMarketPatchInput}
         neighborhoods={neighborhoods}
+        listingCommunityBadgeOptions={listingCommunityBadgeOptions}
       />
     </div>
   );

@@ -44,6 +44,41 @@ describe("vendorProfileSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("accepts community badge ids when at or below max", () => {
+    const result = vendorProfileSchema.safeParse({
+      ...validInput,
+      listingCommunityBadgeIds: [
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects more than 8 community badge ids", () => {
+    const result = vendorProfileSchema.safeParse({
+      ...validInput,
+      listingCommunityBadgeIds: [
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("adminVendorProfileSchema", () => {

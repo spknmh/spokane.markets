@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { assertListingCommunityBadgeIds } from "@/lib/listing-community-badges";
 import { assertNeighborhoodSlug } from "@/lib/neighborhoods";
 import { organizerManageMarketWhere } from "@/lib/market-membership";
 import { organizerMarketPatchSchema } from "@/lib/validations";
@@ -57,6 +58,24 @@ export async function PUT(
   }
 
   const data = parsed.data;
+  let listingCommunityBadgeIds: string[] | undefined;
+  if (data.listingCommunityBadgeIds !== undefined) {
+    try {
+      listingCommunityBadgeIds = await assertListingCommunityBadgeIds(
+        data.listingCommunityBadgeIds
+      );
+    } catch (err) {
+      return NextResponse.json(
+        {
+          error: {
+            message:
+              err instanceof Error ? err.message : "Invalid community badges",
+          },
+        },
+        { status: 400 }
+      );
+    }
+  }
   let baseArea: string | null;
   try {
     baseArea = await assertNeighborhoodSlug(data.baseArea, "baseArea");
@@ -90,6 +109,11 @@ export async function PUT(
       typicalSchedule: data.typicalSchedule ?? null,
       contactEmail: data.contactEmail || null,
       contactPhone: data.contactPhone ?? null,
+      ...(listingCommunityBadgeIds !== undefined && {
+        listingCommunityBadges: {
+          set: listingCommunityBadgeIds.map((badgeId) => ({ id: badgeId })),
+        },
+      }),
       ...onboarding,
     },
   });

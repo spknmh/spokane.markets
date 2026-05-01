@@ -26,6 +26,7 @@ import type { VerificationStatus } from "@prisma/client";
 import { SITE_NAME } from "@/lib/constants";
 import { organizerOnboardingDisplayEnabled } from "@/lib/feature-flags";
 import { MediaFrame } from "@/components/media";
+import { CommunityBadgeChips } from "@/components/community-badge-chips";
 
 export const dynamic = "force-dynamic";
 
@@ -157,6 +158,14 @@ export default async function MarketDetailPage({ params }: PageProps) {
               </Badge>
             )}
           </div>
+          {market.listingCommunityBadges.length > 0 && (
+            <div className="mb-6 space-y-2">
+              <CommunityBadgeChips badges={market.listingCommunityBadges} />
+              <p className="text-xs text-muted-foreground">
+                Inclusion badges are self-identified by the organizer.
+              </p>
+            </div>
+          )}
 
           {market.description && (
             <div className="mb-8">

@@ -30,12 +30,17 @@ import {
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
 import { GalleryImageDropzone } from "@/components/vendor/gallery-image-dropzone";
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
+import type { ListingCommunityBadgeOption } from "@/lib/listing-community-badges";
 
 interface VendorProfileFormProps {
   initialData?: VendorProfileInput & { id?: string };
+  listingCommunityBadgeOptions: ListingCommunityBadgeOption[];
 }
 
-export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
+export function VendorProfileForm({
+  initialData,
+  listingCommunityBadgeOptions,
+}: VendorProfileFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = React.useState<string | null>(null);
   const isEditing = !!initialData?.id;
@@ -66,6 +71,8 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
           heroImageFocalY: initialData.heroImageFocalY ?? 50,
           contactVisible: initialData.contactVisible ?? false,
           socialLinksVisible: initialData.socialLinksVisible ?? false,
+          listingCommunityBadgeIds:
+            initialData.listingCommunityBadgeIds ?? [],
         }
       : {
           businessName: "",
@@ -89,6 +96,7 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
           galleryUrls: [],
           galleryUrlsText: "",
           specialties: "",
+          listingCommunityBadgeIds: [],
         },
   });
 
@@ -257,6 +265,37 @@ export function VendorProfileForm({ initialData }: VendorProfileFormProps) {
               rows={2}
               {...register("specialties")}
             />
+          </div>
+
+          <div className="rounded-lg border border-border bg-muted/20 p-4">
+            <p className="text-sm font-medium text-foreground">
+              Community trust badges
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Select badges that reflect your business and community identity.
+              These are self-identified.
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {listingCommunityBadgeOptions.map((badge) => (
+                <label
+                  key={badge.id}
+                  className="flex cursor-pointer items-start gap-2 rounded-md border border-border bg-background/80 px-3 py-2"
+                >
+                  <input
+                    type="checkbox"
+                    value={badge.id}
+                    className="mt-0.5 rounded border-border"
+                    {...register("listingCommunityBadgeIds")}
+                  />
+                  <span className="text-sm">{badge.name}</span>
+                </label>
+              ))}
+            </div>
+            {errors.listingCommunityBadgeIds && (
+              <p className="mt-2 text-sm text-destructive">
+                {errors.listingCommunityBadgeIds.message as string}
+              </p>
+            )}
           </div>
 
           <div className="rounded-lg border border-border bg-muted/20 p-4">

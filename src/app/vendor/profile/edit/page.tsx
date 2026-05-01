@@ -2,15 +2,20 @@ import { requireAuth } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { extractSocialHandle } from "@/lib/utils";
 import { VendorProfileForm } from "@/components/vendor/vendor-profile-form";
+import { getListingCommunityBadgeOptions } from "@/lib/listing-community-badges";
 
 export const dynamic = "force-dynamic";
 
 export default async function VendorProfileEditPage() {
   const session = await requireAuth("/vendor/profile/edit");
 
-  const profile = await db.vendorProfile.findUnique({
-    where: { userId: session.user.id },
-  });
+  const [profile, listingCommunityBadgeOptions] = await Promise.all([
+    db.vendorProfile.findUnique({
+      where: { userId: session.user.id },
+      include: { listingCommunityBadges: { select: { id: true } } },
+    }),
+    getListingCommunityBadgeOptions(),
+  ]);
 
   const initialData = profile
     ? {
@@ -40,6 +45,9 @@ export default async function VendorProfileEditPage() {
         galleryUrls: profile.galleryUrls ?? [],
         galleryUrlsText: (profile.galleryUrls ?? []).join("\n"),
         specialties: profile.specialties ?? "",
+        listingCommunityBadgeIds: profile.listingCommunityBadges.map(
+          (badge) => badge.id
+        ),
       }
     : undefined;
 
@@ -48,7 +56,10 @@ export default async function VendorProfileEditPage() {
       <h1 className="mb-6 text-3xl font-bold tracking-tight">
         {profile ? "Edit Vendor Profile" : "Create Vendor Profile"}
       </h1>
-      <VendorProfileForm initialData={initialData} />
+      <VendorProfileForm
+        initialData={initialData}
+        listingCommunityBadgeOptions={listingCommunityBadgeOptions}
+      />
     </div>
   );
 }

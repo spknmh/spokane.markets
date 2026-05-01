@@ -17,17 +17,20 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { OrganizerOnboardingFieldsGroup } from "@/components/organizer-onboarding-fields";
 import { organizerOnboardingReadinessHints } from "@/lib/validations/organizer-onboarding";
+import type { ListingCommunityBadgeOption } from "@/lib/listing-community-badges";
 
 interface OrganizerMarketFormProps {
   marketId: string;
   initialData: OrganizerMarketPatchInput;
   neighborhoods: NeighborhoodOption[];
+  listingCommunityBadgeOptions: ListingCommunityBadgeOption[];
 }
 
 export function OrganizerMarketForm({
   marketId,
   initialData,
   neighborhoods,
+  listingCommunityBadgeOptions,
 }: OrganizerMarketFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -155,6 +158,36 @@ export function OrganizerMarketForm({
           <Label htmlFor="contactPhone">Contact Phone</Label>
           <PhoneInput id="contactPhone" {...register("contactPhone")} />
         </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-muted/20 p-4">
+        <p className="text-sm font-medium text-foreground">
+          Community trust badges
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Self-identified badges shown publicly on your market profile.
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {listingCommunityBadgeOptions.map((badge) => (
+            <label
+              key={badge.id}
+              className="flex cursor-pointer items-start gap-2 rounded-md border border-border bg-background/80 px-3 py-2"
+            >
+              <input
+                type="checkbox"
+                value={badge.id}
+                className="mt-0.5 rounded border-border"
+                {...register("listingCommunityBadgeIds")}
+              />
+              <span className="text-sm">{badge.name}</span>
+            </label>
+          ))}
+        </div>
+        {errors.listingCommunityBadgeIds && (
+          <p className="mt-2 text-sm text-destructive">
+            {errors.listingCommunityBadgeIds.message as string}
+          </p>
+        )}
       </div>
 
       {readinessHints.length > 0 && (

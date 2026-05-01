@@ -18,6 +18,7 @@ import { formatNeighborhoodLabel } from "@/lib/utils";
 import type { VerificationStatus } from "@prisma/client";
 import { MarketsSearch } from "@/components/markets-search";
 import { MediaFrame } from "@/components/media";
+import { CommunityBadgeChips } from "@/components/community-badge-chips";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +69,10 @@ export default async function MarketsPage({
       include: {
         baseAreaRef: {
           select: { label: true },
+        },
+        listingCommunityBadges: {
+          orderBy: { sortOrder: "asc" },
+          select: { id: true, slug: true, name: true, icon: true },
         },
       },
     }),
@@ -177,6 +182,9 @@ export default async function MarketsPage({
                 )}
               </CardHeader>
               <CardContent className="space-y-2">
+                {market.listingCommunityBadges.length > 0 && (
+                  <CommunityBadgeChips badges={market.listingCommunityBadges} limit={2} />
+                )}
                 {market.typicalSchedule && (
                   <div className="flex items-start gap-2 text-sm text-foreground">
                     <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />

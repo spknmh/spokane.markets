@@ -20,6 +20,7 @@ import { VendorSocialLinks } from "@/components/vendor-social-links";
 import { VendorsSearch } from "@/components/vendor/vendors-search";
 import { VendorOfWeekCard } from "@/components/vendor/vendor-of-week-card";
 import { VendorVerifiedBadge } from "@/components/vendor/vendor-verified-badge";
+import { CommunityBadgeChips } from "@/components/community-badge-chips";
 import { getVendorOfWeek } from "@/lib/vendor-of-week";
 import { MediaFrame } from "@/components/media";
 import { VENDOR_PROFILE_INTENT_STATUSES } from "@/lib/vendor-public-events";
@@ -66,7 +67,13 @@ export default async function VendorsPage({
     db.vendorProfile.findMany({
       where,
       orderBy: { businessName: "asc" },
-      include: { _count: { select: { favoriteVendors: true } } },
+      include: {
+        _count: { select: { favoriteVendors: true } },
+        listingCommunityBadges: {
+          orderBy: { sortOrder: "asc" },
+          select: { id: true, slug: true, name: true, icon: true },
+        },
+      },
       skip: (page - 1) * limit,
       take: limit,
     }),
@@ -263,6 +270,14 @@ export default async function VendorsPage({
                       <VendorVerifiedBadge status={vendor.verificationStatus} />
                     </div>
                   </div>
+                  {vendor.listingCommunityBadges.length > 0 && (
+                    <div className="mt-2">
+                      <CommunityBadgeChips
+                        badges={vendor.listingCommunityBadges}
+                        limit={2}
+                      />
+                    </div>
+                  )}
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-0.5 text-sm tabular-nums text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5">
                       <CalendarDays className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />

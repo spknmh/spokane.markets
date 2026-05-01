@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_LISTING_COMMUNITY_BADGES } from "@/lib/listing-community-badges";
 import {
   imageUrlSchema,
   neighborhoodSlugSchema,
@@ -30,6 +31,13 @@ export const marketSchema = z
     publicIntentListEnabled: z.boolean().optional(),
     publicIntentNamesEnabled: z.boolean().optional(),
     publicRosterEnabled: z.boolean().optional(),
+    listingCommunityBadgeIds: z
+      .array(z.string().min(1))
+      .max(
+        MAX_LISTING_COMMUNITY_BADGES,
+        `Select at most ${MAX_LISTING_COMMUNITY_BADGES} community badges`
+      )
+      .optional(),
     complianceFlagged: z.boolean().optional(),
     complianceNotes: z.string().max(10000).optional().or(z.literal("")),
   })
@@ -52,6 +60,13 @@ export const organizerMarketPatchSchema = z
     typicalSchedule: z.string().optional(),
     contactEmail: z.string().email().optional().or(z.literal("")),
     contactPhone: z.string().optional(),
+    listingCommunityBadgeIds: z
+      .array(z.string().min(1))
+      .max(
+        MAX_LISTING_COMMUNITY_BADGES,
+        `Select at most ${MAX_LISTING_COMMUNITY_BADGES} community badges`
+      )
+      .optional(),
   })
   .merge(organizerOnboardingFieldsSchema);
 export type OrganizerMarketPatchInput = z.infer<typeof organizerMarketPatchSchema>;
@@ -77,6 +92,13 @@ export const organizerMarketCreateSchema = z
     publicIntentListEnabled: z.boolean().optional(),
     publicIntentNamesEnabled: z.boolean().optional(),
     publicRosterEnabled: z.boolean().optional(),
+    listingCommunityBadgeIds: z
+      .array(z.string().min(1))
+      .max(
+        MAX_LISTING_COMMUNITY_BADGES,
+        `Select at most ${MAX_LISTING_COMMUNITY_BADGES} community badges`
+      )
+      .optional(),
   })
   .merge(organizerOnboardingFieldsSchema);
 export type OrganizerMarketCreateInput = z.infer<typeof organizerMarketCreateSchema>;
