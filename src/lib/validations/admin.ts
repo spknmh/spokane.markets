@@ -35,7 +35,7 @@ export const venueSchema = z.object({
   zip: z.string().min(5, "ZIP code is required"),
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
-  neighborhood: neighborhoodSlugSchema.optional(),
+  neighborhood: neighborhoodSlugSchema.optional().or(z.literal("")),
   parkingNotes: z.string().optional(),
 });
 

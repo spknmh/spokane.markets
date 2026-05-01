@@ -17,7 +17,7 @@ import {
   parseAdminEventsSort,
   type AdminEventsSortField,
 } from "@/lib/admin/events-list-order";
-import { ArrowDown, ArrowUp, ArrowUpDown, Recycle } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -255,7 +255,10 @@ export default async function AdminEventsPage({
               </tr>
             ) : (
               events.map((event) => (
-                <AdminEventTableRow key={event.id} eventId={event.id}>
+                <AdminEventTableRow
+                  key={event.id}
+                  href={`/admin/events/${event.id}/edit`}
+                >
                   <td className="p-3 font-medium">{event.title}</td>
                   <td className="p-3 text-muted-foreground">
                     {formatDateRangeInTimezone(event.startDate, event.endDate, null)}
@@ -289,7 +292,7 @@ export default async function AdminEventsPage({
                         confirmLabel="Archive"
                         pendingLabel="Archiving..."
                         iconOnly
-                        icon={Recycle}
+                        iconName="recycle"
                       />
                     )}
                     </div>

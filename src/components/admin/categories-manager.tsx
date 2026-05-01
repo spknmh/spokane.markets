@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, X } from "lucide-react";
+import { ArrowDownAZ, ArrowUpAZ, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DeleteButton } from "@/components/admin/action-buttons";
@@ -41,6 +41,19 @@ export function CategoriesManager({
   const [editFeatureIcon, setEditFeatureIcon] = useState("");
   const [tagEditSubmitting, setTagEditSubmitting] = useState(false);
   const [featureEditSubmitting, setFeatureEditSubmitting] = useState(false);
+  const [tagSortDir, setTagSortDir] = useState<"asc" | "desc">("asc");
+  const [featureSortDir, setFeatureSortDir] = useState<"asc" | "desc">("asc");
+
+  const sortedTags = [...tags].sort((a, b) =>
+    tagSortDir === "asc"
+      ? a.name.localeCompare(b.name)
+      : b.name.localeCompare(a.name)
+  );
+  const sortedFeatures = [...features].sort((a, b) =>
+    featureSortDir === "asc"
+      ? a.name.localeCompare(b.name)
+      : b.name.localeCompare(a.name)
+  );
 
   const addTag = async () => {
     const name = tagName.trim();
@@ -228,12 +241,31 @@ export function CategoriesManager({
           >
             {tagSubmitting ? "Adding…" : "Add"}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setTagSortDir((prev) => (prev === "asc" ? "desc" : "asc"))}
+            className="inline-flex items-center gap-1.5"
+          >
+            {tagSortDir === "asc" ? (
+              <>
+                <ArrowUpAZ className="h-4 w-4" />
+                A-Z
+              </>
+            ) : (
+              <>
+                <ArrowDownAZ className="h-4 w-4" />
+                Z-A
+              </>
+            )}
+          </Button>
         </div>
         {tagError && (
           <p className="mt-2 text-sm text-destructive">{tagError}</p>
         )}
         <ul className="mt-4 space-y-2">
-          {tags.map((tag) => (
+          {sortedTags.map((tag) => (
             <li
               key={tag.id}
               className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2"
@@ -279,20 +311,17 @@ export function CategoriesManager({
                 </>
               ) : (
                 <>
-                  <span className="font-medium">{tag.name}</span>
-                  <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => startEditTag(tag)}
+                    className="font-medium text-left"
+                  >
+                    {tag.name}
+                  </button>
+                  <div className="flex items-center gap-2" data-row-action>
                     <span className="text-xs text-muted-foreground">
                       {tag.slug} · {tag._count.events} events
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={() => startEditTag(tag)}
-                      aria-label={`Edit ${tag.name}`}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
                     <DeleteButton
                       action={() => deleteTag(tag.id)}
                       title="Delete event type"
@@ -342,12 +371,33 @@ export function CategoriesManager({
           >
             {featureSubmitting ? "Adding…" : "Add"}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setFeatureSortDir((prev) => (prev === "asc" ? "desc" : "asc"))
+            }
+            className="inline-flex items-center gap-1.5"
+          >
+            {featureSortDir === "asc" ? (
+              <>
+                <ArrowUpAZ className="h-4 w-4" />
+                A-Z
+              </>
+            ) : (
+              <>
+                <ArrowDownAZ className="h-4 w-4" />
+                Z-A
+              </>
+            )}
+          </Button>
         </div>
         {featureError && (
           <p className="mt-2 text-sm text-destructive">{featureError}</p>
         )}
         <ul className="mt-4 space-y-2">
-          {features.map((feature) => (
+          {sortedFeatures.map((feature) => (
             <li
               key={feature.id}
               className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2"
@@ -399,23 +449,18 @@ export function CategoriesManager({
                 </>
               ) : (
                 <>
-                  <span className="font-medium">
+                  <button
+                    type="button"
+                    onClick={() => startEditFeature(feature)}
+                    className="font-medium text-left"
+                  >
                     {feature.icon && <span className="mr-1">{feature.icon}</span>}
                     {feature.name}
-                  </span>
-                  <div className="flex items-center gap-2">
+                  </button>
+                  <div className="flex items-center gap-2" data-row-action>
                     <span className="text-xs text-muted-foreground">
                       {feature.slug} · {feature._count.events} events
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={() => startEditFeature(feature)}
-                      aria-label={`Edit ${feature.name}`}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
                     <DeleteButton
                       action={() => deleteFeature(feature.id)}
                       title="Delete feature/amenity"

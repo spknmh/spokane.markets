@@ -4,14 +4,12 @@ import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 interface AdminEventTableRowProps {
-  eventId: string;
+  href: string;
   children: ReactNode;
 }
 
-export function AdminEventTableRow({ eventId, children }: AdminEventTableRowProps) {
+export function AdminEventTableRow({ href, children }: AdminEventTableRowProps) {
   const router = useRouter();
-
-  const href = `/admin/events/${eventId}/edit`;
 
   function shouldIgnoreTarget(target: EventTarget | null) {
     if (!(target instanceof HTMLElement)) return false;

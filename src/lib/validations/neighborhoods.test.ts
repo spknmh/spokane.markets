@@ -42,6 +42,21 @@ describe("neighborhood-related validation", () => {
     expect(result.success).toBe(false);
   });
 
+  it("accepts blank venue neighborhood", () => {
+    const result = venueSchema.safeParse({
+      name: "Venue",
+      address: "123 Main St",
+      city: "Spokane",
+      state: "WA",
+      zip: "99201",
+      lat: 47.6,
+      lng: -117.4,
+      neighborhood: "",
+      parkingNotes: "",
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("rejects invalid market baseArea slug", () => {
     const result = marketSchema.safeParse({
       name: "Market",

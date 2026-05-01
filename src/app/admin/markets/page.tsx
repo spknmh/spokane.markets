@@ -4,11 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DeleteButton, StatusButton } from "@/components/admin/action-buttons";
+import { AdminEventTableRow } from "@/components/admin/admin-event-table-row";
 import { Pagination } from "@/components/pagination";
 import { deleteMarket, restoreMarket, verifyMarket } from "../actions";
 import Link from "next/link";
 import type { VerificationStatus } from "@prisma/client";
 import { parseAdminPagination, parseFlag, parseQuery } from "@/lib/admin/table-query";
+import {
+  buildAdminMarketsOrderBy,
+  parseAdminMarketsSort,
+  type AdminMarketsSortField,
+} from "@/lib/admin/markets-list-order";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +28,14 @@ const verificationVariant: Record<VerificationStatus, "secondary" | "default" | 
 export default async function AdminMarketsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; limit?: string; archived?: string; q?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    limit?: string;
+    archived?: string;
+    q?: string;
+    sort?: string;
+    dir?: string;
+  }>;
 }) {
   await requireAdmin();
 
@@ -29,6 +43,10 @@ export default async function AdminMarketsPage({
   const { page, limit } = parseAdminPagination(params);
   const archived = parseFlag(params.archived);
   const q = parseQuery(params.q);
+  const { sort, dir } = parseAdminMarketsSort({
+    sort: params.sort,
+    dir: params.dir,
+  });
   const where = {
     ...(archived ? {} : { deletedAt: null }),
     ...(q
@@ -54,7 +72,7 @@ export default async function AdminMarketsPage({
     db.market.count({ where }),
     db.market.findMany({
       where,
-      orderBy: { name: "asc" },
+      orderBy: buildAdminMarketsOrderBy({ sort, dir }),
       include: {
         _count: { select: { events: true } },
         owner: { select: { name: true, email: true } },
@@ -65,13 +83,61 @@ export default async function AdminMarketsPage({
   ]);
   const totalPages = Math.ceil(total / limit);
 
+  function buildMarketsHref(overrides: {
+    page?: string;
+    limit?: string;
+    archived?: string;
+    q?: string;
+    sort?: string;
+    dir?: string;
+  }) {
+    const next = {
+      page: page > 1 ? String(page) : undefined,
+      limit: params.limit,
+      archived: archived ? "1" : undefined,
+      q: q || undefined,
+      sort,
+      dir,
+      ...overrides,
+    };
+    const qp = new URLSearchParams();
+    if (next.page) qp.set("page", next.page);
+    if (next.limit) qp.set("limit", next.limit);
+    if (next.archived) qp.set("archived", next.archived);
+    if (next.q) qp.set("q", next.q);
+    if (next.sort) qp.set("sort", next.sort);
+    if (next.dir) qp.set("dir", next.dir);
+    const qs = qp.toString();
+    return qs ? `/admin/markets?${qs}` : "/admin/markets";
+  }
+
+  function buildSortHref(column: AdminMarketsSortField) {
+    const nextDir = sort === column && dir === "asc" ? "desc" : "asc";
+    return buildMarketsHref({ sort: column, dir: nextDir, page: "1" });
+  }
+
+  function renderSortIcon(column: AdminMarketsSortField) {
+    if (sort !== column) return <ArrowUpDown className="h-3.5 w-3.5" aria-hidden />;
+    return dir === "asc" ? (
+      <ArrowUp className="h-3.5 w-3.5" aria-hidden />
+    ) : (
+      <ArrowDown className="h-3.5 w-3.5" aria-hidden />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Markets</h1>
         <div className="flex items-center gap-2">
           <Button asChild variant={archived ? "default" : "outline"}>
-            <Link href={archived ? "/admin/markets" : "/admin/markets?archived=1"}>
+            <Link
+              href={
+                archived
+                  ? buildMarketsHref({ archived: undefined, page: "1" })
+                  : buildMarketsHref({ archived: "1", page: "1" })
+              }
+            >
               {archived ? "Hide archived" : "Show archived"}
             </Link>
           </Button>
@@ -84,6 +150,9 @@ export default async function AdminMarketsPage({
       <form className="flex items-center gap-2">
         <Input name="q" defaultValue={q} placeholder="Search market, slug, owner..." />
         {archived && <input type="hidden" name="archived" value="1" />}
+        {params.sort && <input type="hidden" name="sort" value={params.sort} />}
+        {params.dir && <input type="hidden" name="dir" value={params.dir} />}
+        {params.limit && <input type="hidden" name="limit" value={params.limit} />}
         <Button type="submit" variant="outline">Search</Button>
         <Button type="button" variant="outline" asChild>
           <Link
@@ -98,12 +167,42 @@ export default async function AdminMarketsPage({
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              <th className="text-left p-3 font-medium">Name</th>
-              <th className="text-left p-3 font-medium">Area</th>
-              <th className="text-left p-3 font-medium">Owner</th>
-              <th className="text-left p-3 font-medium">Status</th>
-              <th className="text-left p-3 font-medium">Ownership</th>
-              <th className="text-left p-3 font-medium">Events</th>
+              <th className="text-left p-3 font-medium">
+                <Link href={buildSortHref("name")} className="inline-flex items-center gap-1.5 hover:text-foreground">
+                  Name
+                  {renderSortIcon("name")}
+                </Link>
+              </th>
+              <th className="text-left p-3 font-medium">
+                <Link href={buildSortHref("baseArea")} className="inline-flex items-center gap-1.5 hover:text-foreground">
+                  Area
+                  {renderSortIcon("baseArea")}
+                </Link>
+              </th>
+              <th className="text-left p-3 font-medium">
+                <Link href={buildSortHref("owner")} className="inline-flex items-center gap-1.5 hover:text-foreground">
+                  Owner
+                  {renderSortIcon("owner")}
+                </Link>
+              </th>
+              <th className="text-left p-3 font-medium">
+                <Link href={buildSortHref("verificationStatus")} className="inline-flex items-center gap-1.5 hover:text-foreground">
+                  Status
+                  {renderSortIcon("verificationStatus")}
+                </Link>
+              </th>
+              <th className="text-left p-3 font-medium">
+                <Link href={buildSortHref("managed")} className="inline-flex items-center gap-1.5 hover:text-foreground">
+                  Ownership
+                  {renderSortIcon("managed")}
+                </Link>
+              </th>
+              <th className="text-left p-3 font-medium">
+                <Link href={buildSortHref("events")} className="inline-flex items-center gap-1.5 hover:text-foreground">
+                  Events
+                  {renderSortIcon("events")}
+                </Link>
+              </th>
               <th className="text-right p-3 font-medium">Actions</th>
             </tr>
           </thead>
@@ -116,7 +215,7 @@ export default async function AdminMarketsPage({
               </tr>
             ) : (
               markets.map((market) => (
-                <tr key={market.id} className="hover:bg-muted/30">
+                <AdminEventTableRow key={market.id} href={`/admin/markets/${market.id}/edit`}>
                   <td className="p-3 font-medium">{market.name}</td>
                   <td className="p-3 text-muted-foreground">
                     {market.baseArea ?? "—"}
@@ -140,16 +239,14 @@ export default async function AdminMarketsPage({
                   <td className="p-3 text-muted-foreground">
                     {market._count.events}
                   </td>
-                  <td className="p-3 text-right space-x-2">
+                  <td className="p-3 text-right">
+                    <div className="flex items-center justify-end gap-2" data-row-action>
                     {market.verificationStatus !== "VERIFIED" && !market.deletedAt && (
                       <StatusButton
                         action={verifyMarket.bind(null, market.id)}
                         label="Verify"
                       />
                     )}
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/admin/markets/${market.id}/edit`}>Edit</Link>
-                    </Button>
                     {market.deletedAt ? (
                       <StatusButton
                         action={restoreMarket.bind(null, market.id)}
@@ -162,10 +259,15 @@ export default async function AdminMarketsPage({
                         title="Archive market"
                         description={`Archive "${market.name}"? You can restore it later from archived markets.`}
                         label="Archive"
+                        confirmLabel="Archive"
+                        pendingLabel="Archiving..."
+                        iconOnly
+                        iconName="recycle"
                       />
                     )}
+                    </div>
                   </td>
-                </tr>
+                </AdminEventTableRow>
               ))
             )}
           </tbody>

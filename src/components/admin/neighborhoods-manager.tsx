@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, X } from "lucide-react";
+import { ArrowDownAZ, ArrowUpAZ, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DeleteButton } from "@/components/admin/action-buttons";
@@ -36,9 +36,12 @@ export function NeighborhoodsManager({
   const [editSlug, setEditSlug] = useState("");
   const [editIsActive, setEditIsActive] = useState(true);
   const [editingSubmitting, setEditingSubmitting] = useState(false);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const sorted = [...neighborhoods].sort((a, b) =>
-    a.label.localeCompare(b.label)
+    sortDir === "asc"
+      ? a.label.localeCompare(b.label)
+      : b.label.localeCompare(a.label)
   );
 
   const addNeighborhood = async () => {
@@ -205,6 +208,25 @@ export function NeighborhoodsManager({
         <Button onClick={addNeighborhood} disabled={submitting || !label.trim()}>
           {submitting ? "Adding..." : "Add"}
         </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setSortDir((prev) => (prev === "asc" ? "desc" : "asc"))}
+          className="inline-flex items-center gap-1.5"
+        >
+          {sortDir === "asc" ? (
+            <>
+              <ArrowUpAZ className="h-4 w-4" />
+              A-Z
+            </>
+          ) : (
+            <>
+              <ArrowDownAZ className="h-4 w-4" />
+              Z-A
+            </>
+          )}
+        </Button>
       </div>
 
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
@@ -264,7 +286,11 @@ export function NeighborhoodsManager({
               </>
             ) : (
               <>
-                <div>
+                <button
+                  type="button"
+                  onClick={() => startEdit(row)}
+                  className="text-left"
+                >
                   <p className="font-medium">
                     {row.label}
                     {!row.isActive && (
@@ -277,17 +303,8 @@ export function NeighborhoodsManager({
                     slug: {row.slug} · venues:{" "}
                     {row._count.venues} · markets: {row._count.markets}
                   </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => startEdit(row)}
-                    aria-label={`Edit ${row.label}`}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                </button>
+                <div className="flex items-center gap-2" data-row-action>
                   <DeleteButton
                     action={async () => removeNeighborhood(row)}
                     title="Delete neighborhood"

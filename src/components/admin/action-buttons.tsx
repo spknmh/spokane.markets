@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTransition } from "react";
 import type { AnalyticsParams } from "@/lib/analytics";
 import { trackEvent } from "@/lib/analytics";
-import { Trash2, type LucideIcon } from "lucide-react";
+import { Recycle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,7 +23,7 @@ export function DeleteButton({
   confirmLabel = "Delete",
   pendingLabel = "Deleting...",
   iconOnly = false,
-  icon: Icon = Trash2,
+  iconName = "trash",
 }: {
   action: () => Promise<void>;
   label?: string;
@@ -32,7 +32,7 @@ export function DeleteButton({
   confirmLabel?: string;
   pendingLabel?: string;
   iconOnly?: boolean;
-  icon?: LucideIcon;
+  iconName?: "trash" | "recycle";
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -43,6 +43,8 @@ export function DeleteButton({
       setOpen(false);
     });
   }
+
+  const Icon = iconName === "recycle" ? Recycle : Trash2;
 
   return (
     <>
