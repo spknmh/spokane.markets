@@ -1,6 +1,5 @@
 import type { ComponentProps } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { CommunityBadgeChips } from "@/components/community-badge-chips";
 import { EventCard } from "@/components/event/event-card";
 import { MediaFrame } from "@/components/media";
 import type { VendorProfileTab } from "@/components/vendor/vendor-profile-tabs";
@@ -12,12 +11,6 @@ interface VendorProfileRightContentProps {
   vendorName: string;
   description: string | null;
   galleryUrls: string[];
-  listingCommunityBadges: Array<{
-    id: string;
-    slug: string;
-    name: string;
-    icon: string | null;
-  }>;
   upcomingEvents: EventCardEvent[];
   pastEvents: EventCardEvent[];
 }
@@ -27,24 +20,11 @@ export function VendorProfileRightContent({
   vendorName,
   description,
   galleryUrls,
-  listingCommunityBadges,
   upcomingEvents,
   pastEvents,
 }: VendorProfileRightContentProps) {
   return (
     <section className="min-w-0 flex-1 space-y-6">
-      {listingCommunityBadges.length > 0 && (
-        <Card>
-          <CardContent className="space-y-2 p-4 sm:p-5">
-            <p className="text-sm font-medium">Community badges</p>
-            <CommunityBadgeChips badges={listingCommunityBadges} />
-            <p className="text-xs text-muted-foreground">
-              Community badges are self-identified by this business.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
       {activeTab === "about" && (
         <Card>
           <CardContent className="p-5">

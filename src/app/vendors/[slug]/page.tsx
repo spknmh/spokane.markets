@@ -187,7 +187,7 @@ export default async function VendorProfilePage({ params, searchParams }: PagePr
 
       <VendorProfileTabs slug={vendor.slug} activeTab={activeTab} />
 
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
+      <div className="mt-4 flex flex-col gap-8 sm:mt-5 lg:mt-6 lg:flex-row lg:items-start lg:gap-10">
         <VendorProfileLeftRail
           vendorId={vendor.id}
           primaryCategory={vendor.primaryCategory}
@@ -198,13 +198,13 @@ export default async function VendorProfilePage({ params, searchParams }: PagePr
           websiteUrl={publicVendor.websiteUrl}
           facebookUrl={publicVendor.facebookUrl}
           instagramUrl={publicVendor.instagramUrl}
+          listingCommunityBadges={vendor.listingCommunityBadges}
         />
         <VendorProfileRightContent
           activeTab={activeTab}
           vendorName={vendor.businessName}
           description={vendor.description}
           galleryUrls={vendor.galleryUrls ?? []}
-          listingCommunityBadges={vendor.listingCommunityBadges}
           upcomingEvents={upcomingEvents}
           pastEvents={pastEvents}
         />
