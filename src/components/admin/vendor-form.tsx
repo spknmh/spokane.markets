@@ -21,9 +21,12 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
 } from "@/components/ui/card";
 import { ImageUploadWithUrl } from "@/components/image-upload-with-url";
+import {
+  AdminStickyActionBar,
+  AdminTwoColumnFormLayout,
+} from "@/components/admin/admin-form-layout";
 import {
   UserSearchSelect,
   type UserOption,
@@ -135,7 +138,7 @@ export function AdminVendorForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-24">
       <Card>
         <CardHeader>
           <CardTitle>
@@ -148,286 +151,294 @@ export function AdminVendorForm({
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent>
           {serverError && (
-            <div className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="mb-4 rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
               {serverError}
             </div>
           )}
-
-          <div className="space-y-2">
-            <Label htmlFor="businessName">Business Name *</Label>
-            <Input
-              id="businessName"
-              placeholder="e.g. Sunshine Farm Produce"
-              {...register("businessName")}
-            />
-            {errors.businessName && (
-              <p className="text-sm text-destructive">
-                {errors.businessName.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="slug">Slug</Label>
-            <div className="flex gap-2">
-              <Input
-                id="slug"
-                placeholder={suggestedSlug}
-                {...register("slug")}
-                className="font-mono"
-              />
-              {!isEditing && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSlugFromName}
-                >
-                  From name
-                </Button>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              URL path: /vendors/[slug]. Lowercase letters, numbers, hyphens only.
-              Leave empty to auto-generate.
-            </p>
-            {errors.slug && (
-              <p className="text-sm text-destructive">{errors.slug.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Official vendor (user account)</Label>
-            <UserSearchSelect
-              value={userId ?? null}
-              onChange={(id) => setValue("userId", id)}
-              allowVendorId={initialData?.id}
-              initialUser={initialData?.user ?? null}
-              placeholder="Search by name or email..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="verificationStatus">Verification status</Label>
-            <select
-              id="verificationStatus"
-              className="flex h-10 w-full max-w-md rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              {...register("verificationStatus")}
-            >
-              <option value="UNVERIFIED">Unverified</option>
-              <option value="PENDING">Pending</option>
-              <option value="VERIFIED">Verified</option>
-            </select>
-            <p className="text-xs text-muted-foreground">
-              Verified vendors display a public badge on listings and their profile.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Tell customers what you sell..."
-              rows={4}
-              {...register("description")}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="specialties">Specialties</Label>
-            <Textarea
-              id="specialties"
-              placeholder="e.g. Organic vegetables, artisan bread"
-              rows={2}
-              {...register("specialties")}
-            />
-          </div>
-
-          <div className="rounded-lg border border-border bg-muted/20 p-4">
-            <p className="text-sm font-medium text-foreground">
-              Community trust badges
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Self-identified badges shown on public vendor profiles.
-            </p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {listingCommunityBadgeOptions.map((badge) => (
-                <label
-                  key={badge.id}
-                  className="flex cursor-pointer items-start gap-2 rounded-md border border-border bg-background/80 px-3 py-2"
-                >
-                  <input
-                    type="checkbox"
-                    value={badge.id}
-                    className="mt-0.5 rounded border-border"
-                    {...register("listingCommunityBadgeIds")}
+          <AdminTwoColumnFormLayout
+            main={
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="businessName">Business Name *</Label>
+                  <Input
+                    id="businessName"
+                    placeholder="e.g. Sunshine Farm Produce"
+                    {...register("businessName")}
                   />
-                  <span className="text-sm">{badge.name}</span>
-                </label>
-              ))}
-            </div>
-            {listingCommunityBadgeOptions.length === 0 && (
-              <p className="mt-2 text-xs text-muted-foreground">
-                No community badges exist yet. Add them in `/admin/badges`.
-              </p>
-            )}
-            {errors.listingCommunityBadgeIds && (
-              <p className="mt-2 text-sm text-destructive">
-                {errors.listingCommunityBadgeIds.message as string}
-              </p>
-            )}
-          </div>
+                  {errors.businessName && (
+                    <p className="text-sm text-destructive">
+                      {errors.businessName.message}
+                    </p>
+                  )}
+                </div>
 
-          <ImageUploadWithUrl
-            value={imageUrl ?? ""}
-            onChange={(url) => setValue("imageUrl", url)}
-            uploadType="vendor"
-            disabled={isSubmitting}
-            label="Profile image"
-            aspectRatio="square"
+                <div className="space-y-2">
+                  <Label htmlFor="slug">Slug</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="slug"
+                      placeholder={suggestedSlug}
+                      {...register("slug")}
+                      className="font-mono"
+                    />
+                    {!isEditing && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSlugFromName}
+                      >
+                        From name
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    URL path: /vendors/[slug]. Lowercase letters, numbers, hyphens only.
+                    Leave empty to auto-generate.
+                  </p>
+                  {errors.slug && (
+                    <p className="text-sm text-destructive">{errors.slug.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Official vendor (user account)</Label>
+                  <UserSearchSelect
+                    value={userId ?? null}
+                    onChange={(id) => setValue("userId", id)}
+                    allowVendorId={initialData?.id}
+                    initialUser={initialData?.user ?? null}
+                    placeholder="Search by name or email..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Tell customers what you sell..."
+                    rows={4}
+                    {...register("description")}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="specialties">Specialties</Label>
+                  <Textarea
+                    id="specialties"
+                    placeholder="e.g. Organic vegetables, artisan bread"
+                    rows={2}
+                    {...register("specialties")}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="primaryCategory">Primary category</Label>
+                    <Input id="primaryCategory" {...register("primaryCategory")} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="serviceAreaLabel">Service area</Label>
+                    <Input id="serviceAreaLabel" {...register("serviceAreaLabel")} />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-6">
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={contactVisible ?? false}
+                      onChange={(e) => setValue("contactVisible", e.target.checked)}
+                      className="rounded border-border"
+                    />
+                    <span className="text-sm">Contact info visible</span>
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={socialLinksVisible ?? false}
+                      onChange={(e) => setValue("socialLinksVisible", e.target.checked)}
+                      className="rounded border-border"
+                    />
+                    <span className="text-sm">Social links visible</span>
+                  </label>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail">Contact Email</Label>
+                    <Input
+                      id="contactEmail"
+                      type="email"
+                      placeholder="contact@example.com"
+                      {...register("contactEmail")}
+                    />
+                    {errors.contactEmail && (
+                      <p className="text-sm text-destructive">
+                        {errors.contactEmail.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="contactPhone">Contact Phone</Label>
+                    <PhoneInput id="contactPhone" {...register("contactPhone")} />
+                    {errors.contactPhone && (
+                      <p className="text-sm text-destructive">
+                        {errors.contactPhone.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="galleryUrlsText">Gallery Images</Label>
+                  <Textarea
+                    id="galleryUrlsText"
+                    placeholder="One image URL per line (/uploads/... or https://...)"
+                    rows={3}
+                    {...register("galleryUrlsText")}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Site uploads use paths starting with /uploads/ — these are preserved when you save.
+                  </p>
+                </div>
+              </>
+            }
+            aside={
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="verificationStatus">Verification status</Label>
+                  <select
+                    id="verificationStatus"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    {...register("verificationStatus")}
+                  >
+                    <option value="UNVERIFIED">Unverified</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="VERIFIED">Verified</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground">
+                    Verified vendors display a public badge on listings and their profile.
+                  </p>
+                </div>
+
+                <ImageUploadWithUrl
+                  value={imageUrl ?? ""}
+                  onChange={(url) => setValue("imageUrl", url)}
+                  uploadType="vendor"
+                  disabled={isSubmitting}
+                  label="Profile image"
+                  aspectRatio="square"
+                />
+                {errors.imageUrl && (
+                  <p className="text-sm text-destructive">{errors.imageUrl.message}</p>
+                )}
+
+                <div className="space-y-2">
+                  <Label>Cover image (optional)</Label>
+                  <ImageUploadWithUrl
+                    value={heroImageUrl ?? ""}
+                    onChange={(url) => setValue("heroImageUrl", url)}
+                    uploadType="vendor"
+                    disabled={isSubmitting}
+                    label="Cover image"
+                    aspectRatio="banner"
+                  />
+                </div>
+
+                <div className="rounded-lg border border-border bg-muted/20 p-4">
+                  <p className="text-sm font-medium text-foreground">
+                    Community trust badges
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Self-identified badges shown on public vendor profiles.
+                  </p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {listingCommunityBadgeOptions.map((badge) => (
+                      <label
+                        key={badge.id}
+                        className="flex cursor-pointer items-start gap-2 rounded-md border border-border bg-background/80 px-3 py-2"
+                      >
+                        <input
+                          type="checkbox"
+                          value={badge.id}
+                          className="mt-0.5 rounded border-border"
+                          {...register("listingCommunityBadgeIds")}
+                        />
+                        <span className="text-sm">{badge.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {listingCommunityBadgeOptions.length === 0 && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      No community badges exist yet. Add them in `/admin/badges`.
+                    </p>
+                  )}
+                  {errors.listingCommunityBadgeIds && (
+                    <p className="mt-2 text-sm text-destructive">
+                      {errors.listingCommunityBadgeIds.message as string}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-1">
+                  <div className="space-y-2">
+                    <Label htmlFor="websiteUrl">Website</Label>
+                    <Input
+                      id="websiteUrl"
+                      type="text"
+                      placeholder="www.example.com or https://..."
+                      {...register("websiteUrl")}
+                    />
+                    {errors.websiteUrl && (
+                      <p className="text-sm text-destructive">
+                        {errors.websiteUrl.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="facebookUrl">Facebook username</Label>
+                    <Input
+                      id="facebookUrl"
+                      type="text"
+                      placeholder="username"
+                      {...register("facebookUrl")}
+                    />
+                    {errors.facebookUrl && (
+                      <p className="text-sm text-destructive">
+                        {errors.facebookUrl.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="instagramUrl">Instagram username</Label>
+                    <Input
+                      id="instagramUrl"
+                      type="text"
+                      placeholder="username"
+                      {...register("instagramUrl")}
+                    />
+                    {errors.instagramUrl && (
+                      <p className="text-sm text-destructive">
+                        {errors.instagramUrl.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </>
+            }
           />
-          {errors.imageUrl && (
-            <p className="text-sm text-destructive">{errors.imageUrl.message}</p>
-          )}
-
-          <div className="space-y-2">
-            <Label>Cover image (optional)</Label>
-            <ImageUploadWithUrl
-              value={heroImageUrl ?? ""}
-              onChange={(url) => setValue("heroImageUrl", url)}
-              uploadType="vendor"
-              disabled={isSubmitting}
-              label="Cover image"
-              aspectRatio="banner"
-            />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="primaryCategory">Primary category</Label>
-              <Input id="primaryCategory" {...register("primaryCategory")} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="serviceAreaLabel">Service area</Label>
-              <Input id="serviceAreaLabel" {...register("serviceAreaLabel")} />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-6">
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={contactVisible ?? false}
-                onChange={(e) => setValue("contactVisible", e.target.checked)}
-                className="rounded border-border"
-              />
-              <span className="text-sm">Contact info visible</span>
-            </label>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={socialLinksVisible ?? false}
-                onChange={(e) => setValue("socialLinksVisible", e.target.checked)}
-                className="rounded border-border"
-              />
-              <span className="text-sm">Social links visible</span>
-            </label>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="contactEmail">Contact Email</Label>
-              <Input
-                id="contactEmail"
-                type="email"
-                placeholder="contact@example.com"
-                {...register("contactEmail")}
-              />
-              {errors.contactEmail && (
-                <p className="text-sm text-destructive">
-                  {errors.contactEmail.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="contactPhone">Contact Phone</Label>
-              <PhoneInput
-                id="contactPhone"
-                {...register("contactPhone")}
-              />
-              {errors.contactPhone && (
-                <p className="text-sm text-destructive">
-                  {errors.contactPhone.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="galleryUrlsText">Gallery Images</Label>
-            <Textarea
-              id="galleryUrlsText"
-              placeholder="One image URL per line (/uploads/... or https://...)"
-              rows={3}
-              {...register("galleryUrlsText")}
-            />
-            <p className="text-xs text-muted-foreground">
-              Site uploads use paths starting with /uploads/ — these are preserved when you save.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="websiteUrl">Website</Label>
-              <Input
-                id="websiteUrl"
-                type="text"
-                placeholder="www.example.com or https://..."
-                {...register("websiteUrl")}
-              />
-              {errors.websiteUrl && (
-                <p className="text-sm text-destructive">
-                  {errors.websiteUrl.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="facebookUrl">Facebook username</Label>
-              <Input
-                id="facebookUrl"
-                type="text"
-                placeholder="username"
-                {...register("facebookUrl")}
-              />
-              {errors.facebookUrl && (
-                <p className="text-sm text-destructive">
-                  {errors.facebookUrl.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="instagramUrl">Instagram username</Label>
-              <Input
-                id="instagramUrl"
-                type="text"
-                placeholder="username"
-                {...register("instagramUrl")}
-              />
-              {errors.instagramUrl && (
-                <p className="text-sm text-destructive">
-                  {errors.instagramUrl.message}
-                </p>
-              )}
-            </div>
-          </div>
         </CardContent>
+      </Card>
 
-        <CardFooter className="flex justify-between">
-          <Button type="button" variant="ghost" onClick={() => router.back()}>
+      <AdminStickyActionBar>
+        <div className="flex flex-wrap justify-end gap-3">
+          <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
@@ -437,8 +448,8 @@ export function AdminVendorForm({
                 ? "Update Profile"
                 : "Create Profile"}
           </Button>
-        </CardFooter>
-      </Card>
+        </div>
+      </AdminStickyActionBar>
     </form>
   );
 }

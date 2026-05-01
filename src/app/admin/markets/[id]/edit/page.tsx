@@ -71,7 +71,7 @@ export default async function EditMarketPage({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Edit Market</h1>
       <MarketForm
         initialData={initialData as MarketInput & { id: string }}

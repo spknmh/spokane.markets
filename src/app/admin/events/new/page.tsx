@@ -15,7 +15,7 @@ export default async function NewEventPage() {
   ]);
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Create Event</h1>
       <EventForm
         venues={venues}

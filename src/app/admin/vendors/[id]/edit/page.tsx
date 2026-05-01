@@ -64,7 +64,7 @@ export default async function EditVendorPage({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Edit Vendor</h1>
       <AdminVendorForm
         initialData={initialData}

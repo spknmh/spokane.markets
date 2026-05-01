@@ -9,7 +9,7 @@ export default async function NewVendorPage() {
   const listingCommunityBadgeOptions = await getListingCommunityBadgeOptions();
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Create Vendor</h1>
       <AdminVendorForm listingCommunityBadgeOptions={listingCommunityBadgeOptions} />
     </div>
