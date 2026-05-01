@@ -342,21 +342,21 @@ async function main() {
     { slug: "vendor_50_events", name: "50 Events Linked", description: "Linked to 50 events", icon: "Trophy", category: "USER_ACHIEVEMENT" as const, requiredRole: "VENDOR" as const, criteria: { type: "vendor_events_count", min: 50 }, sortOrder: 8 },
     { slug: "organizer_1yr", name: "1 Year Organizer", description: "Organizer for 1 year", icon: "Calendar", category: "USER_ACHIEVEMENT" as const, requiredRole: "ORGANIZER" as const, criteria: { type: "organizer_years", years: 1 }, sortOrder: 9 },
     { slug: "organizer_5_markets", name: "5 Markets", description: "Own 5 verified markets", icon: "Building2", category: "USER_ACHIEVEMENT" as const, requiredRole: "ORGANIZER" as const, criteria: { type: "owned_markets_count", min: 5 }, sortOrder: 10 },
-    { slug: "lgbtqia_welcoming", name: "LGBTQIA+ welcoming", description: "Welcoming and affirming", icon: "HeartHandshake", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, criteria: null, sortOrder: 100 },
-    { slug: "women_owned", name: "Women-owned", description: "Owner or operator identifies as a woman", icon: "Users", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, criteria: null, sortOrder: 101 },
-    { slug: "veteran_owned", name: "Veteran-owned", description: "Owned or operated by a veteran", icon: "Medal", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, criteria: null, sortOrder: 102 },
-    { slug: "black_owned_business", name: "Black-owned business", description: "Owned or operated by Black entrepreneurs", icon: "Flag", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, criteria: null, sortOrder: 103 },
-    { slug: "latine_hispanic_owned", name: "Latine- or Hispanic-owned", description: "Owned or operated by Latine or Hispanic entrepreneurs", icon: "Globe2", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, criteria: null, sortOrder: 104 },
-    { slug: "aapi_owned", name: "AAPI-owned", description: "Owned or operated by Asian American and Pacific Islander entrepreneurs", icon: "Flower2", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, criteria: null, sortOrder: 105 },
-    { slug: "indigenous_owned", name: "Indigenous-owned", description: "Owned or operated by Indigenous entrepreneurs", icon: "Trees", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, criteria: null, sortOrder: 106 },
-    { slug: "disability_inclusive", name: "Disability-inclusive", description: "Explicitly committed to disability inclusion and accessibility", icon: "Accessibility", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, criteria: null, sortOrder: 107 },
+    { slug: "lgbtqia_welcoming", name: "LGBTQIA+ welcoming", description: "Welcoming and affirming", icon: "HeartHandshake", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, sortOrder: 100 },
+    { slug: "women_owned", name: "Women-owned", description: "Owner or operator identifies as a woman", icon: "Users", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, sortOrder: 101 },
+    { slug: "veteran_owned", name: "Veteran-owned", description: "Owned or operated by a veteran", icon: "Medal", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, sortOrder: 102 },
+    { slug: "black_owned_business", name: "Black-owned business", description: "Owned or operated by Black entrepreneurs", icon: "Flag", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, sortOrder: 103 },
+    { slug: "latine_hispanic_owned", name: "Latine- or Hispanic-owned", description: "Owned or operated by Latine or Hispanic entrepreneurs", icon: "Globe2", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, sortOrder: 104 },
+    { slug: "aapi_owned", name: "AAPI-owned", description: "Owned or operated by Asian American and Pacific Islander entrepreneurs", icon: "Flower2", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, sortOrder: 105 },
+    { slug: "indigenous_owned", name: "Indigenous-owned", description: "Owned or operated by Indigenous entrepreneurs", icon: "Trees", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, sortOrder: 106 },
+    { slug: "disability_inclusive", name: "Disability-inclusive", description: "Explicitly committed to disability inclusion and accessibility", icon: "Accessibility", category: "LISTING_COMMUNITY" as const, requiredRole: "GLOBAL" as const, sortOrder: 107 },
   ];
 
   for (const b of badgeDefinitions) {
     await prisma.badgeDefinition.upsert({
       where: { slug: b.slug },
       create: b,
-      update: { name: b.name, description: b.description, icon: b.icon, category: b.category, requiredRole: b.requiredRole, criteria: b.criteria as object | null, sortOrder: b.sortOrder },
+      update: { name: b.name, description: b.description, icon: b.icon, category: b.category, requiredRole: b.requiredRole, criteria: b.criteria ?? undefined, sortOrder: b.sortOrder },
     });
   }
 

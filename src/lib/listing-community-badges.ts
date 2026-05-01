@@ -1,7 +1,6 @@
 import { db } from "@/lib/db";
 import type { BadgeDefinition } from "@prisma/client";
-
-export const MAX_LISTING_COMMUNITY_BADGES = 8;
+import { MAX_LISTING_COMMUNITY_BADGES } from "@/lib/listing-community-badge-constants";
 
 export type ListingCommunityBadgeOption = Pick<
   BadgeDefinition,

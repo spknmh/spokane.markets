@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_LISTING_COMMUNITY_BADGES } from "@/lib/listing-community-badges";
+import { MAX_LISTING_COMMUNITY_BADGES } from "@/lib/listing-community-badge-constants";
 import {
   imageUrlSchema,
   neighborhoodSlugSchema,

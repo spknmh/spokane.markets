@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { GALLERY_URL_MAX, isAllowedGalleryImageUrl } from "@/lib/gallery-urls";
-import { MAX_LISTING_COMMUNITY_BADGES } from "@/lib/listing-community-badges";
+import { MAX_LISTING_COMMUNITY_BADGES } from "@/lib/listing-community-badge-constants";
 import {
   imageUrlSchema,
   flexibleUrlSchema,
