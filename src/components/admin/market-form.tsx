@@ -244,6 +244,11 @@ export function MarketForm({
             </label>
           ))}
         </div>
+        {listingCommunityBadgeOptions.length === 0 && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            No community badges exist yet. Add them in `/admin/badges`.
+          </p>
+        )}
         {errors.listingCommunityBadgeIds && (
           <p className="mt-2 text-sm text-destructive">
             {errors.listingCommunityBadgeIds.message as string}

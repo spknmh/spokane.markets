@@ -28,6 +28,7 @@ import {
   Megaphone,
   Tag,
   WandSparkles,
+  BadgeCheck,
 } from "lucide-react";
 
 type NavItem = { label: string; href: string; icon: React.ComponentType<{ className?: string }> };
@@ -55,6 +56,7 @@ const navGroups: NavGroup[] = [
       { label: "Events", href: "/admin/events", icon: Calendar },
       { label: "Vendors", href: "/admin/vendors", icon: ShoppingBag },
       { label: "Markets", href: "/admin/markets", icon: Store },
+      { label: "Community Badges", href: "/admin/badges", icon: BadgeCheck },
       { label: "Venues", href: "/admin/venues", icon: MapPin },
       { label: "Neighborhoods", href: "/admin/neighborhoods", icon: MapPin },
       { label: "Tags & Features", href: "/admin/tags", icon: Tag },
